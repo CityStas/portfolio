@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Дмитрий О. - AI-Native Developer / Full-Stack AI Engineer</title>
+<meta name="description" content="AI-продукты полного цикла: исследование моделей, прототип, backend, деплой. Плюс собственные игры на Godot и three.js.">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#08090c">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Дмитрий О. — AI-Native Developer">
+<meta property="og:description" content="AI-продукты полного цикла. Плюс собственные игры на Godot и three.js.">
+<meta property="og:image" content="assets/img/og.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="preload" as="image" href="assets/img/projects/shrooms.jpg">
+<link rel="preload" as="image" href="assets/img/projects/bubblepeaks.jpg">
+<link rel="stylesheet" href="assets/fonts/handjet.css">
+<link rel="stylesheet" href="assets/css/style.css">
+<script>
+  // Тему ставим до первой отрисовки, иначе мигает светлым.
+  try {
+    var t = localStorage.getItem('theme');
+    if (t) document.documentElement.setAttribute('data-theme', t);
+  } catch (e) {}
+</script>
+</head>
+<body>
+
+<div class="progress" aria-hidden="true"><i id="progressBar"></i></div>
+
+<a class="skip" href="#main">Перейти к содержимому</a>
+
+<header class="hdr" id="top">
+  <div class="wrap hdr__in">
+    <div class="hdr__brand">
+      <button class="logo" id="logoBtn" type="button" aria-expanded="false" aria-controls="navMenu" title="Меню разделов">
+        <img class="logo__mark" src="assets/img/logo.png" alt="" width="34" height="34" aria-hidden="true">
+        <span data-site="name">Дмитрий О.</span>
+        <svg class="logo__caret" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+
+      <nav class="nav" id="navMenu" aria-label="Разделы сайта" hidden>
+        <a href="#projects" data-num="01">Проекты</a>
+        <a href="#stack" data-num="02">Стек</a>
+        <a href="#about" data-num="03">О себе</a>
+        <a href="#contact" data-num="04">Контакты</a>
+      </nav>
+    </div>
+
+    <div class="hdr__act">
+      <button class="iconbtn" id="themeBtn" type="button" aria-label="Переключить тему" title="Светлая / тёмная тема">
+        <svg class="ico ico--sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.6v2.6M12 18.8v2.6M2.6 12h2.6M18.8 12h2.6M5.4 5.4l1.8 1.8M16.8 16.8l1.8 1.8M18.6 5.4l-1.8 1.8M7.2 16.8l-1.8 1.8"/></svg>
+        <svg class="ico ico--moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.2A8.4 8.4 0 0 1 9.8 4a8.6 8.6 0 1 0 10.2 10.2z"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+
+  <section class="sec sec--lead" id="projects">
+    <div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
+    <div class="wrap">
+      <h1 class="lead__h reveal">AI-Native Developer / Full-Stack AI Engineer</h1>
+      <h2 class="sec__h reveal"><span class="sec__num">01</span>Проекты</h2>
+      <div class="grid" id="grid"></div>
+    </div>
+  </section>
+
+  <section class="sec" id="stack">
+    <div class="wrap">
+      <h2 class="sec__h reveal"><span class="sec__num">02</span>Стек</h2>
+      <div class="stack" id="stackList"></div>
+    </div>
+  </section>
+
+  <section class="sec" id="about">
+    <div class="wrap">
+      <h2 class="sec__h reveal"><span class="sec__num">03</span>О себе</h2>
+      <div class="about">
+        <div class="about__txt reveal" id="aboutTxt"></div>
+        <dl class="facts reveal" id="facts"></dl>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="contact">
+    <div class="wrap">
+      <h2 class="sec__h reveal"><span class="sec__num">04</span>Контакты*</h2>
+      <p class="contact__lead reveal">*Быстрее всего отвечаю в Telegram.</p>
+      <div class="links reveal" id="links"></div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="ftr">
+  <div class="wrap ftr__in">
+    <span>&copy; <span id="year">2026</span> <span data-site="name">Дмитрий О.</span></span>
+    <span class="ftr__note"><button class="totop" id="totop" type="button">Наверх ↑</button></span>
+  </div>
+</footer>
+
+<!-- Просмотр превью в полный размер -->
+<div class="lb" id="lb" role="dialog" aria-modal="true" aria-label="Просмотр проекта" hidden>
+  <div class="lb__back" data-lb-close></div>
+  <button class="lb__x" type="button" aria-label="Закрыть" data-lb-close>&times;</button>
+  <button class="lb__nav lb__nav--prev" type="button" aria-label="Предыдущий проект" id="lbPrev">&#8249;</button>
+  <button class="lb__nav lb__nav--next" type="button" aria-label="Следующий проект" id="lbNext">&#8250;</button>
+  <figure class="lb__fig">
+    <img id="lbImg" alt="">
+    <figcaption class="lb__cap">
+      <div class="lb__txt">
+        <h3 id="lbTitle"></h3>
+        <p id="lbDesc"></p>
+      </div>
+      <a class="btn btn--primary lb__go" id="lbGo" href="#" target="_blank" rel="noopener">
+        <span id="lbGoTxt">Открыть сайт</span>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg>
+      </a>
+    </figcaption>
+  </figure>
+</div>
+
+<!-- Демо в окне монитора: рамка нарисована на CSS, игра идёт в iframe внутри неё.
+     Размер стекла ограничен 720p — движок растягивает canvas по кадру, так что
+     это не только вид, но и меньше пикселей на кадр. -->
+<div class="demo" id="demo" role="dialog" aria-modal="true" aria-label="Демо проекта" hidden>
+  <div class="demo__back" data-demo-close></div>
+
+  <div class="demo__ui">
+    <span class="demo__name" id="demoTitle"></span>
+    <a class="demo__ext" id="demoExt" href="#" target="_blank" rel="noopener">
+      <span>В новой вкладке</span>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg>
+    </a>
+    <button class="demo__x" type="button" aria-label="Закрыть демо" data-demo-close>&times;</button>
+  </div>
+
+  <div class="demo__mon" id="demoMon">
+    <div class="demo__bezel">
+      <div class="demo__screen" id="demoScreen">
+        <p class="demo__fail" id="demoFail" hidden>
+          Демо не загрузилось. <a id="demoFailLink" href="#" target="_blank" rel="noopener">Открыть в новой вкладке</a>.
+        </p>
+      </div>
+      <span class="demo__led" aria-hidden="true"></span>
+    </div>
+    <div class="demo__stand" aria-hidden="true"></div>
+  </div>
+</div>
+
+<script src="assets/data/projects.js"></script>
+<script src="assets/js/app.js"></script>
+</body>
+</html>

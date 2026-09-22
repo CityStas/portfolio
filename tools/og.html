@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../assets/fonts/handjet.css">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 1200px; height: 630px; overflow: hidden; position: relative;
+    background: #08090c; color: #eef2f7;
+    font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .glow { position: absolute; border-radius: 50%; filter: blur(80px); }
+  .g1 { width: 620px; height: 620px; left: -140px; top: -240px; background: radial-gradient(circle, rgba(124,156,255,.55), transparent 68%); }
+  .g2 { width: 520px; height: 520px; right: -120px; top: -140px; background: radial-gradient(circle, rgba(185,140,255,.5), transparent 68%); }
+  .g3 { width: 460px; height: 460px; left: 46%; bottom: -260px; background: radial-gradient(circle, rgba(110,231,215,.38), transparent 68%); }
+  .grid {
+    position: absolute; inset: 0; opacity: .5;
+    background-image:
+      linear-gradient(rgba(255,255,255,.07) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.07) 1px, transparent 1px);
+    background-size: 68px 68px;
+    -webkit-mask-image: radial-gradient(110% 90% at 50% 0%, #000 20%, transparent 78%);
+    mask-image: radial-gradient(110% 90% at 50% 0%, #000 20%, transparent 78%);
+  }
+  .in { position: relative; z-index: 2; padding: 62px 72px; height: 100%; display: flex; flex-direction: column; }
+
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 10px; align-self: flex-start;
+    padding: 8px 16px; border: 1px solid rgba(255,255,255,.12); border-radius: 999px;
+    background: rgba(15,18,23,.7); color: #97a3b4; font-size: 15px; font-weight: 500;
+  }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: #4ade80; box-shadow: 0 0 0 5px rgba(74,222,128,.18); }
+
+  .name { display: flex; align-items: center; gap: 22px; margin: 26px 0 8px; }
+  .mark {
+    width: 88px; height: 88px; flex: none; border-radius: 50%; object-fit: cover;
+    box-shadow: 0 0 0 1px rgba(255,255,255,.18), 0 0 40px -8px rgba(124,156,255,.8);
+  }
+  h1 {
+    font-family: 'Handjet', -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    font-size: 104px; line-height: 1; letter-spacing: .045em; font-weight: 600;
+    background: linear-gradient(180deg, #eef2f7 32%, #7f8797);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .role { font-size: 25px; font-weight: 550; letter-spacing: -.015em; color: #6ee7d7; }
+  .lead { margin-top: 16px; max-width: 66ch; font-size: 18px; color: #97a3b4; }
+
+  .shots { margin-top: auto; display: flex; gap: 14px; }
+  .shots img {
+    flex: 1; height: 168px; object-fit: cover; border-radius: 12px;
+    border: 1px solid rgba(255,255,255,.12);
+  }
+  .foot {
+    margin-top: 20px; display: flex; justify-content: space-between; align-items: center;
+    font: 500 15px/1 ui-monospace, Consolas, monospace; color: #6b7686;
+  }
+</style>
+</head>
+<body>
+  <div class="glow g1"></div><div class="glow g2"></div><div class="glow g3"></div>
+  <div class="grid"></div>
+
+  <div class="in">
+    <span class="eyebrow"><span class="dot"></span>Рассматриваю предложения</span>
+    <div class="name">
+      <img class="mark" src="../assets/img/logo.png" alt="">
+      <h1>Дмитрий О.</h1>
+    </div>
+    <div class="role">AI-Native Developer / Full-Stack AI Engineer</div>
+    <p class="lead">AI-продукты полного цикла: исследование моделей, прототип, backend, деплой. Отдельно — свои игры на Godot и three.js.</p>
+
+    <div class="shots">
+      <img src="../assets/img/projects/shrooms.jpg" alt="">
+      <img src="../assets/img/projects/bubblepeaks.jpg" alt="">
+      <img src="../assets/img/projects/lilcraft.jpg" alt="">
+    </div>
+    <div class="foot"><span>портфолио</span><span>Godot · three.js · LLM</span></div>
+  </div>
+</body>
+</html>

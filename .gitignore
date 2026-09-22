@@ -1,0 +1,17 @@
+# служебное
+_preview/
+node_modules/
+package.json
+package-lock.json
+# рабочие файлы ассистента: заметки по проекту и отложенные исходники.
+# Здесь же лежит резервная копия резюме — в публичный репозиторий ей нельзя.
+.workbuddy-ai/
+
+# ос
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# редакторы
+.vscode/
+.idea/

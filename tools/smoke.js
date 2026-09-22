@@ -1,0 +1,268 @@
+// Смоук-тест вёрстки: грузим index.html в jsdom и проверяем, что всё отрендерилось.
+// Запуск из корня проекта:  npm i jsdom && node tools/smoke.js
+const fs = require('fs');
+const path = require('path');
+const { JSDOM, VirtualConsole } = require('jsdom');
+
+const root = path.resolve(__dirname, '..');
+
+const errors = [];
+const vc = new VirtualConsole();
+vc.on('jsdomError', e => errors.push('jsdomError: ' + e.message));
+vc.on('error', (...a) => errors.push('console.error: ' + a.join(' ')));
+
+const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+
+const dom = new JSDOM(html, {
+  runScripts: 'dangerously',
+  virtualConsole: vc,
+  url: 'http://localhost/',
+  pretendToBeVisual: true
+});
+
+// Ресурсы не грузим — вставляем скрипты вручную, в том же порядке, что в HTML
+const doc = dom.window.document;
+for (const src of ['assets/data/projects.js', 'assets/js/app.js']) {
+  const s = doc.createElement('script');
+  s.textContent = fs.readFileSync(path.join(root, src), 'utf8');
+  doc.body.appendChild(s);
+}
+doc.dispatchEvent(new dom.window.Event('DOMContentLoaded'));
+
+const q = sel => Array.from(doc.querySelectorAll(sel));
+const click = node => node.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true }));
+
+let bad = 0;
+function check(name, got, expected) {
+  const ok = got === expected;
+  if (!ok) bad++;
+  console.log((ok ? 'OK   ' : 'FAIL ') + name + ': ' + got + (ok ? '' : ' (ожидалось ' + expected + ')'));
+}
+
+// Идентификаторы не должны дублироваться: на этом уже ломался рендер стека
+const ids = q('[id]').map(n => n.id);
+const dupes = ids.filter((id, i) => ids.indexOf(id) !== i);
+check('дубликатов id', dupes.length, 0);
+if (dupes.length) console.log('       дубли: ' + dupes.join(', '));
+
+// Меню живёт под кликом по имени в шапке; отдельной строки навигации нет
+check('пунктов в меню', q('#navMenu a').length, 4);
+check('меню закрыто по умолчанию', doc.getElementById('navMenu').hidden, true);
+check('кнопки «Резюме» в шапке нет', q('#hdrCv').length, 0);
+
+// Hero-блок убран целиком: страница начинается с проектов
+check('hero-блока нет', q('.hero').length, 0);
+check('счётчиков нет', q('[data-count]').length, 0);
+check('первая секция — проекты', doc.querySelector('main > section').id, 'projects');
+
+// Дальше всё сверяем с данными (window.SITE / window.PROJECTS), а не с литералами:
+// контент правят часто и параллельно, тест падать от правки текста не должен.
+const S = dom.window.SITE || {};
+const P = dom.window.PROJECTS || [];
+
+// Крупный заголовок над проектами — вместо убранного hero
+const h1 = doc.querySelector('#projects .lead__h');
+check('роль крупным заголовком над проектами', h1 ? h1.textContent : null, S.role);
+check('h1 на странице ровно один', q('h1').length, 1);
+
+const cards = q('#grid .card');
+check('карточек проектов', cards.length, P.length);
+check('карточек с превью', q('#grid .card__shot img').length, P.filter(p => p.shot).length);
+check('заглушек без превью', q('#grid .card__shot--empty').length, P.filter(p => !p.shot).length);
+check('групп стека', q('#stackList .stack__grp').length, S.stack.length);
+check('чипов стека', q('#stackList .chip').length,
+      S.stack.reduce((n, g) => n + g.items.length, 0));
+check('строк фактов', q('#facts .facts__row').length, S.facts.length);
+check('контактов', q('#links .link').length,
+      ['telegram', 'email', 'hh', 'github'].filter(k => S[k]).length);
+check('абзацев «О себе»', q('#aboutTxt p').length, S.about.length);
+check('имя в шапке', doc.querySelector('.logo span[data-site]').textContent, S.name);
+check('логотип-картинка в шапке', doc.querySelectorAll('.logo img.logo__mark').length, 1);
+
+// Фильтры над проектами убраны совсем — ни разметки, ни заглушки «ничего не нашлось»
+check('чипов-фильтров нет', q('#filters, .fbtn, #empty, .sec__top').length, 0);
+
+// Скрытое по просьбе: Chattrix, бейджи «в сети», кнопка PDF
+check('блока Chattrix нет', q('#grid .card').some(c => /chattrix/i.test(c.textContent)), false);
+check('бейджей «в сети» нет', q('#grid .badge--live').length, 0);
+check('чипа LM Studio нет в стеке', q('#stackList .chip').some(c => c.textContent === 'LM Studio'), false);
+check('чип Bionic в стеке', q('#stackList .chip').some(c => c.textContent === 'Bionic'), true);
+check('факт «опыт»', doc.querySelector('#facts .facts__row dd').textContent, S.facts[0][1]);
+
+// ORFree AI — последняя карточка, RuStore главный, сайт рядом как веб-версия.
+// Все значения берём из данных: переименуют проект или сменят ссылку — тест не упадёт.
+const last = cards[cards.length - 1];
+const lastP = P[P.length - 1];
+const lastLinks = Array.from(last.querySelectorAll('.card__links a'));
+check('последняя карточка — из данных', last.querySelector('.card__t').textContent, lastP.title);
+check('последняя карточка: превью', last.querySelector('.card__shot img').getAttribute('src'), lastP.shot);
+check('последняя карточка: главная ссылка', lastLinks[0].getAttribute('href'), lastP.links.demo);
+check('последняя карточка: подпись главной ссылки', lastLinks[0].textContent.trim(), lastP.links.demoLabel);
+check('последняя карточка: ссылка на веб-версию', lastLinks[1].getAttribute('href'), lastP.links.web);
+check('последняя карточка: подпись веб-версии', lastLinks[1].textContent.trim(), 'Веб-версия');
+
+// Подпись главной кнопки берётся из данных, где задана (у игр — «Demo», у ORFree — «RuStore»)
+P.forEach((p, i) => {
+  const want = (p.links || {}).demoLabel;
+  if (!want) return;
+  const got = cards[i].querySelector('.card__links a.is-primary').textContent.trim();
+  check('подпись кнопки у «' + p.title + '»', got, want);
+});
+
+// Telegram / Почта / HH / GitHub — обязательны и именно в этом порядке
+const hrefs = q('#links .link').map(a => a.getAttribute('href'));
+check('есть telegram', hrefs.includes(S.telegram), true);
+check('есть github', hrefs.includes(S.github), true);
+
+// Почта: mailto из адреса в данных, без target и без download — иначе браузер
+// попытается скачать письмо файлом вместо открытия почтового клиента.
+const mail = q('#links .link').find(a => (a.getAttribute('href') || '').startsWith('mailto:'));
+check('почта: адрес из данных', mail && mail.getAttribute('href'), 'mailto:' + S.email);
+check('почта: без target', mail && mail.hasAttribute('target'), false);
+check('почта: без download', mail && mail.hasAttribute('download'), false);
+
+// Ссылка на HH должна быть настоящей, а не заглушкой
+const hhLink = hrefs.find(h => h.includes('hh.ru'));
+check('есть ссылка на HH', !!hhLink, true);
+check('ссылка на HH не заглушка', /^https:\/\/hh\.ru\/resume\/[0-9a-f]{8,}$/.test(hhLink || ''), true);
+
+// PDF-резюме удалено полностью: ни ссылки, ни файла
+check('ссылок на PDF нет', hrefs.some(h => /\.pdf/i.test(h)), false);
+check('файла assets/resume.pdf нет', fs.existsSync(path.join(root, 'assets/resume.pdf')), false);
+
+// Порядок контактов — из данных, а не из литерала. mailto приводим к тому же виду,
+// что и адреса: у него нет ни схемы //, ни пути.
+const host = u => u.replace(/^mailto:/, '').replace(/^https:\/\//, '').split('/')[0];
+check('порядок контактов', hrefs.map(host).join(' | '),
+      [S.telegram, 'mailto:' + S.email, S.hh, S.github].map(host).join(' | '));
+
+// Ни одного PDF в дереве сайта
+const pdfs = [];
+(function walk(d) {
+  for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+    const p = path.join(d, e.name);
+    if (e.isDirectory()) walk(p);
+    else if (/\.pdf$/i.test(e.name)) pdfs.push(path.relative(root, p));
+  }
+})(path.join(root, 'assets'));
+check('PDF в assets не осталось', pdfs.join(', '), '');
+
+// Лайтбокс: открыть, перейти вперёд, закрыть
+const lb = doc.getElementById('lb');
+click(cards[0].querySelector('.card__shot'));
+check('лайтбокс открылся', lb.hidden, false);
+check('лайтбокс: заголовок', doc.getElementById('lbTitle').textContent, P[0].title);
+click(doc.getElementById('lbNext'));
+check('лайтбокс: следующий проект', doc.getElementById('lbTitle').textContent, P[1].title);
+click(lb.querySelector('.lb__x'));
+check('лайтбокс закрылся', lb.hidden, true);
+
+// Подпись главной кнопки в лайтбоксе берётся из данных
+click(cards[cards.length - 1].querySelector('.card__shot'));
+check('лайтбокс: подпись главной кнопки', doc.getElementById('lbGoTxt').textContent, lastP.links.demoLabel);
+click(lb.querySelector('.lb__x'));
+
+// Демо в окне монитора. Вёрстки в jsdom нет, но логику перехвата клика и закрытия
+// проверить можно: окно jsdom 1024×768 даёт стекло ~540 px, то есть порог 430 пройден.
+const demo = doc.getElementById('demo');
+const embedded = P.map((p, i) => ({ i, p })).filter(x => (x.p.links || {}).demoEmbed);
+check('демо-окно есть в разметке', !!demo, true);
+check('демо-окно скрыто по умолчанию', demo.hidden, true);
+check('стекло экрана есть в разметке', !!doc.getElementById('demoScreen'), true);
+check('проекты с demoEmbed есть', embedded.length > 0, true);
+check('у каждого demoEmbed есть ссылка demo',
+      embedded.every(x => !!(x.p.links || {}).demo), true);
+
+const fire = node => {
+  const e = new dom.window.MouseEvent('click', { bubbles: true, cancelable: true });
+  node.dispatchEvent(e);
+  return e;
+};
+
+const embLink = cards[embedded[0].i].querySelector('a.is-primary');
+check('клик по Demo перехвачен (новая вкладка не открывается)', fire(embLink).defaultPrevented, true);
+check('демо-окно открылось', demo.hidden, false);
+const demoFrame = doc.getElementById('demoFrame');
+check('кадр демо создан', !!demoFrame, true);
+check('кадр ведёт на demo из данных',
+      demoFrame && demoFrame.getAttribute('src'), embedded[0].p.links.demo);
+check('подпись в демо-окне', doc.getElementById('demoTitle').textContent, embedded[0].p.title);
+check('прокрутка заблокирована', doc.body.style.overflow, 'hidden');
+
+doc.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+check('демо-окно закрылось по Escape', demo.hidden, true);
+check('кадр демо удалён (игра погашена)', !!doc.getElementById('demoFrame'), false);
+check('прокрутка освободилась', doc.body.style.overflow, '');
+
+// Проект без demoEmbed обязан вести себя как раньше — обычной ссылкой
+const plain = P.map((p, i) => ({ i, p }))
+  .find(x => (x.p.links || {}).demo && !(x.p.links || {}).demoEmbed);
+if (plain) {
+  const plainLink = cards[plain.i].querySelector('a.is-primary');
+  check('без demoEmbed клик не перехвачен', fire(plainLink).defaultPrevented, false);
+  check('без demoEmbed окно не открылось', demo.hidden, true);
+}
+
+// Меню в шапке: открыть кликом по имени, закрыть ссылкой, кликом мимо и Escape
+const logoBtn = doc.getElementById('logoBtn');
+const navMenu = doc.getElementById('navMenu');
+check('кнопка меню: aria-expanded в покое', logoBtn.getAttribute('aria-expanded'), 'false');
+click(logoBtn);
+check('клик по имени открывает меню', navMenu.hidden, false);
+check('кнопка меню: aria-expanded открыт', logoBtn.getAttribute('aria-expanded'), 'true');
+click(navMenu.querySelector('a'));
+check('клик по ссылке закрывает меню', navMenu.hidden, true);
+click(logoBtn);
+click(doc.body);
+check('клик мимо закрывает меню', navMenu.hidden, true);
+click(logoBtn);
+doc.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+check('Escape закрывает меню', navMenu.hidden, true);
+
+// Якоря меню ведут на существующие секции
+q('#navMenu a').forEach(a => {
+  const id = a.getAttribute('href').slice(1);
+  const ok = !!doc.getElementById(id);
+  if (!ok) bad++;
+  console.log((ok ? 'OK   ' : 'FAIL ') + 'якорь меню #' + id);
+});
+
+// Файлы на месте
+for (const rel of ['assets/css/style.css', 'assets/js/app.js', 'assets/data/projects.js',
+                   'assets/fonts/handjet.css', 'assets/fonts/handjet-cyrillic.woff2',
+                   'assets/img/favicon.svg', 'assets/img/logo.png',
+                   'assets/img/projects/shrooms.jpg', 'assets/img/projects/bubblepeaks.jpg',
+                   'assets/img/projects/lilcraft.jpg', 'assets/img/projects/bazaskate.jpg',
+                   'assets/img/projects/dubbed.jpg', 'assets/img/projects/rustore.jpg']) {
+  const ok = fs.existsSync(path.join(root, rel));
+  if (!ok) bad++;
+  console.log((ok ? 'OK   ' : 'FAIL ') + 'файл ' + rel);
+}
+
+// Все превью, указанные в данных, существуют
+P.forEach(p => {
+  if (!p.shot) return;
+  const ok = fs.existsSync(path.join(root, p.shot));
+  if (!ok) bad++;
+  console.log((ok ? 'OK   ' : 'FAIL ') + 'превью из данных: ' + p.shot);
+});
+
+// Шрифт заголовков: подгруппы cyrillic и latin вшиты в CSS как data: URI и идут
+// с font-display: block. Саму подмену шрифта видно только глазами — её ловит
+// tools/fout.js по кадрам, — а здесь проверяется механизм, который её исключает:
+// отдельного запроса нет (шрифт приезжает со стилём), и ни один кадр не может
+// быть отрисован системным шрифтом. Плюс у вшитых подгрупп не должно быть
+// preload: он бы тянул те же файлы вторым запросом и впустую.
+const fcss = fs.readFileSync(path.join(root, 'assets/fonts/handjet.css'), 'utf8');
+const faces = fcss.split('@font-face').slice(1);
+const inlined = faces.filter(b => /src:\s*url\(data:font\/woff2/.test(b));
+const byFile = faces.filter(b => /src:\s*url\(handjet-/.test(b));
+check('@font-face в handjet.css', faces.length, 4);
+check('подгрупп вшито в CSS', inlined.length, 2);
+check('вшитые подгруппы: font-display block', inlined.every(b => /font-display:\s*block/.test(b)), true);
+check('ссылочные подгруппы: font-display swap', byFile.every(b => /font-display:\s*swap/.test(b)), true);
+check('preload шрифта не нужен (шрифт уже в CSS)', q('link[rel=preload][as=font]').length, 0);
+
+if (errors.length) { bad++; console.log('ОШИБКИ В JS:\n' + errors.join('\n')); }
+console.log(bad === 0 ? '\nИТОГ: всё зелёное' : '\nИТОГ: проблем ' + bad);
+process.exit(bad === 0 ? 0 : 1);
