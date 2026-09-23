@@ -129,6 +129,8 @@ window.PROJECTS = [
       demoLabel: 'RuStore',
       demoIcon: 'store',
       web: 'https://orfree.vercel.app/',
+      tg: 'https://t.me/stas1620_bot',
+      tgLabel: 'Telegram-бот',
       repo: ''
     }
   }

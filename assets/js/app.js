@@ -146,7 +146,7 @@
     }
 
     var L = p.links || {};
-    if (L.demo || L.repo || L.web) {
+    if (L.demo || L.repo || L.web || L.tg) {
       var links = el('div', 'card__links');
       if (L.demo) {
         var d = el('a', 'is-primary');
@@ -164,6 +164,13 @@
         w.appendChild(svg(I.globe));
         w.appendChild(document.createTextNode('Веб-версия'));
         links.appendChild(w);
+      }
+      if (L.tg) {
+        var tg = el('a');
+        tg.href = L.tg; tg.target = '_blank'; tg.rel = 'noopener';
+        tg.appendChild(svg(I.tg));
+        tg.appendChild(document.createTextNode(L.tgLabel || 'Telegram-бот'));
+        links.appendChild(tg);
       }
       if (L.repo) {
         var r = el('a');

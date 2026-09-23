@@ -100,6 +100,8 @@ check('последняя карточка: главная ссылка', lastLi
 check('последняя карточка: подпись главной ссылки', lastLinks[0].textContent.trim(), lastP.links.demoLabel);
 check('последняя карточка: ссылка на веб-версию', lastLinks[1].getAttribute('href'), lastP.links.web);
 check('последняя карточка: подпись веб-версии', lastLinks[1].textContent.trim(), 'Веб-версия');
+check('последняя карточка: ссылка на Telegram-бота', lastLinks[2].getAttribute('href'), lastP.links.tg);
+check('последняя карточка: подпись Telegram-бота', lastLinks[2].textContent.trim(), lastP.links.tgLabel);
 
 // Подпись главной кнопки берётся из данных, где задана (у игр — «Demo», у ORFree — «RuStore»)
 P.forEach((p, i) => {
