@@ -1,4 +1,4 @@
-/* Рендерит og:image 1200×630 из tools/og.html в assets/img/og.jpg.
+/* Рендерит og:image 1200×630 из tools/og.html в assets/img/og-v2.jpg.
    Запуск (из корня проекта):
      PW_DIR="<путь к @playwright/mcp>" node tools/og.js
    Картинку в og.html править под себя: имя, роль, подпись и три превью внизу. */
@@ -13,7 +13,7 @@ const { chromium } = require(PW);
 
 const ROOT = path.resolve(__dirname, '..');
 const SRC = 'file:///' + path.join(ROOT, 'tools', 'og.html').replace(/\\/g, '/');
-const OUT = path.join(ROOT, 'assets', 'img', 'og.jpg');
+const OUT = path.join(ROOT, 'assets', 'img', 'og-v2.jpg');
 
 (async () => {
   const browser = await chromium.launch({ channel: 'chrome', args: ['--hide-scrollbars'] });
@@ -31,6 +31,6 @@ const OUT = path.join(ROOT, 'assets', 'img', 'og.jpg');
   await page.screenshot({ path: OUT, type: 'jpeg', quality: 90 });
   await browser.close();
 
-  console.log('og.jpg: ' + Math.round(fs.statSync(OUT).size / 1024) + ' KB, 1200x630' +
+  console.log('og-v2.jpg: ' + Math.round(fs.statSync(OUT).size / 1024) + ' KB, 1200x630' +
               (errs.length ? '  ОШИБКИ: ' + errs.join(' | ') : ''));
 })();

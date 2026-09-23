@@ -26,7 +26,7 @@ assets/fonts/handjet.css     @font-face к ним; cyrillic и latin вшиты 
                              файл собирается tools/fonts.js — руками не править
 assets/img/projects/*.jpg    превью проектов (1280×800)
 assets/img/logo.png          логотип в шапке (144×144, из исходного PNG)
-assets/img/og.jpg            картинка для соцсетей (1200×630)
+assets/img/og-v2.jpg        картинка для соцсетей (1200×630)
 assets/img/favicon.svg       иконка
 tools/shots.js               съёмка превью проектов с живых сайтов
 tools/optimize.js            пережатие превью через canvas в Chrome
@@ -271,7 +271,11 @@ node tools/optimize.js 1280 84           # ширина, качество — в
 node tools/optimize.js 1280 82 rustore   # только указанные slug'и
 ```
 
-**og:image** — правится `tools/og.html`, рендерится в `assets/img/og.jpg`:
+**og:image** — правится `tools/og.html`, рендерится в `assets/img/og-v2.jpg`.
+Имя файла — это ключ кэша у мессенджеров: правишь картинку и хочешь, чтобы она
+доехала до уже разосланных ссылок, — **меняй имя** (`og-v3.jpg` и т.д.) и путь
+в `og:image` (он абсолютный, с домом прода). Один и тот же URL краулеры держат
+в кэше месяцами и не перезапрашивают.
 
 ```bash
 node tools/og.js
