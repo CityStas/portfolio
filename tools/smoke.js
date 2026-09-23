@@ -230,7 +230,7 @@ q('#navMenu a').forEach(a => {
 // Файлы на месте
 for (const rel of ['assets/css/style.css', 'assets/js/app.js', 'assets/data/projects.js',
                    'assets/fonts/handjet.css', 'assets/fonts/handjet-cyrillic.woff2',
-                   'assets/img/favicon.svg', 'assets/img/logo.png',
+                   'assets/img/favicon.svg', 'assets/img/logo.png', 'assets/img/og-v2.jpg',
                    'assets/img/projects/shrooms.jpg', 'assets/img/projects/bubblepeaks.jpg',
                    'assets/img/projects/lilcraft.jpg', 'assets/img/projects/bazaskate.jpg',
                    'assets/img/projects/dubbed.jpg', 'assets/img/projects/rustore.jpg']) {
