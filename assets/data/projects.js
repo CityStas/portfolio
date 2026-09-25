@@ -107,7 +107,7 @@ window.PROJECTS = [
   {
     title: 'Dubbed',
     kind: 'Расширение',
-    desc: 'Расширение для Chrome/Firefox: переводит и озвучивает видео прямо на странице сайта. Минимальное ожидание.',
+    desc: 'Расширение для Chrome/Firefox: переводит и озвучивает видео прямо на странице сайта.',
     tags: ['JavaScript', 'MV3', 'TTS'],
     year: '2025-2026',
     status: 'live',
