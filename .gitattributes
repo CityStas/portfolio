@@ -5,3 +5,9 @@ games/**/*.pck   binary
 games/**/*.png   binary
 games/**/*.glb   binary
 games/**/*.ico   binary
+
+# Установщики расширения в apps/ — это zip-контейнеры. Git обычно и сам
+# опознаёт их как бинарные, но правило задано явно: если однажды он решит,
+# что это текст, и переведёт переводы строк, .zip и .xpi станут битыми.
+apps/**/*.zip  binary
+apps/**/*.xpi  binary

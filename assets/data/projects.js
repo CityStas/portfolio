@@ -24,13 +24,20 @@
                             работать с клавиатуры. На узких окнах, где стекло
                             экрана вышло бы меньше 430 px, ссылка всё равно
                             открывается в новой вкладке.
-                demo      — у игр это локальное зеркало '/games/<slug>/': сборки
-                            лежат в этом же репозитории и отдаются с того же
-                            домена. Причина — DPI провайдеров режет TLS к Vercel
-                            по SNI <slug>.dvodev.space примерно на половине
-                            соединений (замер 4/8 против 8/8 у *.vercel.app),
-                            а GitHub Pages тот же SNI отдаёт без потерь.
-                            Обновить сборки: node tools/mirror-games.js [slug]
+                demo      — локальное зеркало: '/games/<slug>/' у игр,
+                            '/apps/<slug>/' у сайтов. Файлы лежат в этом же
+                            репозитории и отдаются с того же домена.
+                            Причина — DPI провайдеров режет TLS к Vercel по SNI
+                            <slug>.dvodev.space: замер 2026-09-27, один и тот же
+                            IP, 12 попыток на каждый SNI —
+                              dubbed.dvodev.space   6/12, ECONNRESET
+                              orfree.dvodev.space   0/12, таймаут 12 с
+                              dubbedru.vercel.app  12/12, 61 мс
+                              orfreeweb.vercel.app 12/12, 45 мс
+                            То есть режется не Vercel, а кастомный домен поверх
+                            него. GitHub Pages тот же SNI отдаёт без потерь.
+                            Обновить зеркало: node tools/mirror-static.js [slug]
+                            (только игры: node tools/mirror-games.js [slug])
                 web       — второй канал рядом с demo, подписывается «Веб-версия»
    ============================================================================ */
 
@@ -119,7 +126,9 @@ window.PROJECTS = [
     year: '2025-2026',
     status: 'live',
     shot: 'assets/img/projects/dubbed.jpg',
-    links: { demo: 'https://dubbed.dvodev.space/', repo: '' }
+    // Лендинг зеркалится в apps/dubbed/ вместе с установщиками: с dubbed.dvodev.space
+    // без VPN отдавалась примерно половина запросов, и .zip/.xpi могли не скачаться.
+    links: { demo: '/apps/dubbed/', repo: '' }
   },
 
   // Превью - страница RuStore: это основной канал, сайт подписан как веб-версия.
