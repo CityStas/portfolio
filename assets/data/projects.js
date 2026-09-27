@@ -24,6 +24,13 @@
                             работать с клавиатуры. На узких окнах, где стекло
                             экрана вышло бы меньше 430 px, ссылка всё равно
                             открывается в новой вкладке.
+                demo      — у игр это локальное зеркало '/games/<slug>/': сборки
+                            лежат в этом же репозитории и отдаются с того же
+                            домена. Причина — DPI провайдеров режет TLS к Vercel
+                            по SNI <slug>.dvodev.space примерно на половине
+                            соединений (замер 4/8 против 8/8 у *.vercel.app),
+                            а GitHub Pages тот же SNI отдаёт без потерь.
+                            Обновить сборки: node tools/mirror-games.js [slug]
                 web       — второй канал рядом с demo, подписывается «Веб-версия»
    ============================================================================ */
 
@@ -72,7 +79,7 @@ window.PROJECTS = [
     year: '2026',
     status: 'live',
     shot: 'assets/img/projects/shrooms.jpg',
-    links: { demo: 'https://deddemo.dvodev.space/', demoLabel: 'Demo', demoEmbed: true, repo: '' }
+    links: { demo: '/games/deddemo/', demoLabel: 'Demo', demoEmbed: true, repo: '' }
   },
   {
     title: 'Bubble Peaks 3D',
@@ -82,7 +89,7 @@ window.PROJECTS = [
     year: '2026',
     status: 'live',
     shot: 'assets/img/projects/bubblepeaks.jpg',
-    links: { demo: 'https://bubblepeaks.dvodev.space/', demoLabel: 'Demo', demoEmbed: true, repo: '' }
+    links: { demo: '/games/bubblepeaks/', demoLabel: 'Demo', demoEmbed: true, repo: '' }
   },
   {
     title: 'LILCRAFT 3D',
@@ -92,7 +99,7 @@ window.PROJECTS = [
     year: '2025-2026',
     status: 'live',
     shot: 'assets/img/projects/lilcraft.jpg',
-    links: { demo: 'https://lilcraft.dvodev.space/', demoLabel: 'Demo', demoEmbed: true, repo: '' }
+    links: { demo: '/games/lilcraft/', demoLabel: 'Demo', demoEmbed: true, repo: '' }
   },
   {
     title: 'БАЗА Скейтборды',

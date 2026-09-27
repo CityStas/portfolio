@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0">
+		<title>DED DEMO 2D</title>
+		<style>
+html, body, #canvas {
+	margin: 0;
+	padding: 0;
+	border: 0;
+}
+
+/* Фон = default_clear_color игры (Color(0.015, 0.008, 0.035)).
+   Заставка движка выключена (boot_splash/show_image=false), лоадер рисуется
+   здесь же на том же фоне, поэтому переход "лоадер -> DEMO" бесшовный. */
+body {
+	color: white;
+	background-color: #04020a;
+	overflow: hidden;
+	touch-action: none;
+}
+
+#canvas {
+	display: block;
+	/* Канвас - это РАМКА игры, а не всё окно: размер считает fitCanvas()
+	   ниже, здесь только центрирование. Окно шире 16:9 - рамка совпадает
+	   с окном, и полей нет; окно выше 16:9 - рамка это полоса 16:9 по
+	   центру, а поля вокруг залиты фоном body (он равен default_clear_color
+	   игры, поэтому шва не видно). */
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	transform: translate(-50%, -50%);
+}
+
+#canvas:focus {
+	outline: none;
+}
+
+#status {
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 0;
+	bottom: 0;
+	background-color: #04020a;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	visibility: hidden;
+}
+
+#loader {
+	image-rendering: pixelated;
+	image-rendering: crisp-edges;
+	max-width: 80vw;
+	max-height: 40vh;
+}
+
+#status-notice {
+	display: none;
+	background-color: #5b3943;
+	border-radius: 0.5rem;
+	border: 1px solid #9b3943;
+	color: #e0e0e0;
+	font-family: 'Noto Sans', 'Droid Sans', Arial, sans-serif;
+	line-height: 1.3;
+	margin: 0 2rem;
+	overflow: hidden;
+	padding: 1rem;
+	text-align: center;
+	z-index: 1;
+}
+
+/* Выход из честно вставшей загрузки: на телефоне браузер умеет приостановить
+   fetch (телефон уснул, приложение свёрнуто), и лоадер тогда стоит вечно.
+   Тап-перезагрузка лучше, чем гадать вслепую. */
+#status-hint {
+	display: none;
+	margin-top: 1.5rem;
+	padding: 0.7rem 1.1rem;
+	background-color: #1a1430;
+	border: 1px solid #4b3f78;
+	border-radius: 0.5rem;
+	color: #d8d2ea;
+	font-family: 'Noto Sans', 'Droid Sans', Arial, sans-serif;
+	font-size: 0.95rem;
+	line-height: 1.35;
+	text-align: center;
+	cursor: pointer;
+	-webkit-tap-highlight-color: transparent;
+}
+		</style>
+		<!-- Ссылки на иконки (favicon / apple-touch-icon) экспортёр добавляет
+		     сам при html/export_icon=true. Свои не дублируем: index.js здесь
+		     раскрывается в "index.js", и путь получается битым. -->
+		<link id="-gd-engine-icon" rel="icon" type="image/png" href="index.icon.png" />
+<link rel="apple-touch-icon" href="index.apple-touch-icon.png"/>
+
+	</head>
+	<body>
+		<canvas id="canvas">
+			Your browser does not support the canvas tag.
+		</canvas>
+
+		<noscript>
+			Your browser does not support JavaScript.
+		</noscript>
+
+		<div id="status">
+			<canvas id="loader"></canvas>
+			<div id="status-notice"></div>
+			<button id="status-hint" type="button">Загрузка идёт слишком долго.<br>Нажмите, чтобы перезагрузить.</button>
+		</div>
+
+		<!-- ============================================================
+		     Рамка игры: канвас 16:9, вписанный в экран.
+
+		     Штатный режим экспорта (canvas_resize_policy=2) растягивает
+		     канвас на всё окно, а пропорции добивает движок по
+		     stretch/aspect=expand. На телефоне в портрете (390x844) вьюпорт
+		     становится 1280x2770: камера упирается в limit_top/limit_bottom
+		     и встаёт в середине рамки, уровень уезжает вниз, между слоями
+		     (far_back, mid_layer, геймплей) видна серая подложка Backdrop.
+		     Снаружи это читается как "слои разъехались по всей высоте".
+
+		     Здесь канвас И ЕСТЬ рамка, а режим экспорта переключён на
+		     canvas_resize_policy=0 (размер канваса - наш, движок его
+		     только читает). Окно шире 16:9 - рамка равна окну, всё как
+		     было. Окно выше 16:9 - рамка это полоса 16:9 по центру.
+		     Вьюпорт движка всегда совпадает с рамкой, растягивать нечего,
+		     и HUD/тач-управление раскладываются по рамке (1280x720).
+
+		     Ставить ДО подключения index.js: движок читает размер
+		     канваса в момент старта.
+		     ============================================================ -->
+		<script>
+		(function () {
+			var canvas = document.getElementById('canvas');
+			var RATIO = 16.0 / 9.0;
+
+			function fitCanvas() {
+				var w = window.innerWidth;
+				var h = window.innerHeight;
+				if (!(w > 0) || !(h > 0)) {
+					return;
+				}
+				var bw, bh;
+				if (w / h >= RATIO) {
+					bw = w;                     // окно шире рамки - играем во всё окно
+					bh = h;
+				} else {
+					bw = w;                     // окно выше рамки - полоса 16:9 по ширине
+					bh = w / RATIO;
+				}
+				var dpr = window.devicePixelRatio || 1;
+				var pw = Math.max(1, Math.round(bw * dpr));
+				var ph = Math.max(1, Math.round(bh * dpr));
+				if (canvas.width !== pw || canvas.height !== ph) {
+					canvas.width = pw;          // буфер под физический экран
+					canvas.height = ph;
+				}
+				canvas.style.width = bw + 'px';  // и та же рамка в css-пикселях
+				canvas.style.height = bh + 'px';
+			}
+
+			fitCanvas();
+			// Движок узнаёт о смене размера сам: он каждый кадр сравнивает
+			// размер канваса со своим и пересобирает вьюпорт.
+			window.addEventListener('resize', fitCanvas);
+			window.addEventListener('orientationchange', fitCanvas);
+		})();
+		</script>
+
+		<script src="index.js"></script>
+		<script>
+const GODOT_CONFIG = {"args":[],"canvasResizePolicy":0,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":17068864,"index.wasm":39514754},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
+const GODOT_THREADS_ENABLED = false;
+const engine = new Engine(GODOT_CONFIG);
+
+// =====================================================================
+//  Пиксельный лоадер.
+//
+//  Глифы 5x7 один в один из scripts/pixel_font.gd - чтобы лоадер выглядел
+//  той же рукой, что и надписи в игре. Рисуем на <canvas> "пикселями"
+//  размера PX css-пикселей: никаких шрифтов, никакого сглаживания.
+// =====================================================================
+const GLYPHS = {
+	" ": [".....", ".....", ".....", ".....", ".....", ".....", "....."],
+	"%": ["#...#", "...#.", "...#.", "..#..", ".#...", ".#...", "#...#"],
+	"0": [".###.", "#...#", "#..##", "#.#.#", "##..#", "#...#", ".###."],
+	"1": ["..#..", ".##..", "..#..", "..#..", "..#..", "..#..", ".###."],
+	"2": [".###.", "#...#", "....#", "...#.", "..#..", ".#...", "#####"],
+	"3": ["####.", "....#", "....#", ".###.", "....#", "....#", "####."],
+	"4": ["#..#.", "#..#.", "#..#.", "#####", "...#.", "...#.", "...#."],
+	"5": ["#####", "#....", "####.", "....#", "....#", "#...#", ".###."],
+	"6": [".###.", "#...#", "#....", "####.", "#...#", "#...#", ".###."],
+	"7": ["#####", "....#", "...#.", "..#..", ".#...", ".#...", ".#..."],
+	"8": [".###.", "#...#", "#...#", ".###.", "#...#", "#...#", ".###."],
+	"9": [".###.", "#...#", "#...#", ".####", "....#", "#...#", ".###."],
+	"A": [".###.", "#...#", "#...#", "#####", "#...#", "#...#", "#...#"],
+	"D": ["####.", "#...#", "#...#", "#...#", "#...#", "#...#", "####."],
+	"G": [".###.", "#...#", "#....", "#.###", "#...#", "#...#", ".###."],
+	"I": ["#####", "..#..", "..#..", "..#..", "..#..", "..#..", "#####"],
+	"L": ["#....", "#....", "#....", "#....", "#....", "#....", "#####"],
+	"N": ["#...#", "##..#", "#.#.#", "#..##", "#...#", "#...#", "#...#"],
+	"O": [".###.", "#...#", "#...#", "#...#", "#...#", "#...#", ".###."],
+	"R": ["####.", "#...#", "#...#", "####.", "#.#..", "#..#.", "#...#"],
+	"S": [".####", "#....", "#....", ".###.", "....#", "....#", "####."],
+	"T": ["#####", "..#..", "..#..", "..#..", "..#..", "..#..", "..#.."],
+};
+
+const GW = 5;        // ширина глифа в "пикселях"
+const GH = 7;        // высота глифа
+const GAP = 1;       // межбуквенный зазор
+const PX = 4;        // размер "пикселя" в css-пикселях
+
+// Две фазы, и их важно различать на телефоне: скачивание pck идёт с честным
+// прогрессом, а вот компиляция wasm + старт движка - это десятки секунд
+// вообще без обратной связи. Если не переключить надпись, человек читает
+// замершую полосу как "зависло".
+const LABEL_LOADING = "LOADING";
+const LABEL_STARTING = "STARTING";
+const CELLS = 12;    // сегментов в полосе прогресса
+const CELL = 16;     // сторона сегмента, css-пикселей
+const CELL_GAP = 4;
+
+const loader = document.getElementById('loader');
+const lctx = loader.getContext('2d');
+
+// Ширина надписи LABEL при размере пикселя px.
+function textWidth(text, px) {
+	return Math.max(0, text.length * (GW + GAP) * px - px);
+}
+
+// Нарисовать строку верхним левым углом в (x, y).
+function drawText(text, x, y, px, color) {
+	lctx.fillStyle = color;
+	const step = (GW + GAP) * px;
+	for (let i = 0; i < text.length; i++) {
+		const rows = GLYPHS[text[i].toUpperCase()];
+		if (!rows) {
+			continue;
+		}
+		for (let r = 0; r < GH; r++) {
+			for (let c = 0; c < GW; c++) {
+				if (rows[r][c] === '#') {
+					lctx.fillRect(x + i * step + c * px, y + r * px, px, px);
+				}
+			}
+		}
+	}
+}
+
+const BAR_W = CELLS * CELL - CELL_GAP;
+const W = Math.max(BAR_W, textWidth(LABEL_LOADING, PX), textWidth(LABEL_STARTING, PX)) + 8;
+const H = GH * PX + 18 + CELL + 18 + GH * PX;
+
+(function layoutLoader() {
+	const dpr = window.devicePixelRatio || 1;
+	loader.width = Math.round(W * dpr);
+	loader.height = Math.round(H * dpr);
+	loader.style.width = W + 'px';
+	loader.style.height = H + 'px';
+	lctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+	lctx.imageSmoothingEnabled = false;
+}());
+
+// progress: 0..1, label: надпись, pulse: индекс "марширующего" сегмента (-1 = нет)
+function drawLoader(progress, label, pulse) {
+	const p = Math.max(0, Math.min(1, progress));
+	lctx.clearRect(0, 0, W, H);
+
+	// надпись
+	drawText(label, (W - textWidth(label, PX)) * 0.5, 0, PX, '#ffffff');
+
+	// полоса: CELLS сегментов, заливка идёт слева направо
+	const barX = (W - BAR_W) * 0.5;
+	const barY = GH * PX + 18;
+	const filled = p * CELLS;
+	for (let i = 0; i < CELLS; i++) {
+		const x = barX + i * CELL;
+		const on = filled >= i + 1;
+		const partial = !on && filled > i;
+		// недолитый сегмент показываем как есть - так бар "течёт", а не щёлкает
+		let color = on ? '#ffffff' : (partial ? '#7a7392' : '#1a1430');
+		// Огонёк, бегущий по всей полосе. Нужен именно потому, что честный
+		// прогресс умеет замереть: во время компиляции wasm колбэка нет вообще,
+		// а на медленном канале target упирается в потолок и стоит.
+		// Без него лоадер неотличим от зависшего.
+		// Полярность намеренно обратная заливке: тёмное пятно на белом,
+		// светлое на пустом - иначе на залитых сегментах его не видно.
+		if (i === pulse) {
+			color = on ? '#8f7fd0' : '#c9b8ff';
+		}
+		lctx.fillStyle = color;
+		lctx.fillRect(x, barY, CELL - CELL_GAP, CELL - CELL_GAP);
+	}
+
+	// проценты
+	const pct = Math.round(p * 100) + '%';
+	const pctW = textWidth(pct, PX);
+	drawText(pct, (W - pctW) * 0.5, barY + CELL + 18, PX, '#b9b3cc');
+}
+
+drawLoader(0, LABEL_LOADING, -1);
+
+(function () {
+	const statusOverlay = document.getElementById('status');
+	const statusNotice = document.getElementById('status-notice');
+	const statusHint = document.getElementById('status-hint');
+
+	statusHint.addEventListener('click', function () {
+		window.location.reload();
+	});
+
+	let initializing = true;
+	let shown = 0;          // что показываем
+	let target = 0;         // что реально скачалось (0..1)
+	let finished = false;   // startGame() зарезолвился
+	let finishedAt = 0;
+	let atCapAt = 0;        // когда полоса впервые упёрлась в потолок
+	let lastTarget = -1;    // для детектора "прогресс встал"
+	let lastTargetAt = 0;
+	let failure = false;
+	const startedAt = performance.now();
+
+	// Лоадер не должен мигать на быстром соединении: даже если всё уже
+	// скачано, даём ему пожить и показать хотя бы короткую анимацию.
+	const MIN_SHOW_MS = 600;
+
+	// Сколько тишины в прогрессе считаем "загрузка встала" и показываем
+	// кнопку перезагрузки.
+	const STALL_MS = 30000;
+
+	// Страховка. Последний onProgress практически никогда не даёт ровно
+	// current == total (последний чанк ещё не посчитан), поэтому завязываться
+	// на "докачалось до 1" нельзя: на медленном мобильном соединении target
+	// застревает на ~0.95, shown сходится к нему и условие shown >= 0.999
+	// не выполняется НИКОГДА - оверлей висит вечно, хотя игра уже запущена.
+	// Единственный надёжный признак готовности - resolved startGame().
+	// После него снимаем оверлей принудительно, независимо от target.
+	const GRACE_MS = 700;
+
+	// Отладочный доступ из консоли телефона: __ld().target покажет, до какой
+	// доли реально докачался pck.
+	window.__ld = function () {
+		return { target: target, shown: shown, finished: finished, initializing: initializing };
+	};
+
+	function setStatusMode(mode) {
+		if (!initializing) {
+			return;
+		}
+		if (mode === 'hidden') {
+			statusOverlay.remove();
+			initializing = false;
+			return;
+		}
+		statusOverlay.style.visibility = 'visible';
+		statusNotice.style.display = mode === 'notice' ? 'block' : 'none';
+		if (mode === 'notice') {
+			statusHint.style.display = 'none';
+		}
+	}
+
+	function setStatusNotice(text) {
+		while (statusNotice.lastChild) {
+			statusNotice.removeChild(statusNotice.lastChild);
+		}
+		const lines = text.split('\n');
+		lines.forEach((line) => {
+			statusNotice.appendChild(document.createTextNode(line));
+			statusNotice.appendChild(document.createElement('br'));
+		});
+	}
+
+	function displayFailureNotice(err) {
+		console.error(err);
+		failure = true;
+		if (err instanceof Error) {
+			setStatusNotice(err.message);
+		} else if (typeof err === 'string') {
+			setStatusNotice(err);
+		} else {
+			setStatusNotice('An unknown error occurred.');
+		}
+		setStatusMode('notice');
+		initializing = false;
+	}
+
+	function tick() {
+		if (!initializing) {
+			return;
+		}
+		const now = performance.now();
+		if (finished) {
+			// Движок стартовал: цель ровно 1, что бы там ни насчитал onProgress.
+			shown += (1 - shown) * 0.14;
+			if (1 - shown < 0.002) {
+				shown = 1;
+			}
+		} else if (target === 0) {
+			// Пока реальный прогресс неизвестен - ползём сами, чтобы лоадер
+			// не стоял колом на нуле во время инициализации wasm.
+			shown = Math.min(0.10, (now - startedAt) / 12000);
+		} else {
+			// До завершения startGame держим 92%: движок ещё инициализируется,
+			// и честные 100% до первого кадра выглядели бы как зависание.
+			const goal = Math.min(target, 0.92);
+			shown += (goal - shown) * 0.14;
+			if (goal - shown < 0.002) {
+				shown = goal;
+			}
+		}
+
+		// Полоса упёрлась в потолок -> скачивание закончилось, дальше движок
+		// компилирует wasm и стартует. Меняем надпись, чтобы это не читалось
+		// как зависание на 92%.
+		if (shown >= 0.919 && atCapAt === 0) {
+			atCapAt = now;
+		}
+		const starting = atCapAt !== 0 && now - atCapAt > 1500;
+		const pulse = finished ? -1 : Math.floor(now / 220) % CELLS;
+		drawLoader(shown, starting ? LABEL_STARTING : LABEL_LOADING, pulse);
+
+		const longEnough = now - startedAt >= MIN_SHOW_MS;
+		const done = finished && (shown >= 0.999 || now - finishedAt >= GRACE_MS);
+		if (done && longEnough) {
+			setStatusMode('hidden');
+			return;
+		}
+		requestAnimationFrame(tick);
+	}
+
+	// Второй, независимый от rAF канал: мобильные браузеры умеют троттлить
+	// requestAnimationFrame, и тогда tick() может не досчитать до конца, хотя
+	// игра уже давно отрисовалась. setTimeout живёт отдельно. Он же следит за
+	// тем, чтобы честно вставшая загрузка не выглядела как вечное ожидание.
+	function watchdog() {
+		if (!initializing) {
+			return;
+		}
+		const now = performance.now();
+		if (finished && now - finishedAt >= GRACE_MS && now - startedAt >= MIN_SHOW_MS) {
+			setStatusMode('hidden');
+			return;
+		}
+		if (target !== lastTarget) {
+			lastTarget = target;
+			lastTargetAt = now;
+		}
+		// target < 0.999: если pck уже докачан, а движок всё ещё стартует -
+		// это нормальная долгая фаза компиляции wasm, перезагрузка не поможет.
+		const stalled = !finished && target < 0.999 && now - lastTargetAt > STALL_MS;
+		statusHint.style.display = stalled ? 'inline-block' : 'none';
+		setTimeout(watchdog, 250);
+	}
+
+	const missing = Engine.getMissingFeatures({
+		threads: GODOT_THREADS_ENABLED,
+	});
+
+	if (missing.length !== 0) {
+		const missingMsg = 'Error\nThe following features required to run Godot projects on the Web are missing:\n';
+		displayFailureNotice(missingMsg + missing.join('\n'));
+	} else {
+		setStatusMode('progress');
+		requestAnimationFrame(tick);
+		setTimeout(watchdog, 250);
+		engine.startGame({
+			'onProgress': function (current, total) {
+				if (current > 0 && total > 0) {
+					target = Math.max(target, current / total);
+				}
+			},
+		}).then(() => {
+			finished = true;
+			finishedAt = performance.now();
+		}, displayFailureNotice);
+	}
+}());
+		</script>
+	</body>
+</html>
+

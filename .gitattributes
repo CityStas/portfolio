@@ -1,0 +1,7 @@
+# Сборки игр в games/ — это готовые бинарники движка. Git не должен
+# нормализовать в них переводы строк, иначе wasm/pck ломаются на checkout.
+games/**/*.wasm  binary
+games/**/*.pck   binary
+games/**/*.png   binary
+games/**/*.glb   binary
+games/**/*.ico   binary

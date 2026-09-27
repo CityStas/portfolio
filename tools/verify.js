@@ -13,6 +13,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { URL: NodeURL } = require('url');
 
 const PW = process.env.PW_DIR
   ? path.join(process.env.PW_DIR, 'node_modules', 'playwright')
@@ -41,7 +42,15 @@ function check(name, got, expected) {
 
     const errs = [];
     page.on('pageerror', e => errs.push('pageerror: ' + e.message));
-    page.on('console', m => { if (m.type() === 'error') errs.push('console: ' + m.text()); });
+    page.on('console', m => {
+      if (m.type() !== 'error') return;
+      const t = m.text();
+      // Игры уехали на /games/<slug>/ и стали same-origin, поэтому консоль игры
+      // теперь видна родителю. Godot в headless Chrome не поднимает
+      // AudioWorklet — в живом браузере со звуком это не ошибка.
+      if (/Failed to create PositionWorklet/.test(t)) return;
+      errs.push('console: ' + t);
+    });
     page.on('requestfailed', r => {
       const u = r.url();
       const why = (r.failure() || {}).errorText || '';
@@ -250,7 +259,11 @@ function check(name, got, expected) {
     if (!gameFrame) {
       console.log('     ПРЕДУПРЕЖДЕНИЕ: кадр демо не появился (нет сети?) — проверки игры пропущены');
     } else {
-      check('кадр демо: адрес', gameFrame.url().replace(/\/$/, ''), embed[0].demo.replace(/\/$/, ''));
+      // demo бывает и абсолютным (https://...), и корневым (/games/<slug>/):
+      // браузер всегда отдаёт в кадре абсолютный адрес, поэтому и ожидание
+      // приводим к абсолютному виду.
+      const wantSrc = new NodeURL(embed[0].demo, URL).href;
+      check('кадр демо: адрес', gameFrame.url().replace(/\/$/, ''), wantSrc.replace(/\/$/, ''));
       const canvas = await gameFrame.waitForSelector('canvas', { timeout: 25000 })
         .then(() => true).catch(() => false);
       check('игра в кадре поднялась (есть canvas)', canvas, true);
