@@ -139,7 +139,7 @@ window.PROJECTS = [
   {
     title: 'ORFree AI / ОРФ ИИ',
     kind: 'AI-продукт',
-    desc: 'AI-чат-ассистент для Android и Web с динамическим выбором LLM через OpenRouter* по типу запроса, доступности и latency. Разработан на Capacitor, опубликован в RuStore.\n\n*Важно: из-за геоблокировки со стороны OpenRouter для корректной работы моделей на территории РФ нужен прокси/VPN.',
+    desc: 'AI-чат-ассистент для Android/Web - динамический выбор LLM через OpenRouter* по запросу, доступности и latency. Capacitor, RuStore.\n\n*Важно: из-за геоблокировки со стороны OpenRouter для корректной работы моделей на территории РФ нужен прокси/VPN.',
     tags: ['LLM', 'OpenRouter', 'Capacitor', 'Android'],
     year: '2025-2026',
     status: 'live',
