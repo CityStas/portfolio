@@ -24,6 +24,19 @@
     return s;
   }
 
+  // Описание проекта в данных — обычная строка. Пустая строка разделяет абзацы,
+  // а абзац, начинающийся со «*», считается сноской: он рисуется мельче и глуше
+  // (см. .card__note). Однострочное описание ведёт себя ровно как раньше —
+  // один абзац без обёрток, так что старые данные ничего не замечают.
+  function descParts(desc) {
+    var out = [];
+    String(desc == null ? '' : desc).split(/\n\s*\n/).forEach(function (part) {
+      var t = part.trim();
+      if (t) out.push({ text: t, note: t.charAt(0) === '*' });
+    });
+    return out;
+  }
+
   var I = {
     out:   '<path d="M7 17 17 7M9 7h8v8"/>',
     store: '<path d="M4.5 8h15l-1 11.4a2 2 0 0 1-2 1.9H7.5a2 2 0 0 1-2-1.9L4.5 8z"/><path d="M9 8V6.2a3 3 0 0 1 6 0V8"/>',
@@ -137,7 +150,13 @@
     body.appendChild(meta);
 
     body.appendChild(el('h3', 'card__t', p.title));
-    body.appendChild(el('p', 'card__d', p.desc));
+
+    // Сноска идёт отдельным элементом, а не частью абзаца: ей нужен свой кегль.
+    var parts = descParts(p.desc);
+    if (!parts.length) parts = [{ text: p.desc == null ? '' : p.desc, note: false }];
+    parts.forEach(function (d) {
+      body.appendChild(el(d.note ? 'small' : 'p', d.note ? 'card__note' : 'card__d', d.text));
+    });
 
     if (p.tags && p.tags.length) {
       var tags = el('div', 'card__tags');
@@ -244,7 +263,15 @@
     img.src = p.shot;
     img.alt = 'Превью проекта ' + p.title;
     $('#lbTitle').textContent = p.title;
-    $('#lbDesc').textContent = p.desc;
+
+    // #lbDesc — это <p>, поэтому абзацы внутри него разделяются <br>, а не
+    // вложенными <p>. Сноска — <small>, ей хватает display:block из .card__note.
+    var lbDesc = $('#lbDesc');
+    lbDesc.textContent = '';
+    descParts(p.desc).forEach(function (d, n) {
+      if (n && !d.note) lbDesc.appendChild(document.createElement('br'));
+      lbDesc.appendChild(el(d.note ? 'small' : 'span', d.note ? 'card__note' : '', d.text));
+    });
 
     var go = $('#lbGo');
     var L = p.links || {};

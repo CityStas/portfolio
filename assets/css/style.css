@@ -352,6 +352,16 @@ html[data-theme="light"] .ico--moon { display: none; }
 }
 .card__d { margin: 0; color: var(--muted); font-size: 16px; max-width: 64ch; flex: 0 1 auto; }
 
+/* Сноска в описании проекта — тот же тон, но мельче. В данные приходит отдельным
+   абзацем после пустой строки, начиная со «*»; рендер разбирает это app.js.
+   Цвет намеренно не --dim: в светлой теме он даёт 3.4:1 к белому, а это ниже
+   порога для кегля 13px. Иерархию здесь задаёт размер, а не бледность.
+   Отступ сноске не нужен: в карточке это отдельный flex-элемент, расстояние
+   даёт gap у .card__body. */
+.card__note { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.5; max-width: 64ch; flex: 0 1 auto; }
+/* В лайтбоксе #lbDesc — это <p>, и сноска внутри него идёт вплотную к тексту. */
+#lbDesc .card__note { display: block; margin-top: 8px; }
+
 .card__tags { display: flex; flex-wrap: wrap; gap: 6px; }
 .tag { padding: 4px 10px; border: 1px solid var(--line); border-radius: 999px; font-size: 12.5px; color: var(--muted); }
 

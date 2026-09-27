@@ -116,6 +116,55 @@ function check(name, got, expected) {
     check('подписи главных кнопок',
           shown.every((s, i) => s.trim() === (data.labels[i] || 'Открыть сайт')), true);
 
+    // Сноска в описании. Абзац, начинающийся со «*», обязан стать отдельным
+    // элементом .card__note и быть набран мельче основного текста — иначе
+    // предупреждение в описании ORFree визуально сливается с описанием.
+    // Проверка идёт по данным, а не по конкретному проекту: сноска может
+    // появиться у любого, и тогда тест обязан её поймать.
+    const notes = await page.evaluate(() => window.PROJECTS.map((p, i) => {
+      const want = String(p.desc || '').split(/\n\s*\n/)
+        .map(s => s.trim()).filter(s => s.charAt(0) === '*').length;
+      const card = document.querySelectorAll('#grid .card')[i];
+      const d = card && card.querySelector('.card__d');
+      const n = card && card.querySelector('.card__note');
+      return {
+        title: p.title, want,
+        got: card ? card.querySelectorAll('.card__note').length : -1,
+        tag: n ? n.tagName : '',
+        dSize: d ? parseFloat(getComputedStyle(d).fontSize) : 0,
+        nSize: n ? parseFloat(getComputedStyle(n).fontSize) : 0
+      };
+    }));
+    const withNote = notes.filter(x => x.want);
+    check('сноска есть хотя бы у одного проекта', withNote.length > 0, true);
+    check('сносок столько же, сколько абзацев со «*»',
+          notes.every(x => x.want === x.got), true);
+    check('сноска — это <small>', withNote.every(x => x.tag === 'SMALL'), true);
+    check('сноска мельче основного текста',
+          withNote.every(x => x.nSize > 0 && x.nSize < x.dSize), true);
+    console.log('     ' + (withNote.map(x => x.title + ': ' + x.nSize + 'px против ' +
+                x.dSize + 'px').join('; ') || 'сносок в данных нет'));
+
+    // Та же сноска в лайтбоксе: #lbDesc — это <p>, и сноска обязана остаться
+    // отдельным блоком, а не слипнуться с основным текстом в одну строку.
+    const noteIdx = notes.findIndex(x => x.want);
+    await page.locator('#grid .card').nth(noteIdx).locator('.card__shot').click();
+    await page.waitForTimeout(300);
+    const lbNote = await page.evaluate(() => {
+      const p = document.getElementById('lbDesc');
+      const n = p && p.querySelector('.card__note');
+      return {
+        count: p ? p.querySelectorAll('.card__note').length : -1,
+        display: n ? getComputedStyle(n).display : '',
+        size: n ? parseFloat(getComputedStyle(n).fontSize) : 0,
+        text: p ? p.textContent.replace(/\s+/g, ' ').trim().slice(0, 40) : ''
+      };
+    });
+    check('в лайтбоксе сноска отдельным блоком', lbNote.count === 1 && lbNote.display === 'block', true);
+    check('в лайтбоксе сноска мельче', lbNote.size > 0 && lbNote.size < 16, true);
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(250);
+
     // Меню
     check('меню закрыто', await page.locator('#navMenu').isVisible(), false);
     await page.click('#logoBtn');
