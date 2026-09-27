@@ -65,7 +65,7 @@ window.SITE = {
 
 window.PROJECTS = [
   {
-    title: 'Shrooms 2D',
+    title: 'DedSpace 2D',
     kind: 'Игра',
     desc: '2D-платформер на Godot 4: игрок, подбор предметов, враги, уровни. Оптимизирован под работу в браузере.',
     tags: ['Godot 4', 'GDScript', '2D', 'Web'],
