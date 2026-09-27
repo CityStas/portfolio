@@ -72,7 +72,7 @@ window.PROJECTS = [
     year: '2026',
     status: 'live',
     shot: 'assets/img/projects/shrooms.jpg',
-    links: { demo: 'http://deddemo.dvodev.space/', demoLabel: 'Demo', demoEmbed: true, repo: '' }
+    links: { demo: 'https://deddemo.dvodev.space/', demoLabel: 'Demo', demoEmbed: true, repo: '' }
   },
   {
     title: 'Bubble Peaks 3D',
@@ -82,7 +82,7 @@ window.PROJECTS = [
     year: '2026',
     status: 'live',
     shot: 'assets/img/projects/bubblepeaks.jpg',
-    links: { demo: 'http://bubblepeaks.dvodev.space/', demoLabel: 'Demo', demoEmbed: true, repo: '' }
+    links: { demo: 'https://bubblepeaks.dvodev.space/', demoLabel: 'Demo', demoEmbed: true, repo: '' }
   },
   {
     title: 'LILCRAFT 3D',
@@ -92,7 +92,7 @@ window.PROJECTS = [
     year: '2025-2026',
     status: 'live',
     shot: 'assets/img/projects/lilcraft.jpg',
-    links: { demo: 'http://lilcraft.dvodev.space/', demoLabel: 'Demo', demoEmbed: true, repo: '' }
+    links: { demo: 'https://lilcraft.dvodev.space/', demoLabel: 'Demo', demoEmbed: true, repo: '' }
   },
   {
     title: 'БАЗА Скейтборды',
@@ -128,7 +128,7 @@ window.PROJECTS = [
       demo: 'https://www.rustore.ru/catalog/app/com.orfree.app',
       demoLabel: 'RuStore',
       demoIcon: 'store',
-      web: 'http://orfree.dvodev.space/',
+      web: 'https://orfree.dvodev.space/',
       tg: 'https://t.me/stas1620_bot',
       tgLabel: 'Telegram-бот',
       repo: ''
