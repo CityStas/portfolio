@@ -72,7 +72,7 @@ window.PROJECTS = [
     year: '2026',
     status: 'live',
     shot: 'assets/img/projects/shrooms.jpg',
-    links: { demo: 'https://deddemo.vercel.app/', demoLabel: 'Demo', demoEmbed: true, repo: '' }
+    links: { demo: 'https://deddemo.dvodev.space/', demoLabel: 'Demo', demoEmbed: true, repo: '' }
   },
   {
     title: 'Bubble Peaks 3D',
@@ -82,7 +82,7 @@ window.PROJECTS = [
     year: '2026',
     status: 'live',
     shot: 'assets/img/projects/bubblepeaks.jpg',
-    links: { demo: 'https://bubblepeaks.vercel.app/', demoLabel: 'Demo', demoEmbed: true, repo: '' }
+    links: { demo: 'https://bubblepeaks.dvodev.space/', demoLabel: 'Demo', demoEmbed: true, repo: '' }
   },
   {
     title: 'LILCRAFT 3D',
@@ -92,7 +92,7 @@ window.PROJECTS = [
     year: '2025-2026',
     status: 'live',
     shot: 'assets/img/projects/lilcraft.jpg',
-    links: { demo: 'https://lilcraft.vercel.app/', demoLabel: 'Demo', demoEmbed: true, repo: '' }
+    links: { demo: 'https://lilcraft.dvodev.space/', demoLabel: 'Demo', demoEmbed: true, repo: '' }
   },
   {
     title: 'БАЗА Скейтборды',
@@ -112,7 +112,7 @@ window.PROJECTS = [
     year: '2025-2026',
     status: 'live',
     shot: 'assets/img/projects/dubbed.jpg',
-    links: { demo: 'https://dubbedru.vercel.app/', repo: '' }
+    links: { demo: 'https://dubbed.dvodev.space/', repo: '' }
   },
 
   // Превью - страница RuStore: это основной канал, сайт подписан как веб-версия.
