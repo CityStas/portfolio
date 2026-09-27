@@ -31,7 +31,7 @@ window.SITE = {
   name: 'Дмитрий О.',
   role: 'AI-Native Developer / Full-Stack AI Engineer',
   tagline: 'AI-продукты полного цикла: исследование моделей, прототип, backend, деплой. Отдельно - свои игры на Godot и three.js.',
-  location: 'Санкт-Петербург',
+  location: 'Екатеринбург',
 
   hh: 'https://hh.ru/resume/d887856aff0eea819f0039ed1f574e52717661',
   // PDF-резюме нет: удалено и из шапки, и из контактов. Осталось только HH.
@@ -128,7 +128,7 @@ window.PROJECTS = [
       demo: 'https://www.rustore.ru/catalog/app/com.orfree.app',
       demoLabel: 'RuStore',
       demoIcon: 'store',
-      web: 'https://orfreeweb.vercel.app/',
+      web: 'https://orfree.dvodev.space/',
       tg: 'https://t.me/stas1620_bot',
       tgLabel: 'Telegram-бот',
       repo: ''
