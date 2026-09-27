@@ -119,7 +119,7 @@ window.PROJECTS = [
   {
     title: 'ORFree AI / ОРФ ИИ',
     kind: 'AI-продукт',
-    desc: 'AI-чат-ассистент для Android и Web. Свой алгоритм динамического выбора моделей через OpenRouter: специфика запроса, доступность, latency. Приложение разработано с использованием Capacitor и опубликовано в RuStore. Реализована отдельная локальная сборка со встроенной LLM для офлайн-работы на Android.',
+    desc: 'AI-чат-ассистент для Android и Web. Свой алгоритм динамического выбора моделей через OpenRouter: специфика запроса, доступность, latency. Разработано с использованием Capacitor и опубликовано в RuStore.',
     tags: ['LLM', 'OpenRouter', 'Capacitor', 'Android'],
     year: '2025-2026',
     status: 'live',
