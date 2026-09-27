@@ -468,6 +468,42 @@ function check(name, got, expected) {
     await ctx.close();
   }
 
+  // ---------- LIL WORLDS: диорамы из зеркала ----------
+  // Три JSON-диорамы не видны обходу ссылок: путь собирается в рантайме,
+  // `dioramas/${a.id}.json`. Один раз зеркало уже уехало без них, и в браузере
+  // это выглядело как «Load failed: Unexpected token '<', "<!DOCTYPE"» — на 404
+  // GitHub Pages отдал свою HTML-страницу вместо JSON. Проверяем ровно то,
+  // что ломалось: клик по каждой диораме и отсутствие «Load failed».
+  if (OVER_HTTP) {
+    console.log('\n=== LIL WORLDS (диорамы) ===');
+    const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+    const page = await ctx.newPage();
+    const miss = [];
+    page.on('response', r => {
+      // favicon браузер спрашивает сам, к диорамам он отношения не имеет
+      if (r.status() === 404 && r.url().includes('/lil-worlds/')) miss.push(r.url());
+    });
+    await page.goto(new NodeURL('/games/lilcraft/lil-worlds/', URL).href, { waitUntil: 'load' });
+    await page.waitForTimeout(5000);
+
+    const dioramas = await page.$$eval('#themes button', ns => ns.map(n => n.textContent.trim()));
+    check('диорам в меню: 3', dioramas.length, 3);
+    check('404 внутри /lil-worlds/', miss.map(u => u.split('/').slice(-2).join('/')).join(', '), '');
+
+    for (const label of dioramas) {
+      await page.locator('#themes button', { hasText: label }).first().click();
+      await page.waitForTimeout(2500);
+      const st = await page.evaluate(() => {
+        const err = Array.from(document.querySelectorAll('div'))
+          .find(d => /Load failed/i.test(d.textContent || ''));
+        const c = document.querySelector('canvas');
+        return { err: err ? err.textContent.trim().slice(0, 60) : '', cw: c ? c.width : 0 };
+      });
+      check('диорама «' + label + '» поднялась', st.err || (st.cw === 0 ? 'canvas пуст' : ''), '');
+    }
+    await ctx.close();
+  }
+
   // Шрифт под задушенным каналом: 400 мс задержки и 150 КБ/с. Вшитые подгруппы
   // обязаны быть готовы уже к первой отрисовке — файлом они бы в этот момент ещё
   // ехали. Саму картинку подмены (первый кадр против финального) ловит tools/fout.js:

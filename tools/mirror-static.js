@@ -34,10 +34,18 @@ const EDGE_IPS = ['76.76.21.123', '66.33.60.130', '76.76.21.22', '64.29.17.195',
 const GODOT = ['index.wasm', 'index.pck', 'index.js', 'index.audio.worklet.js',
                'index.icon.png', 'index.apple-touch-icon.png', 'index.png'];
 
+// Диорамы LIL WORLDS. Путь собирается в рантайме — `dioramas/${a.id}.json`, —
+// поэтому в тексте бандла его нет целиком и обход ссылок его не находит.
+// Список id вытащен из modes-массива в assets/index-CGcEfhrU.js; если в игре
+// появится новая диорама, её надо дописать сюда (и в подпись ниже).
+const LILWORLDS = ['lil-worlds/dioramas/deep_sea_lab.json',
+                   'lil-worlds/dioramas/neon_cyber_alley.json',
+                   'lil-worlds/dioramas/steampunk_island.json'];
+
 const SOURCES = {
   'games/deddemo': { host: 'deddemo.vercel.app', extra: GODOT },
   'games/bubblepeaks': { host: 'bubblepeaks.vercel.app', extra: GODOT },
-  'games/lilcraft': { host: 'lilcraft.vercel.app', extra: [] },
+  'games/lilcraft': { host: 'lilcraft.vercel.app', extra: LILWORLDS },
 
   // Лендинг расширения. Статика целиком, включая downloads/*.zip и *.xpi:
   // смысл переезда в том, чтобы установщики скачивались без VPN.
@@ -50,8 +58,29 @@ const SOURCES = {
   // страницу, поэтому сначала правка в проекте orfree, потом запись сюда.
 };
 
+// Расширения `data` и `mem` — исторически для emscripten-сборок. Здесь они дают
+// ложные срабатывания на обращениях к свойствам вида `(i.data)`: скобка попадает
+// в границу шаблона. Такие строки уходят в очередь и возвращают 404 с самого
+// Vercel, то есть это шум обходчика, а не пропущенный файл — строки `---`
+// в выводе с этими двумя расширениями можно игнорировать.
 const ASSET_RE = /["'`(]\s*([A-Za-z0-9_./@+-]+\.(?:wasm|pck|js|mjs|css|png|jpe?g|webp|gif|svg|ico|glb|gltf|bin|json|ogg|mp3|wav|mp4|webm|data|mem|txt|html|xml|ttf|woff2?|zip|xpi|webmanifest))\s*[)"'`?]/gi;
 const HTML_RE = /(?:src|href)\s*=\s*["']([^"']+)["']/gi;
+
+// Путь, собранный в рантайме — `dioramas/${a.id}.json` — обход ссылок не видит:
+// в тексте нет готового имени файла. Ровно так из зеркала LIL WORLDS пропали
+// три диорамы, а в браузере это выглядело как «Load failed: Unexpected token
+// '<', "<!DOCTYPE"» на месте JSON: GitHub Pages отдал на 404 свою HTML-страницу.
+// Такие места приходится перечислять в extra руками, поэтому о них хотя бы
+// сообщаем — молчаливый пропуск здесь дороже лишней строки в выводе.
+const DYN_RE = /`[^`$]*\$\{[^}]*\}[^`]*\.(?:json|glb|gltf|bin|data|png|jpe?g|webp|gif|svg|ogg|mp3|wav|mp4|webm|wasm|pck|css|mjs|js|txt|xml)`/g;
+
+function dynamicRefs(text) {
+  const out = new Set();
+  let m;
+  DYN_RE.lastIndex = 0;
+  while ((m = DYN_RE.exec(text))) out.add(m[0]);
+  return [...out];
+}
 
 function fetchOnce(host, ip, urlPath, tries = 4) {
   return new Promise((resolve, reject) => {
@@ -140,6 +169,7 @@ async function mirror(key) {
   extra.forEach(f => queue.push('/' + f));
   let total = 0;
   const files = [];
+  const dynamic = [];
 
   while (queue.length) {
     const p = queue.shift();
@@ -160,14 +190,16 @@ async function mirror(key) {
     files.push(['ok', p, r.body.length, r.type]);
 
     if (isText(r.type, p)) {
+      const text = r.body.toString('utf8');
       const base = p.endsWith('/') ? p : p.slice(0, p.lastIndexOf('/') + 1);
-      for (const ref of extractRefs(r.body.toString('utf8'))) {
+      for (const ref of extractRefs(text)) {
         let n = normalize(ref);
         if (!n) continue;
         if (!n.startsWith('/')) n = base + n;
         n = path.posix.normalize(n);
         if (!seen.has(n)) queue.push(n);
       }
+      dynamicRefs(text).forEach(d => { if (dynamic.indexOf(d) === -1) dynamic.push(d); });
     }
   }
 
@@ -177,6 +209,11 @@ async function mirror(key) {
     else console.log('    ' + '---'.padStart(8) + '     ' + f[1] + '  (' + f[2] + ')');
   });
   console.log('    ИТОГО ' + (total / 1048576).toFixed(2) + ' MB, файлов: ' + files.filter(f => f[0] === 'ok').length);
+  if (dynamic.length) {
+    console.log('    ! пути собираются в рантайме, обход ссылок их не видит.');
+    console.log('      Проверьте, что каждый есть в extra у ' + key + ':');
+    dynamic.forEach(d => console.log('        ' + d));
+  }
   return total;
 }
 
