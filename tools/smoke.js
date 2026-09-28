@@ -89,19 +89,24 @@ check('чипа LM Studio нет в стеке', q('#stackList .chip').some(c =>
 check('чип Bionic в стеке', q('#stackList .chip').some(c => c.textContent === 'Bionic'), true);
 check('факт «опыт»', doc.querySelector('#facts .facts__row dd').textContent, S.facts[0][1]);
 
-// ORFree AI — последняя карточка, RuStore главный, сайт рядом как веб-версия.
-// Все значения берём из данных: переименуют проект или сменят ссылку — тест не упадёт.
+// ORFree AI — последняя карточка. Набор ссылок берём из данных в том порядке,
+// в каком их рисует card(): demo, web, tg, repo. Убрали поле — ушла и кнопка,
+// добавили — вернулась, тест при этом не переписывают.
 const last = cards[cards.length - 1];
 const lastP = P[P.length - 1];
 const lastLinks = Array.from(last.querySelectorAll('.card__links a'));
+const expectLinks = [];
+if (lastP.links.demo) expectLinks.push([lastP.links.demo, lastP.links.demoLabel || 'Открыть сайт']);
+if (lastP.links.web) expectLinks.push([lastP.links.web, 'Веб-версия']);
+if (lastP.links.tg) expectLinks.push([lastP.links.tg, lastP.links.tgLabel || 'Telegram-бот']);
+if (lastP.links.repo) expectLinks.push([lastP.links.repo, 'Код']);
 check('последняя карточка — из данных', last.querySelector('.card__t').textContent, lastP.title);
 check('последняя карточка: превью', last.querySelector('.card__shot img').getAttribute('src'), lastP.shot);
-check('последняя карточка: главная ссылка', lastLinks[0].getAttribute('href'), lastP.links.demo);
-check('последняя карточка: подпись главной ссылки', lastLinks[0].textContent.trim(), lastP.links.demoLabel);
-check('последняя карточка: ссылка на веб-версию', lastLinks[1].getAttribute('href'), lastP.links.web);
-check('последняя карточка: подпись веб-версии', lastLinks[1].textContent.trim(), 'Веб-версия');
-check('последняя карточка: ссылка на Telegram-бота', lastLinks[2].getAttribute('href'), lastP.links.tg);
-check('последняя карточка: подпись Telegram-бота', lastLinks[2].textContent.trim(), lastP.links.tgLabel);
+check('последняя карточка: ссылок', lastLinks.length, expectLinks.length);
+expectLinks.forEach(function (e, n) {
+  check('последняя карточка: ссылка #' + (n + 1), lastLinks[n].getAttribute('href'), e[0]);
+  check('последняя карточка: подпись #' + (n + 1), lastLinks[n].textContent.trim(), e[1]);
+});
 
 // Подпись главной кнопки берётся из данных, где задана (у игр — «Demo», у ORFree — «RuStore»)
 P.forEach((p, i) => {
@@ -111,17 +116,27 @@ P.forEach((p, i) => {
   check('подпись кнопки у «' + p.title + '»', got, want);
 });
 
-// Telegram / Почта / HH / GitHub — обязательны и именно в этом порядке
+// Контакты. Ждём ровно те ссылки, чьи поля заданы в SITE, и в том же порядке,
+// в каком их перебирает renderContacts: telegram, email, hh, github. Список
+// задан данными, поэтому удаление почты или GitHub тест не ломает.
 const hrefs = q('#links .link').map(a => a.getAttribute('href'));
+const contactDefs = [
+  ['telegram', S.telegram],
+  ['email', S.email && 'mailto:' + S.email],
+  ['hh', S.hh],
+  ['github', S.github]
+].filter(d => d[1]);
+check('контактов: ссылок столько же, сколько полей в данных', hrefs.length, contactDefs.length);
 check('есть telegram', hrefs.includes(S.telegram), true);
-check('есть github', hrefs.includes(S.github), true);
 
 // Почта: mailto из адреса в данных, без target и без download — иначе браузер
 // попытается скачать письмо файлом вместо открытия почтового клиента.
-const mail = q('#links .link').find(a => (a.getAttribute('href') || '').startsWith('mailto:'));
-check('почта: адрес из данных', mail && mail.getAttribute('href'), 'mailto:' + S.email);
-check('почта: без target', mail && mail.hasAttribute('target'), false);
-check('почта: без download', mail && mail.hasAttribute('download'), false);
+if (S.email) {
+  const mail = q('#links .link').find(a => (a.getAttribute('href') || '').startsWith('mailto:'));
+  check('почта: адрес из данных', mail && mail.getAttribute('href'), 'mailto:' + S.email);
+  check('почта: без target', mail && mail.hasAttribute('target'), false);
+  check('почта: без download', mail && mail.hasAttribute('download'), false);
+}
 
 // Ссылка на HH должна быть настоящей, а не заглушкой
 const hhLink = hrefs.find(h => h.includes('hh.ru'));
@@ -135,8 +150,7 @@ check('файла assets/resume.pdf нет', fs.existsSync(path.join(root, 'asse
 // Порядок контактов — из данных, а не из литерала. mailto приводим к тому же виду,
 // что и адреса: у него нет ни схемы //, ни пути.
 const host = u => u.replace(/^mailto:/, '').replace(/^https:\/\//, '').split('/')[0];
-check('порядок контактов', hrefs.map(host).join(' | '),
-      [S.telegram, 'mailto:' + S.email, S.hh, S.github].map(host).join(' | '));
+check('порядок контактов', hrefs.map(host).join(' | '), contactDefs.map(d => host(d[1])).join(' | '));
 
 // Ни одного PDF в дереве сайта
 const pdfs = [];
