@@ -56,9 +56,7 @@ window.SITE = {
   cv: '',
   telegram: 'https://t.me/citystas',
   // Адрес без схемы: mailto: собирается при рендере контактов.
-  email: 'sekadist@gmail.com',
-  github: 'https://github.com/CityStas/',
-
+   ,
   about: [
     'AI-Native Developer / Full-Stack AI Engineer с опытом разработки AI-продуктов полного цикла - от исследования моделей и прототипирования до backend, интеграции и deployment. Специализируюсь на AI-driven development, проектировании AI-workflows и агентных систем, prompt engineering и evaluation моделей. Использую AI как часть инженерного процесса: автоматизирую разработку, тестирую и сравниваю модели, оптимизирую качество, скорость и затраты.',
     'Увлекаюсь геймдевом, разрабатываю собственные игровые проекты на Godot и Three.js с использованием AI-инструментов. Люблю видеоигры, особенно FPS. Готов активно развиваться в геймдеве, осваивать новые технологии и применять свой опыт AI-разработки для создания игровых продуктов.'
@@ -148,9 +146,6 @@ window.PROJECTS = [
       demo: 'https://www.rustore.ru/catalog/app/com.orfree.app',
       demoLabel: 'RuStore',
       demoIcon: 'store',
-      tg: 'https://t.me/stas1620_bot',
-      tgLabel: 'Telegram-бот',
-      repo: ''
     }
   }
 ];
