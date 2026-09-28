@@ -89,6 +89,13 @@ check('чипа LM Studio нет в стеке', q('#stackList .chip').some(c =>
 check('чип Bionic в стеке', q('#stackList .chip').some(c => c.textContent === 'Bionic'), true);
 check('факт «опыт»', doc.querySelector('#facts .facts__row dd').textContent, S.facts[0][1]);
 
+// Сноска «*Быстрее всего отвечаю в Telegram.» убрана вместе со звёздочкой
+// в заголовке: сноска без пометки не читается. Вернуть — <p class="contact__lead">
+// в разметке секции и звёздочку в тексте заголовка.
+check('сноски в контактах нет', q('#contact .contact__lead').length, 0);
+check('звёздочки в заголовке контактов нет',
+      /\*/.test(doc.querySelector('#contact .sec__h').textContent), false);
+
 // ORFree AI — последняя карточка. Набор ссылок берём из данных в том порядке,
 // в каком их рисует card(): demo, web, tg, repo. Убрали поле — ушла и кнопка,
 // добавили — вернулась, тест при этом не переписывают.

@@ -183,6 +183,26 @@ function check(name, got, expected) {
     check('чипов-фильтров нет', await page.locator('#filters, .fbtn, #empty, .sec__top').count(), 0);
     check('видны все карточки', await page.locator('#grid .card:visible').count(), data.count);
 
+    // Контакты: сноски под заголовком нет, а кнопки начинаются под текстом
+    // заголовка, а не под его номером. Мерить надо по тексту: «04» стоит в потоке
+    // и сдвигает слово вправо, поэтому левый край .sec__h ничего не показывает.
+    check('сноски в контактах нет', await page.locator('#contact .contact__lead').count(), 0);
+    check('звёздочки-сноски в заголовке контактов нет',
+          /\*/.test(await page.locator('#contact .sec__h').innerText()), false);
+    const align = await page.evaluate(() => {
+      const h = document.querySelector('#contact .sec__h');
+      const links = document.getElementById('links');
+      if (!h || !links) return { d: 9999 };
+      const txt = Array.from(h.childNodes).find(n => n.nodeType === 3 && n.textContent.trim());
+      if (!txt) return { d: 9999 };
+      const r = document.createRange();
+      r.selectNodeContents(txt);
+      const t = r.getBoundingClientRect(), l = links.getBoundingClientRect();
+      return { text: +t.left.toFixed(2), links: +l.left.toFixed(2), d: +(l.left - t.left).toFixed(2) };
+    });
+    check('кнопки контактов выровнены с текстом заголовка, <= 1px', Math.abs(align.d) <= 1, true);
+    if (Math.abs(align.d) > 1) console.log('       текст ' + align.text + ', кнопки ' + align.links);
+
     // Все превью одной пропорции 16:10. Иначе карточка обрежет кадр по бокам,
     // а в лайтбоксе он окажется ниже остальных — именно на этом ломались дважды.
     const ratios = await page.evaluate(() => Array.from(
