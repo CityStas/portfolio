@@ -17,6 +17,8 @@ const OUT = path.resolve(__dirname, '..', 'assets', 'img', 'projects');
 // wait   — сколько ждать после загрузки, мс
 // keys   — что нажать, чтобы дойти до геймплея
 // clicks — клики по координатам (кнопки внутри canvas не находятся селектором)
+// selectors — клики по CSS-селектору: [[селектор, пауза мс], ...]. Для DOM-кнопок
+//            вне canvas: координаты ломаются от смены вёрстки, id — нет.
 // look   — поворот камеры протяжкой мыши: [dx, dy]
 // walk   — сколько миллисекунд идти вперёд (W)
 // scroll — прокрутить перед снимком
@@ -26,7 +28,13 @@ const OUT = path.resolve(__dirname, '..', 'assets', 'img', 'projects');
 const SITES = [
   { slug: 'shrooms',     url: 'https://deddemo.vercel.app/',      wait: 20000, keys: [], clicks: [[800, 655]], look: null, walk: 0, scroll: 0 },
   { slug: 'bubblepeaks', url: 'https://bubblepeaks.vercel.app/',  wait: 22000, keys: ['Enter', 'Space'], clicks: [], look: null, walk: 0, scroll: 0 },
-  { slug: 'lilcraft',    url: 'https://lilcraft.vercel.app/',     wait: 9000,  keys: [], clicks: [[100, 878]], look: null, walk: 0, scroll: 0 },
+
+  // Мир стартует в ночном режиме. Для превью переключаем на день: только на нём
+  // читаются додзё, аллея с фонарями и сакура. Переход плавный (lerp по dt), а в
+  // swiftshader dt клампится до 0.05 с при ~2 fps — поэтому пауза 25 с, а не 3.
+  { slug: 'lilcraft',    url: 'https://lilcraft.vercel.app/',     wait: 12000, keys: [], clicks: [], look: null, walk: 0, scroll: 0,
+    selectors: [['#btnDay', 25000]] },
+
   { slug: 'bazaskate',   url: 'https://bazaskate.shop/',          wait: 7000,  keys: [], clicks: [], look: null, walk: 0, scroll: 0 },
   { slug: 'dubbed',      url: 'https://dubbedru.vercel.app/',     wait: 7000,  keys: [], clicks: [], look: null, walk: 0, scroll: 0 },
 
@@ -76,6 +84,10 @@ const only = process.argv.slice(2);
       for (const c of s.clicks) {
         await page.mouse.click(c[0], c[1]).catch(() => {});
         await page.waitForTimeout(9000);
+      }
+      for (const [sel, pause] of (s.selectors || [])) {
+        await page.click(sel, { timeout: 5000 }).catch(() => {});
+        await page.waitForTimeout(pause == null ? 1500 : pause);
       }
       if (s.look) {
         await page.mouse.move(800, 500);

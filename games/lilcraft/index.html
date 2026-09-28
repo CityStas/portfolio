@@ -350,19 +350,41 @@
   <button id="btnIntroResume" class="btn">Resume</button>
 </div>
 
+<!-- three как bare-спецификатор: генератор мира (voxel-japan.js) импортирует 'three'
+     и 'three/addons/...'. Под Vite это резолвится в node_modules, под обычной статикой —
+     через importmap ниже. Оба пути дают ОДИН экземпляр three, иначе ломаются instanceof. -->
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
 <script type="module">
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/+esm';
-import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js/+esm';
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'https://cdn.jsdelivr.net/npm/meshoptimizer@0.21.0/meshopt_decoder.module.js';
+import { createVoxelJapan, PALETTE } from './voxel-japan.js';
 
 
 
 /* ============================== config =============================== */
 
 const SEED   = 1337;
-const SIZE   = 44;      // grid cells per side
-const SEA    = 3.85;    // water surface height
-const DRY    = 3;       // columns with H >= DRY are dry land (grass)
+// Мир Японии живёт в вокселях: X -50..50, Y -3..36, Z -50..74 (на юг уходит
+// аллея до внешней стены z=+60, за ней ещё 16 вокселей холмов).
+// Сетка игры = воксель + SIZE/2, поэтому SIZE/2 должно быть целым и покрывать
+// мир по обе стороны от нуля с запасом. 96 >= 74 -> SIZE=192.
+const SIZE   = 192;     // grid cells per side
+const HALF   = SIZE / 2;
+// Мировые координаты = воксель + 0.5 (центр вокселя совпадает с центром клетки).
+// Клампим по краю участка (PLOT: x ±34, z -34..+58), а не по краю холмов.
+const WORLD_LIMIT = 58;
+// Пропорции: 1 воксель мира = 0.5 м (как в исходном демо voxel-japan при voxel=0.5).
+// В игре 1 блок = 1 воксель, значит человек ~3.6 блока: глаза 3.2, а не 1.6.
+// Дверной проём додзё — 5 вокселей в высоту, персонаж 3.6 -> проходит в дверь.
+const EYE    = 3.2;
 
 const lerp = (a, b, t) => a + (b - a) * t;
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
@@ -597,7 +619,7 @@ function paintSky(t) {
   skyCtx.fillRect(0, 0, 2, 256);
   skyTex.needsUpdate = true;
 }
-scene.fog = new THREE.Fog(0x000000, 55, 135);
+scene.fog = new THREE.Fog(0x000000, 110, 330);
 
 const SUN_POS  = new THREE.Vector3(80, 105, 45);
 const MOON_POS = new THREE.Vector3(-65, 85, -40);
@@ -608,12 +630,12 @@ scene.add(hemi);
 const sun = new THREE.DirectionalLight(0xfff2d0, 1.75);
 sun.position.copy(SUN_POS);
 sun.castShadow = true;
-sun.shadow.mapSize.set(1024, 1024);
-sun.shadow.camera.left = -36; sun.shadow.camera.right = 36;
-sun.shadow.camera.top  =  36; sun.shadow.camera.bottom = -36;
-sun.shadow.camera.near =  40; sun.shadow.camera.far = 260;
-sun.shadow.bias = -0.0003;
-sun.shadow.normalBias = 0.4;
+sun.shadow.mapSize.set(2048, 2048);
+sun.shadow.camera.left = -95; sun.shadow.camera.right = 95;
+sun.shadow.camera.top  =  95; sun.shadow.camera.bottom = -95;
+sun.shadow.camera.near =  20; sun.shadow.camera.far = 400;
+sun.shadow.bias = -0.0006;
+sun.shadow.normalBias = 0.12;   // кубы 1 юнит, карта тени 2048 на 190 юнитов — больше не нужно
 sun.shadow.camera.updateProjectionMatrix();
 scene.add(sun, sun.target);
 
@@ -631,32 +653,13 @@ moonDisc.position.copy(MOON_POS).normalize().multiplyScalar(240);
 scene.add(sunDisc, moonDisc);
 
 /* ========================== heightmap ================================ */
+/* Процедурный остров (fbm-высоты) выпилен: мир целиком строит voxel-japan.js. */
 
-const heights = new Int16Array(SIZE * SIZE);
-{
-  const c = (SIZE - 1) / 2;
-  for (let z = 0; z < SIZE; z++) {
-    for (let x = 0; x < SIZE; x++) {
-      const base = fbm(x * 0.055, z * 0.055);
-      // овальная форма острова: разные радиусы по X и Z
-      const e = Math.hypot((x - c) / (SIZE / 2.95), (z - c) / (SIZE / 3.1));
-      const island = 1 - smoothstep(0.76, 1.16, e);
-      const detail = (valueNoise(x * 0.3, z * 0.3) - 0.5) * 1.4;
-      // высота подобрана так, чтобы центр острова был устойчиво выше уровня воды (SEA=3.85)
-      const v = base * 10.2 * (0.30 + 0.9 * island) + detail;
-      heights[z * SIZE + x] = clamp(Math.floor(v), 0, 12);
-    }
-  }
-}
-
-/* ======================= terrain instancing ========================== */
-/* One InstancedMesh per material => a handful of draw calls total.
-   Only surface-facing blocks are emitted (hidden interiors skipped).  */
+/* ======================= shared geometry helpers ===================== */
+/* One InstancedMesh per material => a handful of draw calls total. */
 
 const blockGeo = new THREE.BoxGeometry(1, 1, 1);
-const blockMat = new THREE.MeshLambertMaterial({ color: 0xffffff });
 const tmpObj   = new THREE.Object3D();
-const tmpCol   = new THREE.Color();
 
 /* ===================== procedural block textures ====================== */
 /* Каждый тип блока получает пиксельную canvas-текстуру (Minecraft-стиль).
@@ -809,6 +812,48 @@ texPainter.leaves = function (ctx, rng) {
     }
 };
 
+/* --- три текстуры под палитру мира Японии (voxel-japan) --- */
+
+// черепица кавара: полукруглые «волны» с тёмной расшивкой между рядами
+texPainter.tile = function (ctx, rng) {
+  const base = 0x3c4045;
+  for (let y = 0; y < 16; y++)
+    for (let x = 0; x < 16; x++) {
+      const wave = Math.sin((x + 0.5) * 0.6) * 1.7;
+      const row = Math.floor((y + wave) / 4) % 2;
+      let c = shift(base, (rng() - 0.5) * 0.14 + (row ? 0.20 : -0.05));
+      if ((y + Math.round(wave)) % 4 === 0) c = shift(base, -0.38);   // расшивка
+      ctx.fillStyle = css(c);
+      ctx.fillRect(x * TEX_CELL, y * TEX_CELL, TEX_CELL, TEX_CELL);
+    }
+};
+
+// сёдзи-васи: тёплая бумага с тонким каркасом
+texPainter.paper = function (ctx, rng) {
+  const base = 0xf2e6c8;
+  for (let y = 0; y < 16; y++)
+    for (let x = 0; x < 16; x++) {
+      let c = shift(base, (rng() - 0.5) * 0.05);
+      if (x % 5 === 0 || y % 5 === 0) c = shift(base, -0.30);
+      ctx.fillStyle = css(c);
+      ctx.fillRect(x * TEX_CELL, y * TEX_CELL, TEX_CELL, TEX_CELL);
+    }
+};
+
+// крона сакуры: четыре оттенка розового, как в PALETTE.sakura1..4
+texPainter.sakura = function (ctx, rng) {
+  ctx.fillStyle = css(0xee9ec0);
+  ctx.fillRect(0, 0, TEX, TEX);
+  for (let y = 0; y < 16; y++)
+    for (let x = 0; x < 16; x++) {
+      const t = rng();
+      const c = t < 0.28 ? 0xdd7ba6 : t < 0.60 ? 0xee9ec0
+              : t < 0.82 ? 0xf7bcd4 : 0xfce0ea;
+      ctx.fillStyle = css(c);
+      ctx.fillRect(x * TEX_CELL, y * TEX_CELL, TEX_CELL, TEX_CELL);
+    }
+};
+
 function makeBlockTexture(painter) {
   const cv = document.createElement('canvas');
   cv.width = cv.height = TEX;
@@ -829,6 +874,9 @@ texs.stone  = makeBlockTexture(texPainter.stone);
 texs.brick  = makeBlockTexture(texPainter.brick);
 texs.wood   = makeBlockTexture(texPainter.wood);
 texs.leaves = makeBlockTexture(texPainter.leaves);
+texs.tile   = makeBlockTexture(texPainter.tile);
+texs.paper  = makeBlockTexture(texPainter.paper);
+texs.sakura = makeBlockTexture(texPainter.sakura);
 
 // миниатюры текстур в панели выбора блоков (1-7)
 function applySlotThumbs() {
@@ -881,6 +929,12 @@ function setTexMode(on) {
       r.mat.needsUpdate = true;
       for (let i = 0; i < r.colBase.length; i++) r.mesh.setColorAt(i, on ? r.colTex[i] : r.colBase[i]);
       if (r.mesh.instanceColor) r.mesh.instanceColor.needsUpdate = true;
+    } else if (r.kind === 'japan') {
+      // мир Японии: цвет палитры остаётся всегда (материал = цвет, инстанс-цветов нет),
+      // текстура только тонируется этим цветом — «цветное лего» вместо плоской заливки
+      r.mat.map = on ? r.texture : null;
+      r.mat.color.setHex(r.baseColor);
+      r.mat.needsUpdate = true;
     } else {
       r.mat.map = on ? r.texture : null;
       r.mat.color.setHex(on ? 0xffffff : r.baseColor);   // цветной режим — базовый цвет блока
@@ -921,97 +975,52 @@ function buildBlockLayer(list, baseColor, texture) {
   return mesh;
 }
 
-const buckets = { grass: [], dirt: [], sand: [], stone: [] };
-{
-  for (let z = 0; z < SIZE; z++) {
-    for (let x = 0; x < SIZE; x++) {
-      const H = heights[z * SIZE + x];
-      let minN = H;
-      if (x > 0)         minN = Math.min(minN, heights[z * SIZE + x - 1]);
-      if (x < SIZE - 1)  minN = Math.min(minN, heights[z * SIZE + x + 1]);
-      if (z > 0)         minN = Math.min(minN, heights[(z - 1) * SIZE + x]);
-      if (z < SIZE - 1)  minN = Math.min(minN, heights[(z + 1) * SIZE + x]);
-      const yMin = Math.min(H, Math.max(0, minN + 1));
-      const dry = H >= DRY;
-      // узкий пляж — только суша уровня воды (H == DRY) с прямым соседом-водой,
-      // чтобы песок шёл узкой кромкой у воды, а центр острова оставался травой/землёй
-      let beach = false;
-      if (dry && H === DRY) {
-        if (x > 0 && heights[z * SIZE + x - 1] < DRY) beach = true;
-        else if (x < SIZE - 1 && heights[z * SIZE + x + 1] < DRY) beach = true;
-        else if (z > 0 && heights[(z - 1) * SIZE + x] < DRY) beach = true;
-        else if (z < SIZE - 1 && heights[(z + 1) * SIZE + x] < DRY) beach = true;
-      }
-      for (let y = H; y >= yMin; y--) {
-        // только 2 слоя камня ниже верхних: глубже не рендерим, чтобы не жечь GPU впустую (невидимо)
-        const type = y === H
-          ? (beach ? "sand" : (dry ? "grass" : "sand"))
-          : (beach
-              ? (y >= H - 1 ? "sand" : (y >= H - 3 ? "dirt" : "stone"))
-              : (!dry ? "sand" : (dry && y >= H - 2 ? "dirt" : (y >= H - 3 ? "stone" : null))));
-        if (type === null) continue;
-        buckets[type].push(x, y, z);
-      }
-    }
-  }
+/* ==================== мир: воксельная феодальная Япония =============== */
+/* Мир целиком строит отдельный модуль voxel-japan.js (копия из
+   F:/Pets/Projects/games/v_4). Воксель = блок сетки = 1 юнит. Корень смещаем
+   на +0.5 по всем осям, чтобы центр вокселя (x,y,z) совпал с центром клетки
+   (x+SIZE/2, y, z+SIZE/2) — тогда вся существующая механика (solid-карта,
+   topOfColumn, ЛКМ/ПКМ по инстансам) работает по миру без пересчётов. */
+
+const japan = createVoxelJapan({ voxel: 1, seed: SEED, water: true });
+japan.position.set(0.5, 0.5, 0.5);
+scene.add(japan);
+
+const japanMeshes = japan.userData.voxelMeshes;   // InstancedMesh по цветам палитры
+const japanCount  = japan.userData.voxelCount;
+
+/* --- палитра -> игровые текстуры (режим «текстуры») --- */
+const TEX_BY_PALETTE = new Map([
+  [PALETTE.grass, 'grass'], [PALETTE.grassDark, 'grass'], [PALETTE.moss, 'grass'],
+  [PALETTE.woodDark, 'wood'], [PALETTE.woodMid, 'wood'], [PALETTE.woodLight, 'wood'],
+  [PALETTE.woodFloor, 'wood'], [PALETTE.woodRed, 'wood'], [PALETTE.woodRedDark, 'wood'],
+  [PALETTE.bark, 'wood'], [PALETTE.barkLight, 'wood'],
+  [PALETTE.tile, 'tile'], [PALETTE.tileDark, 'tile'],
+  [PALETTE.tileLight, 'tile'], [PALETTE.ridge, 'tile'],
+  [PALETTE.stone, 'stone'], [PALETTE.stoneDark, 'stone'], [PALETTE.stoneLight, 'stone'],
+  [PALETTE.gold, 'stone'],
+  [PALETTE.paper, 'paper'], [PALETTE.paperDim, 'paper'], [PALETTE.lanternPaper, 'paper'],
+  [PALETTE.sandLight, 'sand'], [PALETTE.sandDark, 'sand'],
+  [PALETTE.sakura1, 'sakura'], [PALETTE.sakura2, 'sakura'],
+  [PALETTE.sakura3, 'sakura'], [PALETTE.sakura4, 'sakura'],
+]);
+for (const { hex, material } of japan.userData.materials) {
+  const name = TEX_BY_PALETTE.get(hex);
+  texMaterials.push({
+    kind: 'japan', mat: material, baseColor: hex,
+    texture: name ? (texs[name] || null) : null,   // вода/золото без своей текстуры
+  });
 }
-
-const mGrass = buildBlockLayer(buckets.grass, 0x67c04a, texs.grass);
-const mDirt  = buildBlockLayer(buckets.dirt,  0x8a5a34, texs.dirt);
-const mSand  = buildBlockLayer(buckets.sand,  0xdcd189, texs.sand);
-const mStone = buildBlockLayer(buckets.stone, 0x8d939c, texs.stone);
-
-/* ============================== trees ================================ */
-
-const mTrunk = null; // assigned below
-const trunks = [], leaves = [];
-
-const STAND_X = Math.floor(SIZE / 2);   // клетка стенда по X (grid-координаты)
-const STAND_Z = Math.floor(SIZE / 2);   // клетка стенда по Z (grid-координаты)
-{
-  const spots = [];
-  let placed = 0, tries = 0;
-  // деревья убраны: лес в перспективе спавна заменяет плавучий остров (см. buildIsland)
-  while (false && placed < 55 && tries < 9000) {
-    tries++;
-    const x = 2 + Math.floor(rng() * (SIZE - 4));
-    const z = 2 + Math.floor(rng() * (SIZE - 4));
-    const H = heights[z * SIZE + x];
-    if (H < 4) continue;                              // только на суше выше воды
-    // деревья не стоят на самом пьедестале, но растут рядом (интерьер вокруг главного объекта)
-    if (Math.max(Math.abs(x - STAND_X), Math.abs(z - STAND_Z)) < 3) continue;
-    if (spots.some(s => Math.abs(s.x - x) + Math.abs(s.z - z) < 3)) continue;
-    spots.push({ x, z, H });
-    placed++;
-
-    const tH = 2 + Math.floor(rng() * 4);             // разная высота: 2..5 блоков
-    const topY = H + tH;
-    const R = tH >= 4 ? 2 : 1;                        // большие деревья шире
-    for (let y = H + 1; y <= topY; y++) trunks.push(x, y, z);
-    leaves.push(x, topY + 1, z);
-    leaves.push(x, topY + 2, z);
-    for (let dx = -R; dx <= R; dx++) {
-      for (let dz = -R; dz <= R; dz++) {
-        if (!dx && !dz) continue;                     // ось кроны уже добавлена
-        if (R === 2 && Math.hypot(dx, dz) > 2.1) continue;   // не выходить за круг
-        if (R === 1 && Math.abs(dx) === 1 && Math.abs(dz) === 1 && rng() < 0.45) continue;
-        leaves.push(x + dx, topY, z + dz);
-        leaves.push(x + dx, topY + 1, z + dz);
-      }
-    }
-  }
-}
-const mLog  = buildBlockLayer(trunks, 0x6b4a2b, texs.wood);
-const mLeaf = buildBlockLayer(leaves, 0x4d9e3f, texs.leaves);
 setTexMode(texMode);   // применяем стартовый режим (цветные кубы) к материалам и слотам
 
-/* ============================== water ================================ */
+const trunks = [], leaves = [];   // деревья-кубы выпилены: сакуры ставит генератор мира
 
-const waterMat = new THREE.MeshLambertMaterial({ color: 0x2f9fdc, transparent: true, opacity: 0.72 });
-const water = new THREE.Mesh(new THREE.PlaneGeometry(SIZE, SIZE).rotateX(-Math.PI / 2), waterMat);
-water.position.set(0, SEA, 0);
-water.receiveShadow = true;
-scene.add(water);
+/* ============================== water ================================ */
+/* Моря в этом мире нет — вода только в пруду; её плоскость отдаёт сам генератор. */
+
+const water = japan.getObjectByName('Water');
+const waterMat = water ? water.material : null;
+const WATER_Y = water ? water.position.y : 0;   // локальная высота плёнки (0.5 * voxel)
 
 /* ============================== clouds =============================== */
 
@@ -1132,7 +1141,7 @@ function applyDayNight(t) {
   sun.color.lerpColors(C.sunDay, C.sunNight, t).lerp(C.sunset, s * 0.5);
   sun.position.lerpVectors(SUN_POS, MOON_POS, t);
 
-  waterMat.color.lerpColors(C.waterDay, C.waterNight, t);
+  if (waterMat) waterMat.color.lerpColors(C.waterDay, C.waterNight, t);
   cloudMat.color.lerpColors(C.cloudDay, C.cloudNight, t);
   starMat.opacity = t * 0.95;
   sunDisc.material.opacity  = 1 - t;
@@ -1144,8 +1153,8 @@ function applyDayNight(t) {
 /* ========================== camera rig =============================== */
 
 const rig = {
-  theta: -0.9, phi: 0.6, radius: 34,       // current (smoothed) — старт ниже, средний обзор
-  tTheta: -0.9, tPhi: 0.6, tRadius: 34,    // targets
+  theta: -0.35, phi: 0.86, radius: 112,    // current (smoothed) — обзор всего двора
+  tTheta: -0.35, tPhi: 0.86, tRadius: 112, // targets
   px: 0, py: 0,                             // mouse parallax
   lastInteract: -1e4,
   explore: null,                            // спиральный облёт: { t, dur, sTheta, sPhi, sRadius, dTheta, ePhi, eRadius }
@@ -1153,11 +1162,11 @@ const rig = {
 
 function startExplore() {
   rig.explore = {
-    t: 0, dur: 2.0,
+    t: 0, dur: 2.4,
     sTheta: rig.theta, sPhi: rig.phi, sRadius: rig.radius,
-    dTheta: -2.2,                            // обход влево (против часовой), финал со стороны моря
-    ePhi: 1.32,                            // почти уровень воды — камера смотит с моря
-    eRadius: 28,
+    dTheta: -2.2,                            // обход влево (против часовой), финал со стороны пруда
+    ePhi: 1.18,                              // ниже — камера спускается к уровню двора
+    eRadius: 62,
   };
   rig.lastInteract = performance.now() - 5000;
 }
@@ -1187,7 +1196,7 @@ canvas.addEventListener("pointerup", (e) => {
 });
 canvas.addEventListener("wheel", (e) => {
   e.preventDefault();
-  rig.tRadius = clamp(rig.tRadius * (1 + e.deltaY * 0.001), 16, 95);
+  rig.tRadius = clamp(rig.tRadius * (1 + e.deltaY * 0.001), 28, 240);
   rig.lastInteract = performance.now();
 }, { passive: false });
 
@@ -1233,13 +1242,13 @@ let selectedType = 'grass';
 
 let mode   = 'menu';   // menu | approach | fps | orbit
 let spawned = false;
-let orbitLook = new THREE.Vector3(0, 3.5, 0);
+let orbitLook = new THREE.Vector3(0.5, 12, 12);   // центр двора: додзё + начало аллеи
 
 const player = {
-  pos: new THREE.Vector3(0, 20, 0),
+  pos: new THREE.Vector3(0.5, 40, 54.5),   // старт над спавном, упадёт на землю
   vel: new THREE.Vector3(0, 0, 0),
-  yaw: -Math.PI / 2, pitch: 0,
-  eye: 1.6,
+  yaw: Math.PI, pitch: 0,
+  eye: EYE,
   onGround: false,
 };
 const keys = { fwd: false, back: false, left: false, right: false, sprint: false, jump: false };
@@ -1248,8 +1257,12 @@ const keys = { fwd: false, back: false, left: false, right: false, sprint: false
 const solid = new Map();
 const cellKey = (x, y, z) => x + ',' + y + ',' + z;
 (function fillSolid() {
-  for (const a of [buckets.grass, buckets.dirt, buckets.sand, buckets.stone, trunks, leaves])
-    for (let i = 0; i < a.length; i += 3) solid.set(cellKey(a[i], a[i + 1], a[i + 2]), true);
+  // воксели мира Японии: воксель (x,y,z) -> клетка сетки (x+HALF, y, z+HALF)
+  for (const mesh of japanMeshes) {
+    const v = mesh.userData.voxels;
+    for (let i = 0; i < v.length; i += 3)
+      solid.set(cellKey(v[i] + HALF, v[i + 1], v[i + 2] + HALF), true);
+  }
 })();
 
 const placedMeshes = [];
@@ -1257,20 +1270,17 @@ const rayTargets = [];
 function buildRayTargets() {
   rayTargets.length = 0;
   for (const m of poppable) rayTargets.push(m);
-  for (const m of islandMeshes) rayTargets.push(m);   // остров: на нём строят и его можно ломать
   for (const m of placedMeshes) rayTargets.push(m);
 }
-function topOfColumn(cx, cz, maxY = 400) {
-  const y0 = Math.min(400, Math.floor(maxY));
+function topOfColumn(cx, cz, maxY = 64) {
+  const y0 = Math.min(64, Math.floor(maxY));
   for (let y = y0; y >= -40; y--)
     if (solid.has(cellKey(cx, y, cz))) return y + 1;
   return -Infinity;
 }
 
 // --- build / remove blocks ---
-let terrainBlocks =
-  (buckets.grass.length + buckets.dirt.length + buckets.sand.length + buckets.stone.length) / 3
-  + trunks.length / 3 + leaves.length / 3;
+let terrainBlocks = japanCount;      // воксели мира (их можно ломать)
 let removedTerrain = 0;
 function refreshBlockCount() {
   const total = terrainBlocks - removedTerrain + placedMeshes.length;
@@ -1369,12 +1379,13 @@ function updatePlayer(dt) {
   const len = Math.hypot(dx, dz);
   if (len > 1e-4) {
     dx /= len; dz /= len;
-    const spd = 6.0 * (keys.sprint ? 1.85 : 1.0);
+    // пропорции игрока удвоены относительно старой карты (блок мира = 0.5 м)
+    const spd = 12.0 * (keys.sprint ? 1.85 : 1.0);
     P.pos.x += dx * spd * dt;
     P.pos.z += dz * spd * dt;
   }
-  P.vel.y -= 24.0 * dt;
-  if (keys.jump && P.onGround) { P.vel.y = 12.0; P.onGround = false; keys.jump = false; }
+  P.vel.y -= 48.0 * dt;
+  if (keys.jump && P.onGround) { P.vel.y = 24.0; P.onGround = false; keys.jump = false; }
   P.pos.y += P.vel.y * dt;
   const cx = Math.floor(P.pos.x + SIZE / 2);
   const cz = Math.floor(P.pos.z + SIZE / 2);
@@ -1387,11 +1398,10 @@ function updatePlayer(dt) {
     if (P.vel.y < 0) P.vel.y = 0;
     P.onGround = true;
   }
-  // аварийный респаун — всегда на землю (блоки ниже y=20), а не на парящую платформу
-  if (P.pos.y < -15) { const gt = topOfColumn(cx, cz, 20); P.pos.y = (Number.isFinite(gt) ? gt : 0) + P.eye; P.vel.y = 0; P.onGround = true; }
-  const lim = SIZE / 2 - 1.5;
-  P.pos.x = clamp(P.pos.x, -lim, lim);
-  P.pos.z = clamp(P.pos.z, -lim, lim);
+  // аварийный респаун — на землю (всё, что ниже уровня пьедестала на коньке)
+  if (P.pos.y < -30) { const gt = topOfColumn(cx, cz, 70); P.pos.y = (Number.isFinite(gt) ? gt : 0) + P.eye; P.vel.y = 0; P.onGround = true; }
+  P.pos.x = clamp(P.pos.x, -WORLD_LIMIT, WORLD_LIMIT);
+  P.pos.z = clamp(P.pos.z, -WORLD_LIMIT, WORLD_LIMIT);
 }
 function updateFpsCamera() {
   const P = player;
@@ -1403,46 +1413,19 @@ function updateFpsCamera() {
 }
 
 // --- modes + UI wiring ---
-function findSpawn() {
-  const c = SIZE / 2;
-  // все клетки деревьев (стволы + кроны)
-  const tree = new Set();
-  for (const a of [trunks, leaves])
-    for (let i = 0; i < a.length; i += 3) tree.add(cellKey(a[i], a[i + 1], a[i + 2]));
-  // верхняя трава каждой колонки (на ней можно стоять)
-  const tops = new Map();
-  for (let i = 0; i < buckets.grass.length; i += 3) {
-    const gx = buckets.grass[i], gy = buckets.grass[i + 1], gz = buckets.grass[i + 2];
-    const k = gx + '|' + gz;
-    const cur = tops.get(k);
-    if (!cur || gy > cur.y) tops.set(k, { x: gx, y: gy, z: gz });
-  }
-  let best = null, fallback = null;
-  tops.forEach((b) => {
-    const d = (b.x - c) * (b.x - c) + (b.z - c) * (b.z - c);
-    if (!fallback || d > fallback.d) fallback = { d, x: b.x, y: b.y, z: b.z };
-    // открытое место: не должно быть дерева в радиусе 4 над травой
-    let nearTree = false;
-    outer:
-    for (let ox = -4; ox <= 4 && !nearTree; ox++)
-      for (let oz = -4; oz <= 4 && !nearTree; oz++)
-        for (let oy = 1; oy <= 5; oy++)
-          if (tree.has(cellKey(b.x + ox, b.y + oy, b.z + oz))) { nearTree = true; break outer; }
-    if (!nearTree && (!best || d > best.d)) best = { d, x: b.x, y: b.y, z: b.z };
-  });
-  return best || fallback;
-}
+/* Спавн зафиксирован: южный конец аллеи, лицом на север. По курсу — тории
+   (z=+30), за ними дверь додзё (z=+16). Спавн отодвинут от додзё на 38
+   вокселей: при FOV 55 додзё (32x36) целиком влезает в кадр только с ~36.
+   Координаты воксельные; мировая = воксель + 0.5. */
+const SPAWN = { x: 0, z: 54 };
 
 function spawnPlayer() {
-  const c = SIZE / 2;
-  const s = findSpawn();
-  const t = topOfColumn(s.x, s.z);
-  const wx = s.x + 0.5 - c;
-  const wz = s.z + 0.5 - c;
-  player.pos.set(wx, (Number.isFinite(t) ? t : 0) + player.eye, wz);
+  const gx = SPAWN.x + HALF;
+  const gz = SPAWN.z + HALF;
+  const t = topOfColumn(gx, gz, 70);
+  player.pos.set(SPAWN.x + 0.5, (Number.isFinite(t) ? t : 0) + player.eye, SPAWN.z + 0.5);
   player.vel.set(0, 0, 0);
-  // вид — на основной остров и лес (в сторону центра карты)
-  player.yaw = Math.atan2(-wx, -wz);
+  player.yaw = Math.PI;        // forward = (sin, 0, cos) = (0,0,-1)
   player.pitch = 0;
   orbitLook.copy(player.pos);
 }
@@ -1471,7 +1454,7 @@ function updateApproach(dt) {
   camera.position.lerp(player.pos, mix);
   // цель взгляда — перспектива вперёд от игрока
   appLook.lerp(
-    new THREE.Vector3(player.pos.x + fx * 30, player.pos.y - 1.5, player.pos.z + fz * 30),
+    new THREE.Vector3(player.pos.x + fx * 60, player.pos.y - 3.0, player.pos.z + fz * 60),
     mix
   );
   camera.lookAt(appLook);
@@ -1543,7 +1526,7 @@ function toggleCamera() {
     mode = 'orbit';
     rig.theta = rig.tTheta = player.yaw;
     rig.phi = rig.tPhi = 0.5;
-    rig.radius = rig.tRadius = 12;
+    rig.radius = rig.tRadius = 34;
     orbitLook.copy(player.pos);
     document.exitPointerLock();
     showGameHud(false);
@@ -1637,7 +1620,7 @@ document.addEventListener('pointerlockchange', () => {
 
 const raycaster = new THREE.Raycaster();
 const ndc = new THREE.Vector2();
-const poppable = [mGrass, mDirt, mSand, mStone, mLog, mLeaf];
+const poppable = japanMeshes.slice();   // весь мир ломается по инстансам
 const pops = [];
 const POP_TIME = 0.28;
 
@@ -1695,9 +1678,7 @@ document.getElementById("btnWorlds").addEventListener("click", () => {
   window.open("lil-worlds/index.html", "_blank");
 });
 
-const totalBlocks =
-  (buckets.grass.length + buckets.dirt.length + buckets.sand.length + buckets.stone.length) / 3
-  + trunks.length / 3 + leaves.length / 3;
+const totalBlocks = japanCount;
 document.getElementById("statBlocks").textContent = totalBlocks.toLocaleString() + " blocks";
 
 const statFps = document.getElementById("statFps");
@@ -1726,238 +1707,31 @@ function standBlock(gx, gy, gz, base) {
   refreshBlockCount();
 }
 
-const islandMeshes = [];                 // меши острова (клавиша P их не скрывает)
-const islandKeys = [];                   // их cellKey — фиксированные коллизии
-
-// --- Overgrown Steampunk Island (порт темы B из Lil Worlds) ---
-// Холм ВРОС в грунт в центре карты вместо вырубленного леса: ниже палубы
-// тело из земли/камня до самой поверхности, сверху — поросшая мхом и листвой
-// кирпичная мастерская с трубой и шестернёй, оранжерея, водяное колесо с
-// водопадом, воздушный шар, фонари, дерево и цветы.
-// Слои используют игровые текстуры (grass/dirt/stone/wood/leaves/brick/sand),
-// поэтому переключатель текстур (кнопка рядом с день/ночь) работает и на
-// острове; декоративные материалы без текстур (стекло, латунь, вода, огонь)
-// сохраняют цвет в обоих режимах.
-function buildIsland() {
-  const gx0 = Math.floor(SIZE / 2), gz0 = Math.floor(SIZE / 2);
-  const H0 = heights[gz0 * SIZE + gx0];               // поверхность земли в центре
-  const DECK = Math.max(H0, Math.ceil(SEA)) + 3;      // палуба над водой — остров-холм
-  const R = 7;
-  const T = texs;
-  const M = {
-    grass:  { n: "grass",  c: 0x67c04a, t: T.grass },
-    dirt:   { n: "dirt",   c: 0x8a5a34, t: T.dirt },
-    stone:  { n: "stone",  c: 0x8d939c, t: T.stone },
-    wood:   { n: "wood",   c: 0x6b4a2b, t: T.wood },
-    leaves: { n: "leaves", c: 0x4d9e3f, t: T.leaves },
-    brick:  { n: "brick",  c: 0xa05a48, t: T.brick },
-    sand:   { n: "sand",   c: 0xdcd189, t: T.sand },
-    brass:  { n: "brass",  c: 0xd4a24c, t: null },
-    copper: { n: "copper", c: 0xb87333, t: null },
-    cream:  { n: "cream",  c: 0xf2e8d5, t: null },
-    glass:  { n: "glass",  c: 0x9fd8e8, t: null },
-    water:  { n: "water",  c: 0x7ec8e3, t: null },
-    fire:   { n: "fire",   c: 0xff8c3a, t: null },
-    flower: { n: "flower", c: 0xe86a9a, t: null },
-  };
-  const groups = {};
-  const claimed = new Set();
-  const put = (mat, x, y, z) => {
-    const k = cellKey(x, y, z);
-    if (claimed.has(k)) return false;
-    claimed.add(k);
-    (groups[mat.n] = groups[mat.n] || []).push(x, y, z);
-    return true;
-  };
-  // перезапись занятой клетки (рубка под русло/окна/плющ)
-  const over = (mat, x, y, z) => {
-    const k = cellKey(x, y, z);
-    if (claimed.has(k)) {
-      for (const g in groups) {
-        const a = groups[g];
-        for (let i = 0; i < a.length; i += 3)
-          if (a[i] === x && a[i + 1] === y && a[i + 2] === z) { a.splice(i, 3); break; }
-      }
-      (groups[mat.n] = groups[mat.n] || []).push(x, y, z);
-    } else put(mat, x, y, z);
-  };
-
-  /* ---------- холм: палуба + тело до грунта ---------- */
-  for (let dx = -R; dx <= R; dx++)
-    for (let dz = -R; dz <= R; dz++) {
-      const d = Math.hypot(dx, dz);
-      if (d > R + 0.25) continue;
-      const x = gx0 + dx, z = gz0 + dz;
-      const edge = d > R - 1.2;
-      const top = edge ? DECK - 1 : DECK;             // кромка чуть ниже — силуэт холма
-      const plank = ((x * 3 + z * 5) % 11) === 0;
-      const mossy = ((x * 7 + z * 3) % 5) === 0;
-      put(edge ? M.sand : (plank ? M.wood : (mossy ? M.leaves : M.grass)), x, top, z);
-      for (let y = top - 1; y >= H0; y--)
-        put(y >= top - 2 ? M.dirt : M.stone, x, y, z);
-    }
-  // свисающий плющ по кромке
-  for (let a = 0; a < 26; a++) {
-    const ang = (a / 26) * Math.PI * 2;
-    const x = gx0 + Math.round(Math.cos(ang) * R), z = gz0 + Math.round(Math.sin(ang) * R);
-    const y0 = DECK - 1;
-    for (let y = y0; y >= y0 - (1 + (a % 3)); y--) put(M.leaves, x, y, z);
-  }
-
-  /* ---------- мастерская: кирпич, окна, крыша, труба, шестерня ---------- */
-  {
-    const hx = gx0 + 1, hz = gz0 - 5;
-    for (let x = hx; x < hx + 4; x++)                 // площадка под домом (края кромки ниже)
-      for (let z = hz; z < hz + 4; z++)
-        for (let y = H0; y <= DECK; y++) put(y === DECK ? M.wood : M.stone, x, y, z);
-    for (let x = hx; x < hx + 4; x++)
-      for (let z = hz; z < hz + 4; z++) {
-        const onWall = x === hx || x === hx + 3 || z === hz || z === hz + 3;
-        for (let y = DECK + 1; y <= DECK + 3; y++) {
-          if (!onWall) continue;
-          const door = x === hx + 1 && z === hz + 3 && y <= DECK + 2;
-          const win = !door && (
-            (x === hx + 2 && z === hz) ||
-            (x === hx && z === hz + 2 && y === DECK + 2) ||
-            (x === hx + 3 && z === hz + 1 && y === DECK + 2));
-          if (door) continue;
-          put(win ? M.fire : M.brick, x, y, z);
-        }
-        put(M.wood, x, DECK + 4, z);                  // крыша
-      }
-    put(M.stone, hx + 3, DECK + 5, hz);
-    put(M.stone, hx + 3, DECK + 6, hz);
-    put(M.copper, hx + 3, DECK + 7, hz);              // медная насадка трубы
-    // шестерня на восточной стене (крест латуни)
-    const gy = DECK + 2, gz = hz + 1;
-    over(M.brass, hx + 3, gy, gz);
-    over(M.brass, hx + 3, gy + 1, gz); over(M.brass, hx + 3, gy - 1, gz);
-    over(M.brass, hx + 3, gy, gz + 1); over(M.brass, hx + 3, gy, gz - 1);
-    // плющ по углам крыши
-    over(M.leaves, hx, DECK + 5, hz); over(M.leaves, hx + 3, DECK + 5, hz + 3);
-    over(M.leaves, hx, DECK + 5, hz + 3);
-  }
-
-  /* ---------- оранжерея: стекло, цветок, кремовая крыша ---------- */
-  {
-    const wx = gx0 - 5, wz = gz0 + 2;
-    put(M.flower, wx + 1, DECK + 1, wz + 1);
-    for (let x = wx; x < wx + 3; x++)
-      for (let z = wz; z < wz + 3; z++) {
-        const onWall = x === wx || x === wx + 2 || z === wz || z === wz + 2;
-        const corner = (x === wx || x === wx + 2) && (z === wz || z === wz + 2);
-        if (onWall) put(corner ? M.wood : M.glass, x, DECK + 1, z);
-        put(M.glass, x, DECK + 2, z);
-        over(((x + z) & 1) ? M.cream : M.leaves, x, DECK + 3, z);   // крыша в листве
-      }
-    put(M.fire, wx, DECK + 4, wz);                    // лампа над куполом
-  }
-
-  /* ---------- водяное колесо + русло + водопад ---------- */
-  {
-    const cx = gx0 - 6, cy = DECK + 1;
-    put(M.wood, cx + 1, cy, gz0);                     // ось/стойка к холму
-    for (let dy = -2; dy <= 2; dy++)
-      for (let dz = -2; dz <= 2; dz++) {
-        const d2 = dy * dy + dz * dz;
-        if (d2 === 4) put(M.brass, cx, cy + dy, gz0 + dz);
-        else if (d2 === 1) put(M.copper, cx, cy + dy, gz0 + dz);
-      }
-    for (let x = cx + 1; x <= gx0 - 3; x++) over(M.water, x, DECK, gz0);   // русло по палубе
-    for (let y = DECK - 1; y >= H0 + 1; y--) over(M.water, cx, y, gz0);    // водопад в толще холма
-  }
-
-  /* ---------- воздушный шар: полосатая сфера, корзина, шварт ---------- */
-  {
-    const bx = gx0 + 5, bz = gz0 + 3, by = DECK + 9;
-    for (let x = bx - 2; x <= bx + 2; x++)
-      for (let y = by - 2; y <= by + 2; y++)
-        for (let z = bz - 2; z <= bz + 2; z++) {
-          if (Math.hypot(x - bx, y - by, z - bz) > 2.2) continue;
-          put(((x + z) & 1) ? M.fire : M.cream, x, y, z);
-        }
-    put(M.wood, bx - 1, by - 4, bz - 1); put(M.wood, bx + 1, by - 4, bz - 1);
-    put(M.wood, bx - 1, by - 4, bz + 1); put(M.wood, bx + 1, by - 4, bz + 1);
-    for (let y = by - 3; y >= DECK + 1; y--) put(M.copper, bx, y, bz);     // трос-шварт
-  }
-
-  /* ---------- дерево на холме (переросшая руина) ---------- */
-  {
-    const tx = gx0 - 2, tz = gz0 + 5;
-    for (let y = DECK + 1; y <= DECK + 3; y++) put(M.wood, tx, y, tz);
-    for (let dx = -1; dx <= 1; dx++)
-      for (let dz = -1; dz <= 1; dz++) {
-        put(M.leaves, tx + dx, DECK + 4, tz + dz);
-        put(M.leaves, tx + dx, DECK + 5, tz + dz);
-      }
-    put(M.leaves, tx, DECK + 6, tz);
-  }
-
-  /* ---------- фонари и цветы ---------- */
-  for (const [lx, lz] of [[-4, -4], [4, 2], [0, 5]]) {
-    put(M.wood, gx0 + lx, DECK + 1, gz0 + lz);
-    put(M.fire, gx0 + lx, DECK + 2, gz0 + lz);
-  }
-  {
-    let n = 0, tries = 0;
-    while (n < 12 && tries < 400) {
-      tries++;
-      const dx = Math.floor((rng() - 0.5) * 2 * R), dz = Math.floor((rng() - 0.5) * 2 * R);
-      if (Math.hypot(dx, dz) > R - 1.5) continue;
-      if (put(M.flower, gx0 + dx, DECK + 1, gz0 + dz)) n++;
-    }
-  }
-
-  /* ---------- сборка: InstancedMesh на материал ---------- */
-  for (const name of Object.keys(groups)) {
-    const list = groups[name];
-    if (!list.length) continue;
-    const m = M[name];
-    // декор без своей текстуры (латунь/медь/стекло/вода/огонь/крем/цветы)
-    // берёт stone-текстуру и тонируется своим цветом — в текстурном режиме
-    // это «цветное лего», а не плоская заливка
-    const mesh = buildBlockLayer(list, m.c, m.t || T.stone);
-    if (!m.t) {
-      const rec = texMaterials[texMaterials.length - 1];
-      for (let i = 0; i < rec.colTex.length; i++) rec.colTex[i] = rec.colBase[i];
-    }
-    islandMeshes.push(mesh);
-    terrainBlocks += list.length / 3;
-    for (let i = 0; i < list.length; i += 3) {
-      const k = cellKey(list[i], list[i + 1], list[i + 2]);
-      solid.set(k, true);
-      islandKeys.push(k);
-    }
-  }
-  refreshBlockCount();
-  // остров строится ПОСЛЕ стартового setTexMode() — привести его слои к текущему
-  // режиму (по умолчанию цветной), иначе текстуры на нём видны до первого переключения
-  setTexMode(texMode);
-}
 
 
 function buildStand() {
-  const gx0 = Math.floor(SIZE / 2), gz0 = Math.floor(SIZE / 2);   // центральная клетка (grid)
-  const groundTop = topOfColumn(gx0, gz0);                         // пол над землёй
-  if (!Number.isFinite(groundTop) || groundTop < 0) return null;
+  const gx0 = Math.floor(SIZE / 2), gz0 = Math.floor(SIZE / 2);   // центральная клетка = центр додзё
+  const ridgeTop = topOfColumn(gx0, gz0);                          // верх конька крыши (~37)
+  if (!Number.isFinite(ridgeTop) || ridgeTop < 0) return null;
 
-  // мини-уровень: пьедестал парит ВЫСОКО над картой — игрок строит вверх и добирается до пельменя
-  const ELEV = 60;                          // высота пьедестала над землёй (в блоках)
-  const baseY = groundTop + ELEV;
-
-  // квадратная каменная колонна, уже пельменя — широкая площадка (8x8), невысокая
-  const W = 8, D = 8, H = 2;               // квадрат в плане, «стоит» колонной
+  // мини-уровень: пельмень висит над коньком крыши додзё. Подняться можно
+  // двумя путями — построить башню вдоль стены или забраться по ярусам крыши
+  // (каждый ярус — ступень в 1 блок) от карниза на y=27.
+  // baseY = ridgeTop (первая СВОБОДНАЯ клетка над коньком): постамент стоит
+  // НА коньке. Раньше было ridgeTop-1 — блок постамента садился в ту же клетку,
+  // что и воксель конька, и они дрались за глубину (z-fighting).
+  const baseY = ridgeTop;
+  const W = 3, D = 3, H = 3;               // компактный каменный постамент
   const x0 = gx0 - Math.floor(W / 2), z0 = gz0 - Math.floor(D / 2);
   for (let dz = 0; dz < D; dz++)
     for (let dx = 0; dx < W; dx++)
       for (let h = 0; h < H; h++)
         standBlock(x0 + dx, baseY + h, z0 + dz, STONE_TONES[Math.floor(rng() * STONE_TONES.length)]);
 
-  // геометрический центр платформы (для чётного размера он на границе клетки, а не в центре клетки)
   return {
     wx: x0 + W / 2.0 - SIZE / 2,
     wz: z0 + D / 2.0 - SIZE / 2,
-    top: baseY + H,                        // пол НАД верхней клеткой пьедестала (как topOfColumn)
+    top: topOfColumn(gx0, gz0),            // реальный пол поверх постамента
     baseY,
   };
 }
@@ -1966,10 +1740,9 @@ function buildStand() {
 
 let pelmen = null;                     // { group, ox, oyBase, oz, halfH }
 const STAND = buildStand();
-buildIsland();   // остров у земли: после пьедестала, чтобы не сдвинуть topOfColumn центра
 // параметры левитации (единые для позиции и анимации)
-const LEV_AMT = 0.18;                  // амплитуда покачивания вверх-вниз (небольшая)
-const LEV_GAP = 0.15;                  // всегда остающийся зазор между низом пельменя и колонной
+const LEV_AMT = 0.36;                  // амплитуда покачивания вверх-вниз
+const LEV_GAP = 0.30;                  // всегда остающийся зазор между низом пельменя и постаментом
 
 const PELMEN_UP = new THREE.Vector3(0, 1, 0);
 const PELMEN_Q = THREE.Quaternion ? new THREE.Quaternion() : null;
@@ -2000,7 +1773,7 @@ async function loadPelmen() {
     box.setFromObject(root);
     const size = box.getSize(new THREE.Vector3());
     const maxDim = Math.max(size.x, Math.max(size.y, size.z));
-    const target = 2.5;                                  // желаемый максимальный габарит (в блоках)
+    const target = 5.0;                                  // желаемый максимальный габарит (в блоках)
     root.scale.setScalar(target / maxDim);
     root.updateMatrix();
 
@@ -2058,7 +1831,8 @@ function checkWin() {
   if (won || !STAND || !pelmen) return;   // победа — один раз за сессию
   const d = Math.hypot(player.pos.x - STAND.wx, player.pos.z - STAND.wz);
   const dy = player.pos.y - pelmen.cy;                 // глаза игрока против центра пельменя
-  if (d < 2.3 && Math.abs(dy) < 2.2) triggerWin();
+  // радиусы в 2 раза больше исходных: игрок вырос пропорционально миру
+  if (d < 4.6 && Math.abs(dy) < 4.4) triggerWin();
 }
 
 function triggerWin() {
@@ -2142,16 +1916,16 @@ function resetGame() {
   document.getElementById('btnExplore').textContent = 'Start exploring';
 
   // камера — как при старте страницы
-  rig.tTheta = rig.theta = -0.9;
-  rig.tPhi = rig.phi = 0.6;
-  rig.tRadius = rig.radius = 34;
+  rig.tTheta = rig.theta = -0.35;
+  rig.tPhi = rig.phi = 0.86;
+  rig.tRadius = rig.radius = 112;
   rig.explore = null;
   rig.lastInteract = -1e4;
-  orbitLook.set(0, 3.5, 0);
+  orbitLook.set(0.5, 12, 12);
 
-  player.pos.set(0, 20, 0);
+  player.pos.set(0.5, 40, 54.5);
   player.vel.set(0, 0, 0);
-  player.yaw = -Math.PI / 2; player.pitch = 0;
+  player.yaw = Math.PI; player.pitch = 0;
 }
 
 document.getElementById('btnTryAgain').addEventListener('click', resetGame);
@@ -2177,8 +1951,9 @@ renderer.setAnimationLoop(() => {
   updateMotes(dt, t);
   updatePops(dt);
 
-  water.position.y = SEA + Math.sin(t * 0.9) * 0.05;
-  waterMat.opacity = 0.72 + Math.sin(t * 1.4) * 0.05;
+  // вода только в пруду — плоскость от генератора мира, чуть дышит
+  if (water) water.position.y = WATER_Y + Math.sin(t * 0.9) * 0.05;
+  if (waterMat) waterMat.opacity = 0.40 + Math.sin(t * 1.4) * 0.05;
 
   // медленная плавная левитация пельменя над стендом
   if (pelmen) {

@@ -55,8 +55,9 @@ window.SITE = {
   // PDF-резюме нет: удалено и из шапки, и из контактов. Осталось только HH.
   cv: '',
   telegram: 'https://t.me/citystas',
-  // Почта и GitHub из контактов убраны: в списке остаются Telegram и HH.
-  // Вернуть — снова прописать email и github, renderContacts (app.js) их подхватит.
+  // Исходники этого сайта. renderContacts (app.js) рисует кнопку «GitHub» с
+  // подписью CityStas последней в списке контактов. Почта по-прежнему скрыта.
+  github: 'https://github.com/CityStas/portfolio',
 
   about: [
     'AI-Native Developer / Full-Stack AI Engineer с опытом разработки AI-продуктов полного цикла - от исследования моделей и прототипирования до backend, интеграции и deployment. Специализируюсь на AI-driven development, проектировании AI-workflows и агентных систем, prompt engineering и evaluation моделей. Использую AI как часть инженерного процесса: автоматизирую разработку, тестирую и сравниваю модели, оптимизирую качество, скорость и затраты.',

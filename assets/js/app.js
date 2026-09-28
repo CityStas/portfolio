@@ -231,7 +231,7 @@
     if (S.telegram) items.push(['tg', 'Telegram', S.telegram]);
     if (S.email)    items.push(['mail', 'Почта', 'mailto:' + S.email, S.email]);
     if (S.hh)       items.push(['hh', 'Резюме на HH', S.hh]);
-    if (S.github)   items.push(['gh', 'GitHub',   S.github,   'CityStas']);
+    if (S.github)   items.push(['gh', 'GitHub',   S.github]);
     // PDF-резюме убрано совсем: ни файла, ни ссылки. Вернуть — прописать cv в SITE.
 
     items.forEach(function (it) {
