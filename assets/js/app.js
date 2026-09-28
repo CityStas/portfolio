@@ -225,9 +225,12 @@
     var box = $('#links');
     if (!box) return;
     var items = [];
-    if (S.telegram) items.push(['tg', 'Telegram', S.telegram, '@citystas']);
+    // Четвёртый элемент — подпись-домен рядом с названием. Она необязательна:
+    // у Telegram и HH дублирует то, что уже написано в названии и в адресе,
+    // и только удлиняет кнопку. Понадобится — добавить четвёртым элементом.
+    if (S.telegram) items.push(['tg', 'Telegram', S.telegram]);
     if (S.email)    items.push(['mail', 'Почта', 'mailto:' + S.email, S.email]);
-    if (S.hh)       items.push(['hh', 'Резюме на HH', S.hh,   'hh.ru']);
+    if (S.hh)       items.push(['hh', 'Резюме на HH', S.hh]);
     if (S.github)   items.push(['gh', 'GitHub',   S.github,   'CityStas']);
     // PDF-резюме убрано совсем: ни файла, ни ссылки. Вернуть — прописать cv в SITE.
 
@@ -239,7 +242,7 @@
       else if (!/^mailto:/.test(it[2])) a.download = '';   // локальный файл отдаём на скачивание
       a.appendChild(svg(I[it[0]] || ''));
       a.appendChild(document.createTextNode(it[1]));
-      a.appendChild(el('span', null, it[3]));
+      if (it[3]) a.appendChild(el('span', null, it[3]));
       box.appendChild(a);
     });
   }
