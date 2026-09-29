@@ -29,11 +29,13 @@ const SITES = [
   { slug: 'shrooms',     url: 'https://deddemo.vercel.app/',      wait: 20000, keys: [], clicks: [[800, 655]], look: null, walk: 0, scroll: 0 },
   { slug: 'bubblepeaks', url: 'https://bubblepeaks.vercel.app/',  wait: 22000, keys: ['Enter', 'Space'], clicks: [], look: null, walk: 0, scroll: 0 },
 
-  // Мир стартует в ночном режиме. Для превью переключаем на день: только на нём
-  // читаются додзё, аллея с фонарями и сакура. Переход плавный (lerp по dt), а в
-  // swiftshader dt клампится до 0.05 с при ~2 fps — поэтому пауза 25 с, а не 3.
-  { slug: 'lilcraft',    url: 'https://lilcraft.vercel.app/',     wait: 12000, keys: [], clicks: [], look: null, walk: 0, scroll: 0,
-    selectors: [['#btnDay', 25000]] },
+  // Мир стартует в ночном режиме (dayNight.t = 1), и превью должно быть тёмным —
+  // поэтому #btnDay НЕ жмём. Переход в день/ночь плавный (lerp по dt), а в
+  // swiftshader dt клампится до 0.05 с при ~2 fps: если когда-нибудь понадобится
+  // дневной снимок, пауза после клика должна быть ~25 с, а не 3.
+  // Снимаем именно то зеркало, которое отдаёт портфолио, а не прод-домен игры:
+  // превью должно совпадать с тем, что увидит посетитель по ссылке с сайта.
+  { slug: 'lilcraft',    url: 'https://dvodev.space/games/lilcraft/', wait: 12000, keys: [], clicks: [], look: null, walk: 0, scroll: 0 },
 
   { slug: 'bazaskate',   url: 'https://bazaskate.shop/',          wait: 7000,  keys: [], clicks: [], look: null, walk: 0, scroll: 0 },
   { slug: 'dubbed',      url: 'https://dubbedru.vercel.app/',     wait: 7000,  keys: [], clicks: [], look: null, walk: 0, scroll: 0 },
@@ -66,7 +68,10 @@ const only = process.argv.slice(2);
       viewport: { width: 1600, height: 1000 },
       deviceScaleFactor: s.scale || 1,
       locale: 'ru-RU',
-      reducedMotion: 'no-preference'
+      reducedMotion: 'no-preference',
+      // dvodev.space на этой сети отдаёт чужой сертификат (SNI/DPI), без этого
+      // page.goto падает с ERR_CERT_COMMON_NAME_INVALID. На снимок не влияет.
+      ignoreHTTPSErrors: true
     });
     const page = await ctx.newPage();
     const file = path.join(OUT, s.slug + '.jpg');
