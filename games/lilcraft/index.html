@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>LILCRAFT 3D</title>
 <meta name="description" content="LILCRAFT - a tiny voxel FPS in your browser. Build. Break. Repeat." />
-<meta name="theme-color" content="#121d33" />
+<meta name="theme-color" content="#0f1a2e" />
 <!-- иконка вкладки: та же пиксель-сетка ICON_GRID.cube, что и в UI, вшита как data-URI (файлов в репо не прибавляется) -->
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='32'%20height='32'%20viewBox='0%200%2032%2032'%20shape-rendering='crispEdges'%3E%3Crect%20width='32'%20height='32'%20fill='%23121d33'/%3E%3Cg%20fill='%237ed957'%3E%3Crect%20x='14'%20y='4'%20width='4'%20height='2'/%3E%3Crect%20x='10'%20y='6'%20width='12'%20height='2'/%3E%3Crect%20x='6'%20y='8'%20width='20'%20height='2'/%3E%3Crect%20x='6'%20y='10'%20width='20'%20height='2'/%3E%3Crect%20x='2'%20y='12'%20width='4'%20height='2'/%3E%3Crect%20x='10'%20y='12'%20width='12'%20height='2'/%3E%3Crect%20x='26'%20y='12'%20width='4'%20height='2'/%3E%3Crect%20x='2'%20y='14'%20width='8'%20height='2'/%3E%3Crect%20x='14'%20y='14'%20width='4'%20height='2'/%3E%3Crect%20x='22'%20y='14'%20width='8'%20height='2'/%3E%3Crect%20x='2'%20y='16'%20width='12'%20height='2'/%3E%3Crect%20x='18'%20y='16'%20width='12'%20height='2'/%3E%3Crect%20x='2'%20y='18'%20width='12'%20height='2'/%3E%3Crect%20x='18'%20y='18'%20width='12'%20height='2'/%3E%3Crect%20x='2'%20y='20'%20width='12'%20height='2'/%3E%3Crect%20x='18'%20y='20'%20width='12'%20height='2'/%3E%3Crect%20x='6'%20y='22'%20width='8'%20height='2'/%3E%3Crect%20x='18'%20y='22'%20width='8'%20height='2'/%3E%3Crect%20x='10'%20y='24'%20width='4'%20height='2'/%3E%3Crect%20x='18'%20y='24'%20width='4'%20height='2'/%3E%3Crect%20x='14'%20y='26'%20width='4'%20height='2'/%3E%3C/g%3E%3C/svg%3E" />
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='32'%20height='32'%20viewBox='0%200%2032%2032'%20shape-rendering='crispEdges'%3E%3Crect%20width='32'%20height='32'%20fill='%230f1a2e'/%3E%3Cg%20fill='%237ed957'%3E%3Crect%20x='14'%20y='4'%20width='4'%20height='2'/%3E%3Crect%20x='10'%20y='6'%20width='12'%20height='2'/%3E%3Crect%20x='6'%20y='8'%20width='20'%20height='2'/%3E%3Crect%20x='6'%20y='10'%20width='20'%20height='2'/%3E%3Crect%20x='2'%20y='12'%20width='4'%20height='2'/%3E%3Crect%20x='10'%20y='12'%20width='12'%20height='2'/%3E%3Crect%20x='26'%20y='12'%20width='4'%20height='2'/%3E%3Crect%20x='2'%20y='14'%20width='8'%20height='2'/%3E%3Crect%20x='14'%20y='14'%20width='4'%20height='2'/%3E%3Crect%20x='22'%20y='14'%20width='8'%20height='2'/%3E%3Crect%20x='2'%20y='16'%20width='12'%20height='2'/%3E%3Crect%20x='18'%20y='16'%20width='12'%20height='2'/%3E%3Crect%20x='2'%20y='18'%20width='12'%20height='2'/%3E%3Crect%20x='18'%20y='18'%20width='12'%20height='2'/%3E%3Crect%20x='2'%20y='20'%20width='12'%20height='2'/%3E%3Crect%20x='18'%20y='20'%20width='12'%20height='2'/%3E%3Crect%20x='6'%20y='22'%20width='8'%20height='2'/%3E%3Crect%20x='18'%20y='22'%20width='8'%20height='2'/%3E%3Crect%20x='10'%20y='24'%20width='4'%20height='2'/%3E%3Crect%20x='18'%20y='24'%20width='4'%20height='2'/%3E%3Crect%20x='14'%20y='26'%20width='4'%20height='2'/%3E%3C/g%3E%3C/svg%3E" />
 <style>
   @font-face {
     font-family: 'Press Start 2P';
@@ -71,7 +71,7 @@
     font-size: 17px;
     line-height: 1.35;
     color: var(--ink);
-    background: #121d33;
+    background: #0f1a2e;
     -webkit-font-smoothing: none;   /* пиксельные шрифты не сглаживаем */
     text-rendering: geometricPrecision;
   }
@@ -582,7 +582,7 @@ const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerH
 /* ======================= palette / day-night ========================= */
 
 const C = {
-  skyDay:     new THREE.Color(0x87ceeb), skyNight: new THREE.Color(0x121d33),
+  skyDay:     new THREE.Color(0x87ceeb), skyNight: new THREE.Color(0x0f1a2e),
   sunset:     new THREE.Color(0xff8f5e),
   sunDay:     new THREE.Color(0xfff2d0), sunNight: new THREE.Color(0xaebfff),
   waterDay:   new THREE.Color(0x2f9fdc), waterNight: new THREE.Color(0x123a66),
@@ -591,11 +591,12 @@ const C = {
   bg:         new THREE.Color(),
 };
 
-// Ночной свет. Было hemi 0.28 / луна 0.5: ночь выходила почти чёрной — земля,
-// крыша додзё и дальний план сливались, верх кадра пустовал. Поднято так, чтобы
-// ночь осталась ночью, но рельеф, стены и листва читались. День не затронут.
-const NIGHT_HEMI = 0.45;
-const NIGHT_SUN  = 0.68;
+// Ночной свет. Отсчёт: hemi 0.28 / луна 0.5 (исходное) — ночь выходила почти
+// чёрной, земля и крыша додзё сливались. 0.45 / 0.68 читались, но для ночи были
+// светловаты. Текущее — компромисс: рельеф, стены и листва различимы, ночь
+// остаётся ночью. День (0.85 / 1.75) не затронут.
+const NIGHT_HEMI = 0.32;
+const NIGHT_SUN  = 0.52;
 
 // Плавный вертикальный градиент неба (canvas-текстура вместо плоского цвета)
 const skyCanvas = document.createElement('canvas');
