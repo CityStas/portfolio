@@ -582,7 +582,7 @@ const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerH
 /* ======================= palette / day-night ========================= */
 
 const C = {
-  skyDay:     new THREE.Color(0x87ceeb), skyNight: new THREE.Color(0x0c1424),
+  skyDay:     new THREE.Color(0x87ceeb), skyNight: new THREE.Color(0x121d33),
   sunset:     new THREE.Color(0xff8f5e),
   sunDay:     new THREE.Color(0xfff2d0), sunNight: new THREE.Color(0xaebfff),
   waterDay:   new THREE.Color(0x2f9fdc), waterNight: new THREE.Color(0x123a66),
@@ -590,6 +590,12 @@ const C = {
   moteDay:    new THREE.Color(0xffffff), moteNight:  new THREE.Color(0xa9ff8a),
   bg:         new THREE.Color(),
 };
+
+// Ночной свет. Было hemi 0.28 / луна 0.5: ночь выходила почти чёрной — земля,
+// крыша додзё и дальний план сливались, верх кадра пустовал. Поднято так, чтобы
+// ночь осталась ночью, но рельеф, стены и листва читались. День не затронут.
+const NIGHT_HEMI = 0.45;
+const NIGHT_SUN  = 0.68;
 
 // Плавный вертикальный градиент неба (canvas-текстура вместо плоского цвета)
 const skyCanvas = document.createElement('canvas');
@@ -1136,8 +1142,8 @@ function applyDayNight(t) {
     scene.background = C.bg;
   }
 
-  hemi.intensity = lerp(0.85, 0.28, t);
-  sun.intensity  = lerp(1.75, 0.5, t) + 0.45 * s;
+  hemi.intensity = lerp(0.85, NIGHT_HEMI, t);
+  sun.intensity  = lerp(1.75, NIGHT_SUN, t) + 0.45 * s;
   sun.color.lerpColors(C.sunDay, C.sunNight, t).lerp(C.sunset, s * 0.5);
   sun.position.lerpVectors(SUN_POS, MOON_POS, t);
 
