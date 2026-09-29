@@ -138,7 +138,7 @@ window.PROJECTS = [
   // Превью - страница RuStore: единственная ссылка карточки. Веб-версия и
   // Telegram-бот убраны; вернуть — снова прописать web и tg в links.
   {
-    title: 'ORFree AI / ОРФ ИИ',
+    title: 'ОРФ AI',
     kind: 'AI-продукт',
     desc: 'AI-чат-ассистент для Android - динамический выбор LLM через OpenRouter* по запросу, доступности и latency. Capacitor, RuStore.\n\n*Важно: из-за геоблокировки со стороны OpenRouter для корректной работы моделей на территории РФ нужен прокси/VPN.',
     tags: ['LLM', 'OpenRouter', 'Capacitor', 'Android'],
