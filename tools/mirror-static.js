@@ -31,7 +31,15 @@ const EDGE_IPS = ['76.76.21.123', '66.33.60.130', '76.76.21.22', '64.29.17.195',
 
 // Ключ — путь внутри репозитория, значение — откуда берём сборку.
 // extra — файлы, на которые нет ссылки в HTML (движок тянет их из JS).
-const GODOT = ['index.wasm', 'index.pck', 'index.js', 'index.audio.worklet.js',
+//
+// Второй worklet обязателен наравне с первым: `godot.audio.worklet.js` — сам
+// драйвер звука, `godot.audio.position.worklet.js` — отчёт о позиции
+// проигрываемого сэмпла. Без второго движок печатает «Failed to create
+// PositionWorklet» и не играет сэмплы, то есть звука нет вообще. В HTML ни
+// один из них не упомянут, поэтому обход ссылок их не находит — только этот
+// список. Проверка на пропажу — в tools/smoke.js, «worklet движка на месте».
+const GODOT = ['index.wasm', 'index.pck', 'index.js',
+               'index.audio.worklet.js', 'index.audio.position.worklet.js',
                'index.icon.png', 'index.apple-touch-icon.png', 'index.png'];
 
 // Диорамы LIL WORLDS. Путь собирается в рантайме — `dioramas/${a.id}.json`, —

@@ -362,6 +362,35 @@ for (const rel of ['assets/css/style.css', 'assets/js/app.js', 'assets/data/proj
   console.log((ok ? 'OK   ' : 'FAIL ') + 'файл ' + rel);
 }
 
+// Godot-сборка тянет часть файлов не из HTML, а из своего JS: worklet'ы звука
+// подключаются через locate_file(), поэтому обход ссылок их не видит, и в
+// список зеркала (tools/mirror-static.js, GODOT) их приходится вписывать
+// руками. Один раз не вписали — обе игры уехали без звука, и заметить это
+// можно было только ушами. Проверяем по самому движку: какие имена он
+// запрашивает, такие файлы и должны лежать рядом.
+// Карта имён: движок просит "godot.<остаток>", на диске лежит "<exe><остаток>".
+for (const g of ['deddemo', 'bubblepeaks']) {
+  const dir = path.join(root, 'games', g);
+  const jsPath = path.join(dir, 'index.js');
+  const htmlPath = path.join(dir, 'index.html');
+  if (!fs.existsSync(jsPath) || !fs.existsSync(htmlPath)) {
+    console.log('SKIP нет сборки games/' + g);
+    continue;
+  }
+  const js = fs.readFileSync(jsPath, 'utf8');
+  const exe = (fs.readFileSync(htmlPath, 'utf8')
+    .match(/"executable"\s*:\s*"([^"]+)"/) || [])[1] || 'index';
+  const want = new Set();
+  const re = /locate_file\(\s*"(godot\.[^"]+)"\s*\)/g;
+  let m;
+  while ((m = re.exec(js))) want.add(exe + m[1].slice('godot'.length));
+  for (const f of want) {
+    const ok = fs.existsSync(path.join(dir, f));
+    if (!ok) bad++;
+    console.log((ok ? 'OK   ' : 'FAIL ') + 'worklet движка на месте: games/' + g + '/' + f);
+  }
+}
+
 // Все превью, указанные в данных, существуют
 P.forEach(p => {
   if (!p.shot) return;
