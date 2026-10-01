@@ -231,7 +231,7 @@ function check(name, got, expected) {
     check('порядок чипов',
           (await page.evaluate(() => Array.from(document.querySelectorAll('#filters .fchip'))
             .map(b => b.textContent.trim()))).join(' / '),
-          'Все / AI-проекты / Игры / Сайты / Расширения / Инструменты');
+          'Все / AI-проекты / Игры / Сайты / Расширения');
 
     await page.locator('#filters .fchip').nth(1).click();
     await page.waitForTimeout(300);
