@@ -300,32 +300,36 @@ function check(name, got, expected) {
 
     // Галерея в лайтбоксе: у проекта с shots снизу полоска кадров, превью карточки
     // при этом берётся из shot, а просмотр открывается на первом кадре галереи.
-    const gal = await page.evaluate(() => {
-      const i = window.PROJECTS.findIndex(p => p.shots && p.shots.length > 1);
-      return i === -1 ? null : { i, shots: window.PROJECTS[i].shots };
-    });
-    if (gal) {
+    // Идём по всем таким проектам: галерей уже две, вторая иначе осталась бы
+    // без проверки в живом браузере.
+    const gals = await page.evaluate(() => window.PROJECTS
+      .map((p, i) => ({ i, title: p.title, shot: p.shot, shots: p.shots }))
+      .filter(p => p.shots && p.shots.length > 1));
+
+    for (const gal of gals) {
+      const n = 'галерея «' + gal.title + '»: ';
       await page.locator('#grid .card').nth(gal.i).locator('.card__shot').click();
       await page.waitForTimeout(400);
-      check('галерея: полоска кадров видна', await page.locator('#lbShots').isVisible(), true);
-      check('галерея: кадров в полоске',
+      check(n + 'полоска кадров видна', await page.locator('#lbShots').isVisible(), true);
+      check(n + 'кадров в полоске',
             await page.locator('#lbShots .lb__shot').count(), gal.shots.length);
-      check('галерея: открылся первый кадр',
+      check(n + 'открылся первый кадр',
             await page.locator('#lbImg').getAttribute('src'), gal.shots[0]);
+      check(n + 'shot есть среди кадров', gal.shots.indexOf(gal.shot) !== -1, true);
       await page.locator('#lbShots .lb__shot').nth(1).click();
       await page.waitForTimeout(400);
-      check('галерея: клик по превью меняет кадр',
+      check(n + 'клик по превью меняет кадр',
             await page.locator('#lbImg').getAttribute('src'), gal.shots[1]);
-      check('галерея: выбранный кадр обведён',
+      check(n + 'выбранный кадр обведён',
             await page.locator('#lbShots .lb__shot').nth(1).getAttribute('aria-current'), 'true');
       // Кадр обязан влезать в окно: 66vh по высоте и ширина контейнера по ширине.
       const gb = await page.locator('#lbImg').boundingBox();
-      check('галерея: кадр в пределах окна',
+      check(n + 'кадр в пределах окна',
             !!gb && gb.height <= 1000 * 0.66 + 2 && gb.width <= 1600, true);
       await page.keyboard.press('Escape');
       await page.waitForTimeout(300);
-      check('галерея: лайтбокс закрылся', await page.locator('#lb').isVisible(), false);
-      check('галерея: полоска очищена', await page.locator('#lbShots .lb__shot').count(), 0);
+      check(n + 'лайтбокс закрылся', await page.locator('#lb').isVisible(), false);
+      check(n + 'полоска очищена', await page.locator('#lbShots .lb__shot').count(), 0);
     }
 
     // Лайтбокс

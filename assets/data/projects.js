@@ -135,7 +135,11 @@ window.PROJECTS = [
     tags: ['Godot 4', '3D', 'Forward+', 'Web', 'Web-экспорт', 'Освещение'],
     year: '2026',
     status: 'live',
-    shot: 'assets/img/projects/bubblepeaks.jpg',
+    // Карточка показывает заставку с логотипом, просмотр открывается геймплеем:
+    // по клику должно быть видно что-то новое, иначе кажется, что лайтбокс
+    // не сработал. Тот же приём, что у HC AI — shot берётся из shots, но не первым.
+    shot: 'assets/img/projects/bubblepeaks-splash.jpg',
+    shots: ['assets/img/projects/bubblepeaks.jpg', 'assets/img/projects/bubblepeaks-splash.jpg'],
     links: { demo: '/games/bubblepeaks/', demoLabel: 'Demo', demoEmbed: true, repo: '' }
   },
   {

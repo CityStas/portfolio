@@ -235,24 +235,27 @@ check('лайтбокс закрылся', lb.hidden, true);
 
 // Галерея: у проекта с shots в лайтбоксе снизу полоска кадров, превью карточки
 // при этом берётся из shot, а просмотр открывается на первом кадре галереи.
-const galP = P.filter(p => p.shots && p.shots.length > 1)[0];
-if (galP) {
-  const gi = P.indexOf(galP);
+// Идём по всем таким проектам, а не по первому: галерей уже две (HC AI,
+// Bubble Peaks), и вторая молча осталась бы без проверки.
+P.forEach((galP, gi) => {
+  if (!galP.shots || galP.shots.length < 2) return;
+  const n = 'галерея «' + galP.title + '»: ';
   const strip = doc.getElementById('lbShots');
   click(cards[gi].querySelector('.card__shot'));
-  check('галерея: превью карточки — из shot',
+  check(n + 'превью карточки — из shot',
     cards[gi].querySelector('.card__shot img').getAttribute('src'), galP.shot);
-  check('галерея: полоска кадров показана', strip.hidden, false);
-  check('галерея: кадров в полоске', strip.querySelectorAll('.lb__shot').length, galP.shots.length);
-  check('галерея: открылся первый кадр', doc.getElementById('lbImg').getAttribute('src'), galP.shots[0]);
+  check(n + 'полоска кадров показана', strip.hidden, false);
+  check(n + 'кадров в полоске', strip.querySelectorAll('.lb__shot').length, galP.shots.length);
+  check(n + 'открылся первый кадр', doc.getElementById('lbImg').getAttribute('src'), galP.shots[0]);
+  check(n + 'shot есть среди кадров', galP.shots.indexOf(galP.shot) !== -1, true);
   click(strip.querySelectorAll('.lb__shot')[1]);
-  check('галерея: клик по превью меняет кадр', doc.getElementById('lbImg').getAttribute('src'), galP.shots[1]);
-  check('галерея: выбранный кадр помечен',
+  check(n + 'клик по превью меняет кадр', doc.getElementById('lbImg').getAttribute('src'), galP.shots[1]);
+  check(n + 'выбранный кадр помечен',
     strip.querySelectorAll('.lb__shot')[1].getAttribute('aria-current'), 'true');
   click(lb.querySelector('.lb__x'));
-  check('галерея: полоска очищена при закрытии', strip.querySelectorAll('.lb__shot').length, 0);
-  check('галерея: полоска скрыта при закрытии', strip.hidden, true);
-}
+  check(n + 'полоска очищена при закрытии', strip.querySelectorAll('.lb__shot').length, 0);
+  check(n + 'полоска скрыта при закрытии', strip.hidden, true);
+});
 
 // Проект без демо, но с репозиторием: главная кнопка лайтбокса ведёт в код,
 // а не прячется — иначе в просмотре у такого проекта не осталось бы ссылок вовсе.
@@ -349,6 +352,7 @@ for (const rel of ['assets/css/style.css', 'assets/js/app.js', 'assets/data/proj
                    'assets/fonts/handjet.css', 'assets/fonts/handjet-cyrillic.woff2',
                    'assets/img/favicon.svg', 'assets/img/logo.png', 'assets/img/og-v2.jpg',
                    'assets/img/projects/shrooms.jpg', 'assets/img/projects/bubblepeaks.jpg',
+                   'assets/img/projects/bubblepeaks-splash.jpg',
                    'assets/img/projects/lilcraft.jpg', 'assets/img/projects/bazaskate.jpg',
                    'assets/img/projects/dubbed.jpg', 'assets/img/projects/rustore.jpg']) {
   const ok = fs.existsSync(path.join(root, rel));
