@@ -352,13 +352,27 @@
     return themesOf(p).indexOf(activeTheme) !== -1;
   }
 
-  // Порядок чипов — как в данных: первый проект задаёт первый чип. Так порядок
-  // фильтров повторяет порядок карточек, и его не нужно дублировать в настройках.
-  function themeList() {
+  // Темы, реально встречающиеся в данных, в порядке карточек.
+  function themesInUse() {
     var out = [];
     P.forEach(function (p) {
       themesOf(p).forEach(function (t) { if (out.indexOf(t) === -1) out.push(t); });
     });
+    return out;
+  }
+
+  // Порядок чипов задаётся списком THEME_ORDER в данных, а не порядком карточек:
+  // карточки переставляются (флагман идёт первым), а ряд фильтров должен стоять
+  // стабильно. Темы, которых в списке нет, дописываются в конец — новый тип
+  // проекта попадёт в фильтр сам, но привычный порядок не сломает. Если списка
+  // в данных нет, поведение прежнее: порядок = порядок карточек.
+  function themeList() {
+    var used = themesInUse();
+    var out = [];
+    (window.THEME_ORDER || []).forEach(function (t) {
+      if (used.indexOf(t) !== -1 && out.indexOf(t) === -1) out.push(t);
+    });
+    used.forEach(function (t) { if (out.indexOf(t) === -1) out.push(t); });
     return out;
   }
 
@@ -734,17 +748,40 @@
   }
 
   /* ---------- Меню по структуре сайта ---------- */
-  // Живёт под кликом по имени в шапке: отдельной строки навигации на странице нет.
+  // На узком экране живёт под кликом по имени в шапке. На широком пункты
+  // стоят в шапке открыто (CSS, min-width: 901px), а клик по имени уводит
+  // наверх — выпадающего списка там нет.
   function initMenu() {
     var btn = $('#logoBtn'), nav = $('#navMenu');
     if (!btn || !nav) return;
 
+    var wide = window.matchMedia ? window.matchMedia('(min-width: 901px)') : null;
+    function isWide() { return !!(wide && wide.matches); }
+
     function setOpen(open) {
       nav.hidden = !open;
+      if (isWide()) return;              // aria-expanded у не-меню кнопки только путает
       btn.setAttribute('aria-expanded', String(open));
     }
 
+    // Границу отслеживаем, а не читаем размер окна на лету: без сброса меню,
+    // открытое на узком экране, осталось бы раскрытым и вылезло поверх шапки
+    // после расширения окна.
+    function syncWide() {
+      if (isWide()) {
+        setOpen(false);
+        btn.removeAttribute('aria-expanded');
+        btn.removeAttribute('aria-controls');
+        btn.title = 'Наверх';
+      } else {
+        btn.setAttribute('aria-controls', 'navMenu');
+        btn.setAttribute('aria-expanded', String(!nav.hidden));
+        btn.title = 'Меню разделов';
+      }
+    }
+
     btn.addEventListener('click', function (e) {
+      if (isWide()) { window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
       e.stopPropagation();               // иначе клик тут же закроет меню обработчиком ниже
       setOpen(nav.hidden);
     });
@@ -763,6 +800,12 @@
     document.addEventListener('keydown', function (e) {
       if (e.key === 'Escape' && !nav.hidden) { setOpen(false); btn.focus(); }
     });
+
+    if (wide) {
+      if (wide.addEventListener) wide.addEventListener('change', syncWide);
+      else if (wide.addListener) wide.addListener(syncWide);   // Safari до 14
+    }
+    syncWide();
 
     // подсветка текущего раздела
     var links = $$('a[href^="#"]', nav);

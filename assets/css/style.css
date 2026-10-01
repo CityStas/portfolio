@@ -629,6 +629,40 @@ html[data-theme="light"] .ico--moon { display: none; }
   .logo:hover .logo__mark { transform: none; }
 }
 
+/* ---------- Меню разделов в шапке (широкий экран) ----------
+   До 900px пункты прячутся под клик по имени (.nav как выпадающая панель,
+   правило выше). На широком экране три пункта стоят в строке шапки открыто:
+   «кликни на логотип, чтобы увидеть меню» — догадка, которую никто не делает. */
+@media (min-width: 901px) {
+  .hdr__brand { display: flex; align-items: center; gap: 10px; }
+
+  /* Панель превращается в обычную строку: ни подложки, ни тени, ни рамки. */
+  .nav {
+    position: static; z-index: auto;
+    min-width: 0; max-width: none;
+    display: flex; align-items: center; gap: 2px;
+    padding: 0; background: none; border: 0; border-radius: 0; box-shadow: none;
+    animation: none;
+  }
+  /* hidden выставляет разметка (и скрипт — для узкого режима). Перебить его
+     можно только !important: глобальное [hidden] { display: none !important }
+     выше объявлено намеренно, чтобы скрытые кнопки лайтбокса не всплывали.
+     Убрать hidden из разметки нельзя — на узком экране меню мигнёт открытым
+     до того, как отработает скрипт. */
+  .nav[hidden] { display: flex !important; }
+
+  .nav a {
+    gap: 0; padding: 7px 12px;
+    color: var(--muted); font-size: 15px; font-weight: 500;
+  }
+  .nav a:hover { background: var(--surface-2); color: var(--text); }
+  .nav a.is-active { background: color-mix(in srgb, var(--accent) 16%, var(--surface-2)); color: var(--text); }
+  /* Номера разделов — деталь выпадающего списка, в строке шапки они лишние. */
+  .nav a::after { content: none; }
+  /* Каретка обещает выпадающий список, которого на широком экране нет. */
+  .logo__caret { display: none; }
+}
+
 /* ---------- Адаптив ---------- */
 @media (max-width: 900px) {
   .about { grid-template-columns: 1fr; }

@@ -109,6 +109,29 @@ check('фильтр: «Все» снят', chips[0].getAttribute('aria-pressed')
 click(chips[0]);
 check('фильтр сброшен: видны все карточки', q('#grid .card').filter(c => !c.hidden).length, P.length);
 
+// Порядок чипов задан списком THEME_ORDER в данных, а не порядком карточек:
+// HC AI переезжает наверх, а «AI-проекты» обязаны остаться первым чипом.
+// Литерал здесь намеренно — это решение о продукте, а не производная от данных.
+check('порядок чипов', chips.map(c => c.textContent).join(' / '),
+  'Все / AI-проекты / Игры / Сайты / Расширения');
+
+// Мультитема: проект из themes[] обязан находиться в каждом своём чипе.
+// Сейчас это Dubbed — расширение, которое работает поверх сайтов.
+const multi = P.filter(p => p.themes && p.themes.length > 1)[0];
+if (multi) {
+  const label = {
+    'Игра': 'Игры', 'Сайт': 'Сайты', 'AI-продукт': 'AI-проекты',
+    'Расширение': 'Расширения', 'Инструмент': 'Инструменты'
+  };
+  multi.themes.forEach(t => {
+    click(chips.filter(c => c.textContent === (label[t] || t))[0]);
+    const seen = q('#grid .card').filter(c => !c.hidden &&
+      c.querySelector('.card__t').textContent.trim() === multi.title).length;
+    check('«' + multi.title + '» виден в теме «' + (label[t] || t) + '»', seen, 1);
+  });
+  click(chips[0]);
+}
+
 // Скрытое по просьбе: Chattrix, бейджи «в сети», кнопка PDF
 check('блока Chattrix нет', q('#grid .card').some(c => /chattrix/i.test(c.textContent)), false);
 check('бейджей «в сети» нет', q('#grid .badge--live').length, 0);

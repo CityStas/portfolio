@@ -167,14 +167,43 @@ function check(name, got, expected) {
     await page.keyboard.press('Escape');
     await page.waitForTimeout(250);
 
-    // Меню
-    check('меню закрыто', await page.locator('#navMenu').isVisible(), false);
-    await page.click('#logoBtn');
+    // Меню разделов. На широком экране (1600px) пункты стоят в шапке открыто,
+    // выпадающей панели там нет — это и проверяем: меню видно, оно внутри
+    // строки шапки и позиционировано в потоке, а не всплывает поверх страницы.
+    const navInline = await page.evaluate(() => {
+      const nav = document.getElementById('navMenu');
+      const hdr = document.querySelector('.hdr');
+      if (!nav || !hdr) return null;
+      const nb = nav.getBoundingClientRect();
+      const hb = hdr.getBoundingClientRect();
+      return {
+        visible: nb.width > 0 && nb.height > 0,
+        inHeader: nb.top >= hb.top - 1 && nb.bottom <= hb.bottom + 1,
+        pos: getComputedStyle(nav).position,
+        labels: Array.from(nav.querySelectorAll('a')).map(a => a.textContent.trim()).join(' / ')
+      };
+    });
+    check('меню в шапке видно', navInline.visible, true);
+    check('меню умещается в строке шапки', navInline.inHeader, true);
+    check('меню в потоке, а не выпадающая панель', navInline.pos, 'static');
+    check('подписи пунктов меню', navInline.labels, 'Проекты / О себе / Контакты');
+
+    // Клик по имени на широком экране уводит наверх, а не раскрывает список.
+    await page.evaluate(() => window.scrollTo(0, 1200));
     await page.waitForTimeout(250);
-    check('меню открылось', await page.locator('#navMenu').isVisible(), true);
+    await page.click('#logoBtn');
+    await page.waitForFunction(() => window.scrollY < 40, null, { timeout: 3000 }).catch(() => {});
+    check('клик по имени вернул наверх', await page.evaluate(() => window.scrollY < 40), true);
+    // Самая хрупкая часть: скрипт ставит hidden, а CSS на широком экране его
+    // перебивает. Если порядок правил в style.css поедет, меню исчезнет молча.
+    check('hidden выставлен, но CSS его перебивает', await page.evaluate(() => {
+      const nav = document.getElementById('navMenu');
+      return nav.hasAttribute('hidden') && nav.getBoundingClientRect().height > 0;
+    }), true);
+
+    // Переход по пункту меню
     await page.click('#navMenu a[href="#about"]');
     await page.waitForTimeout(500);
-    check('меню закрылось по ссылке', await page.locator('#navMenu').isVisible(), false);
     check('перешли к «О себе»', await page.evaluate(() => {
       const r = document.getElementById('about').getBoundingClientRect();
       return r.top > -200 && r.top < 400;
@@ -195,6 +224,15 @@ function check(name, got, expected) {
     check('чипов-фильтров (+ «Все»)', await page.locator('#filters .fchip').count(), themes.length + 1);
     check('видны все карточки', await page.locator('#grid .card:visible').count(), data.count);
 
+    // Порядок чипов фиксирован списком THEME_ORDER в данных, а не порядком
+    // карточек. Проверяем литералом: это решение о продукте, а не производная
+    // от данных, поэтому новый тип проекта должен уронить тест и заставить
+    // вписать себя в порядок осознанно.
+    check('порядок чипов',
+          (await page.evaluate(() => Array.from(document.querySelectorAll('#filters .fchip'))
+            .map(b => b.textContent.trim()))).join(' / '),
+          'Все / AI-проекты / Игры / Сайты / Расширения');
+
     await page.locator('#filters .fchip').nth(1).click();
     await page.waitForTimeout(300);
     check('фильтр скрыл карточки чужих тем',
@@ -203,6 +241,27 @@ function check(name, got, expected) {
           await page.locator('#filters .fchip').nth(1).getAttribute('aria-pressed'), 'true');
     check('чип «Все» снят',
           await page.locator('#filters .fchip').first().getAttribute('aria-pressed'), 'false');
+
+    // Мультитема: проект из themes[] обязан находиться в каждом своём чипе.
+    // Сейчас это Dubbed — расширение, которое работает поверх сайтов.
+    const multi = await page.evaluate(() => {
+      const p = window.PROJECTS.filter(x => x.themes && x.themes.length > 1)[0];
+      return p ? { title: p.title, themes: p.themes } : null;
+    });
+    if (multi) {
+      const label = {
+        'Игра': 'Игры', 'Сайт': 'Сайты', 'AI-продукт': 'AI-проекты',
+        'Расширение': 'Расширения', 'Инструмент': 'Инструменты'
+      };
+      for (const t of multi.themes) {
+        await page.locator('#filters .fchip', { hasText: label[t] || t }).click();
+        await page.waitForTimeout(250);
+        const seen = await page.evaluate(title => Array.from(document.querySelectorAll('#grid .card'))
+          .filter(c => !c.hidden && c.querySelector('.card__t').textContent.trim() === title).length,
+          multi.title);
+        check('«' + multi.title + '» виден в теме «' + (label[t] || t) + '»', seen, 1);
+      }
+    }
 
     await page.locator('#filters .fchip').first().click();
     await page.waitForTimeout(300);
@@ -477,13 +536,21 @@ function check(name, got, expected) {
     await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
     await page.waitForTimeout(300);
 
-    // Горизонтальный скролл — на 1600 и на 390
-    for (const w of [1600, 390]) {
+    // Горизонтальный скролл. 901 и 900 — граница медиазапроса, на которой меню
+    // разделов переключается между строкой в шапке и выпадающей панелью:
+    // именно там шапка рискует не влезть.
+    for (const w of [1600, 901, 900, 390]) {
       await page.setViewportSize({ width: w, height: 900 });
       await page.waitForTimeout(300);
       const over = await page.evaluate(() =>
         document.documentElement.scrollWidth - document.documentElement.clientWidth);
       check('горизонтальный скролл на ' + w + 'px', over, 0);
+      // Меню не должно наезжать на кнопку темы справа.
+      check('шапка не наезжает на кнопку темы на ' + w + 'px', await page.evaluate(() => {
+        const nb = document.getElementById('navMenu').getBoundingClientRect();
+        const ab = document.querySelector('.hdr__act').getBoundingClientRect();
+        return nb.width === 0 || nb.right <= ab.left + 1;
+      }), true);
     }
 
     // Интерактив на мобильной ширине. Меню и лайтбокс раньше проверялись только
