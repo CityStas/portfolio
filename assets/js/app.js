@@ -66,6 +66,27 @@
     var box = $('#aboutTxt');
     if (box && S.about) S.about.forEach(function (p) { box.appendChild(el('p', null, p)); });
 
+    // Контакты перенесены из отдельной секции «03 Контакты» (удалена) сюда,
+    // в текст «О себе». GitHub скрыт — выводятся только Telegram и HH.
+    // Стиль .about__links — в style.css рядом с .about.
+    if (box) {
+      var links = [];
+      if (S.telegram) links.push({ label: 'Telegram', href: S.telegram });
+      if (S.email)    links.push({ label: 'Почта',    href: 'mailto:' + S.email });
+      if (S.hh)       links.push({ label: 'Резюме на HH', href: S.hh });
+      if (links.length) {
+        var p = el('p', 'about__links');
+        links.forEach(function (c, i) {
+          if (i) p.appendChild(document.createTextNode('  ·  '));
+          var a = el('a', null, c.label);
+          a.href = c.href;
+          if (/^https?:/.test(c.href)) { a.target = '_blank'; a.rel = 'noopener'; }
+          p.appendChild(a);
+        });
+        box.appendChild(p);
+      }
+    }
+
     var dl = $('#facts');
     if (dl && S.facts) {
       S.facts.forEach(function (row) {
@@ -426,6 +447,9 @@
   }
 
   /* ---------- Контакты ---------- */
+  // Секция «03 Контакты» удалена из HTML. Кнопки перенесены в «О себе»
+  // (renderAbout). Функция оставлена для совместимости, но не вызывается:
+  // контейнер #links больше не существует, return на первой строке.
   function renderContacts() {
     var box = $('#links');
     if (!box) return;
@@ -900,7 +924,6 @@
     renderAbout();
     renderProjects();
     renderFilters();
-    renderContacts();
     initMenu();
     initTheme();
     initLb();

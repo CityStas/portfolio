@@ -431,27 +431,12 @@ html[data-theme="light"] .ico--moon { display: none; }
 .facts__row dt { color: var(--dim); font-size: 13.5px; flex: none; }
 .facts__row dd { margin: 0; font-size: 14px; text-align: right; }
 
-/* ---------- Контакты ---------- */
-/* Кнопки обязаны начинаться под словом «Контакты», а не под номером «04»: номер
-   стоит в потоке заголовка и сдвигает текст вправо на свою ширину плюс gap.
-   Ширину номера задаём числом намеренно. Она одинакова на всех системах, а вот
-   advance моноширинного шрифта - нет (Consolas .55em, Menlo .6em): отступ,
-   посчитанный из шрифта, разъезжался бы на пару пикселей между Windows и macOS.
-   Одно число на оба места - заголовок и кнопки считают сдвиг от него. */
-#contact { --num-w: 20px; --num-gap: 16px; }
-#contact .sec__h { gap: var(--num-gap); }
-#contact .sec__num { width: var(--num-w); flex: none; }
-.links { display: flex; flex-wrap: wrap; gap: 12px; }
-#contact .links { margin-left: calc(var(--num-w) + var(--num-gap)); }
-.link {
-  display: inline-flex; align-items: center; gap: 11px;
-  padding: 14px 20px; border: 1px solid var(--line); border-radius: var(--r-s);
-  background: var(--surface); color: var(--text); font-size: 14.5px; font-weight: 600;
-  transition: transform .18s, border-color .18s, box-shadow .18s;
-}
-.link:hover { text-decoration: none; transform: translateY(-2px); border-color: var(--line-2); box-shadow: var(--shadow); }
-.link svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
-.link span { color: var(--dim); font-weight: 400; }
+/* ---------- Контакты в «О себе» ---------- */
+/* Секция «03 Контакты» удалена. Ссылки перенесены в текст «О себе»
+   как строчные текстовые ссылки, не кнопки. */
+.about__links { margin-top: 18px; font-size: 14.5px; color: var(--dim); }
+.about__links a { color: var(--text); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+.about__links a:hover { color: var(--accent, #6c8aff); }
 
 /* ---------- Подвал ---------- */
 .ftr { border-top: 1px solid var(--line); padding: 24px 0 38px; }
@@ -625,7 +610,7 @@ html[data-theme="light"] .ico--moon { display: none; }
   .reveal { opacity: 1; transform: none; transition: none; }
   .aurora i { animation: none; }
   .dot { animation: none; }
-  .card:hover, .link:hover, .btn:hover { transform: none; }
+  .card:hover, .btn:hover { transform: none; }
   .demo__x:hover { transform: none; }
   .card:hover .card__shot img { transform: none; }
   .lb__shot:hover { transform: none; }
