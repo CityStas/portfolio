@@ -109,7 +109,7 @@ window.PROJECTS = [
     title: 'HC AI',
     kind: 'AI-продукт',
     desc: 'Локальный мультимодальный ИИ-агент для Windows: чат, генерация изображений, зрение, upscale. Без интернета, облака и API-ключей.\n\n*В репозитории только код: модели (~13 ГБ) качаются скриптами по README.',
-    tags: ['Electron', 'React', 'node-llama-cpp', 'GGUF', 'Vulkan', 'stable-diffusion.cpp', 'Vision', 'Offline'],
+    tags: ['Electron', 'React', 'node-llama-cpp', 'GGUF', 'Vulkan', 'stable-diffusion.cpp', 'Vision'],
     year: '2026',
     status: 'live',
     // На карточке — результат генерации (кадр 2): по нему сразу видно, что
@@ -132,7 +132,7 @@ window.PROJECTS = [
     title: 'Bubble Peaks 3D',
     kind: 'Игра',
     desc: 'Трёхмерный уровень на Godot 4 с Forward+ рендером: свет, материалы, рельеф. Оптимизирован под работу в браузере.',
-    tags: ['Godot 4', '3D', 'Forward+', 'Web', 'Web-экспорт', 'Освещение'],
+    tags: ['Godot 4', '3D', 'Forward+', 'Web', 'Web-экспорт'],
     year: '2026',
     status: 'live',
     // Карточка показывает заставку с логотипом, просмотр открывается геймплеем:
@@ -145,8 +145,8 @@ window.PROJECTS = [
   {
     title: 'LILCRAFT 3D',
     kind: 'Игра',
-    desc: 'Воксельная песочница в браузере на three.js: генерация чанков, меш-оптимизация, сохранение мира + "пасхалка".',
-    tags: ['three.js', 'WebGL', 'Voxel', 'Web', 'Чанки', 'Меш-оптимизация', 'Сохранение мира'],
+    desc: 'Воксельная песочница в браузере на three.js: генерация чанков, меш-оптимизация + "пасхалка".',
+    tags: ['three.js', 'WebGL', 'Voxel', 'Web'],
     year: '2025-2026',
     status: 'live',
     shot: 'assets/img/projects/lilcraft.jpg',
@@ -184,7 +184,7 @@ window.PROJECTS = [
     title: 'ОРФ AI',
     kind: 'AI-продукт',
     desc: 'AI-чат-ассистент для Android - динамический выбор LLM через OpenRouter* по запросу, доступности и latency. Capacitor, RuStore.\n\n*Важно: из-за геоблокировки со стороны OpenRouter для корректной работы моделей на территории РФ нужен прокси/VPN.',
-    tags: ['LLM', 'OpenRouter', 'Capacitor', 'Android', 'RuStore', 'Prompt Engineering'],
+    tags: ['LLM', 'OpenRouter', 'Capacitor', 'Android', 'RuStore'],
     year: '2025-2026',
     status: 'live',
     shot: 'assets/img/projects/rustore.jpg',
