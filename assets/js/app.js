@@ -76,6 +76,7 @@
       if (S.hh)       links.push({ label: 'Резюме на HH', href: S.hh });
       if (links.length) {
         var p = el('p', 'about__links');
+        p.appendChild(document.createTextNode('Связь: '));
         links.forEach(function (c, i) {
           if (i) p.appendChild(document.createTextNode('  ·  '));
           var a = el('a', null, c.label);

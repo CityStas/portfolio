@@ -77,9 +77,9 @@ check('секции «Стек» нет', q('#stack, #stackList, .stack, .stack_
 check('данных стека нет', S.stack == null, true);
 check('пункта меню «Стек» нет', q('#navMenu a').some(a => /стек/i.test(a.textContent)), false);
 check('строк фактов', q('#facts .facts__row').length, S.facts.length);
-check('контактов', q('#links .link').length,
+check('контактов', q('.about__links a').length,
       ['telegram', 'email', 'hh', 'github'].filter(k => S[k]).length);
-check('абзацев «О себе»', q('#aboutTxt p').length, S.about.length);
+check('абзацев «О себе»', q('#aboutTxt p:not(.about__links)').length, S.about.length);
 check('имя в шапке', doc.querySelector('.logo span[data-site]').textContent, S.name);
 check('логотип-картинка в шапке', doc.querySelectorAll('.logo img.logo__mark').length, 1);
 
@@ -137,12 +137,9 @@ check('блока Chattrix нет', q('#grid .card').some(c => /chattrix/i.test(
 check('бейджей «в сети» нет', q('#grid .badge--live').length, 0);
 check('факт «опыт»', doc.querySelector('#facts .facts__row dd').textContent, S.facts[0][1]);
 
-// Сноска «*Быстрее всего отвечаю в Telegram.» убрана вместе со звёздочкой
-// в заголовке: сноска без пометки не читается. Вернуть — <p class="contact__lead">
-// в разметке секции и звёздочку в тексте заголовка.
-check('сноски в контактах нет', q('#contact .contact__lead').length, 0);
-check('звёздочки в заголовке контактов нет',
-      /\*/.test(doc.querySelector('#contact .sec__h').textContent), false);
+// Секция «Контакты» удалена: ссылки перенесены в «О себе» (renderAbout).
+check('секции «Контакты» нет', q('#contact').length, 0);
+check('пункта меню «Контакты» нет', q('#navMenu a').some(a => /контакт/i.test(a.textContent)), false);
 
 // ORFree AI — последняя карточка. Набор ссылок берём из данных в том порядке,
 // в каком их рисует card(): demo, web, tg, repo. Убрали поле — ушла и кнопка,
@@ -185,28 +182,24 @@ P.forEach((p, i) => {
   });
 });
 
-// Контакты. Ждём ровно те ссылки, чьи поля заданы в SITE, и в том же порядке,
-// в каком их перебирает renderContacts: telegram, email, hh, github. Список
-// задан данными, поэтому удаление почты или GitHub тест не ломает.
-const hrefs = q('#links .link').map(a => a.getAttribute('href'));
+// Контакты — теперь в «О себе» (renderAbout), не в отдельной секции.
+// Ждём ровно те ссылки, чьи поля заданы в SITE, и в том же порядке,
+// в каком их перебирает renderAbout: telegram, email, hh. GitHub скрыт.
+const hrefs = q('.about__links a').map(a => a.getAttribute('href'));
 const contactDefs = [
   ['telegram', S.telegram],
   ['email', S.email && 'mailto:' + S.email],
-  ['hh', S.hh],
-  ['github', S.github]
+  ['hh', S.hh]
 ].filter(d => d[1]);
 check('контактов: ссылок столько же, сколько полей в данных', hrefs.length, contactDefs.length);
 check('есть telegram', hrefs.includes(S.telegram), true);
 
-// Подписи-домены (@citystas, hh.ru) в кнопках не рисуются: они дублируют название,
-// а адрес и так открывается кликом. Механизм в renderContacts остался необязательным
-// четвёртым элементом — вернуть подпись можно, ничего не переписывая.
-check('в кнопках контактов нет подписей-доменов', q('#links .link span').length, 0);
+// Подписи-домены в контактах не рисуются.
+check('в контактах нет подписей-доменов', q('.about__links span').length, 0);
 
-// Почта: mailto из адреса в данных, без target и без download — иначе браузер
-// попытается скачать письмо файлом вместо открытия почтового клиента.
+// Почта: mailto из адреса в данных, без target и без download.
 if (S.email) {
-  const mail = q('#links .link').find(a => (a.getAttribute('href') || '').startsWith('mailto:'));
+  const mail = q('.about__links a').find(a => (a.getAttribute('href') || '').startsWith('mailto:'));
   check('почта: адрес из данных', mail && mail.getAttribute('href'), 'mailto:' + S.email);
   check('почта: без target', mail && mail.hasAttribute('target'), false);
   check('почта: без download', mail && mail.hasAttribute('download'), false);
