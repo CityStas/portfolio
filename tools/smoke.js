@@ -113,7 +113,7 @@ check('фильтр сброшен: видны все карточки', q('#gri
 // HC AI переезжает наверх, а «AI-проекты» обязаны остаться первым чипом.
 // Литерал здесь намеренно — это решение о продукте, а не производная от данных.
 check('порядок чипов', chips.map(c => c.textContent).join(' / '),
-  'Все / AI-проекты / Игры / Сайты / Расширения');
+  'Все / AI-проекты / Игры / Сайты / Расширения / Инструменты');
 
 // Мультитема: проект из themes[] обязан находиться в каждом своём чипе.
 // Сейчас это Dubbed — расширение, которое работает поверх сайтов.
@@ -354,7 +354,9 @@ for (const rel of ['assets/css/style.css', 'assets/js/app.js', 'assets/data/proj
                    'assets/img/projects/shrooms.jpg', 'assets/img/projects/bubblepeaks.jpg',
                    'assets/img/projects/bubblepeaks-splash.jpg',
                    'assets/img/projects/lilcraft.jpg', 'assets/img/projects/bazaskate.jpg',
-                   'assets/img/projects/dubbed.jpg', 'assets/img/projects/rustore.jpg']) {
+                   'assets/img/projects/dubbed.jpg', 'assets/img/projects/rustore.jpg',
+                   'assets/img/projects/modellab.jpg',
+                   'assets/img/projects/modellab-tables.jpg']) {
   const ok = fs.existsSync(path.join(root, rel));
   if (!ok) bad++;
   console.log((ok ? 'OK   ' : 'FAIL ') + 'файл ' + rel);

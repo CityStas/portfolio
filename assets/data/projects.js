@@ -193,20 +193,23 @@ window.PROJECTS = [
       demoLabel: 'RuStore',
       demoIcon: 'store'
     }
-  }
+  },
 
-  // Шаблон карточки с клипом. Раскомментировать, когда появится запись:
-  // файлы кладёт tools/clip.js в assets/media/, сырьё лежит в _raw/ и в git не идёт.
-  // {
-  //   title: 'ModelLab',
-  //   kind: 'Инструмент',
-  //   desc: 'Подбор конфигурации локальных LLM под agentic-нагрузку: свип по контексту, offload и квантованию с живыми метриками.',
-  //   tags: ['LLM', 'llama.cpp', 'Benchmark', 'Python'],
-  //   year: '2026',
-  //   status: 'live',
-  //   shot: 'assets/img/projects/modellab.jpg',
-  //   clip: 'assets/media/modellab.mp4',
-  //   clipWebm: 'assets/media/modellab.webm',
-  //   links: { demo: '', repo: '' }
-  // }
+  // Инструмент, а не продукт: показывает не «что сделано», а «как это измерено».
+  // Описание начинается с того, что инструмент делает с памятью, потому что
+  // «подбор конфигурации» ничего не говорит тому, кто не запускал LLM локально.
+  {
+    title: 'Wedns: ModelLab',
+    kind: 'Инструмент',
+    desc: 'Веб-пульт для локальных LLM на слабом железе: скорость и память меряются одним прогоном, контекст подбирается под свободную VRAM, а конфигурации сравниваются прогонами вперемешку.\n\n*Только стандартная библиотека Python; в репозитории только код — модель и llama.cpp ставятся отдельно.',
+    tags: ['Python', 'llama.cpp', 'GGUF', 'Benchmark', 'VRAM', 'CUDA'],
+    year: '2026',
+    status: 'live',
+    // На карточке — пульт с приборами: по нему сразу видно, что это за приложение.
+    // В просмотре открывается общий вид страницы с таблицами и логом движка,
+    // то есть кадр, которого на карточке не было.
+    shot: 'assets/img/projects/modellab.jpg',
+    shots: ['assets/img/projects/modellab-tables.jpg', 'assets/img/projects/modellab.jpg'],
+    links: { repo: 'https://github.com/CityStas/wedns_modellab' }
+  }
 ];
