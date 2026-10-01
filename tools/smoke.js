@@ -131,7 +131,7 @@ const expectLinks = [];
 if (lastP.links.demo) expectLinks.push([lastP.links.demo, lastP.links.demoLabel || 'Открыть сайт']);
 if (lastP.links.web) expectLinks.push([lastP.links.web, 'Веб-версия']);
 if (lastP.links.tg) expectLinks.push([lastP.links.tg, lastP.links.tgLabel || 'Telegram-бот']);
-if (lastP.links.repo) expectLinks.push([lastP.links.repo, 'Код']);
+if (lastP.links.repo) expectLinks.push([lastP.links.repo, 'GitHub']);
 check('последняя карточка — из данных', last.querySelector('.card__t').textContent, lastP.title);
 check('последняя карточка: превью', last.querySelector('.card__shot img').getAttribute('src'), lastP.shot);
 check('последняя карточка: ссылок', lastLinks.length, expectLinks.length);
@@ -240,15 +240,21 @@ if (repoOnly) {
   const go = doc.getElementById('lbGo');
   check('лайтбокс: кнопка на репозиторий показана', go.hidden, false);
   check('лайтбокс: адрес кнопки — репозиторий', go.getAttribute('href'), repoOnly.p.links.repo);
-  check('лайтбокс: подпись кнопки — «Код»', doc.getElementById('lbGoTxt').textContent, 'Код');
+  check('лайтбокс: подпись кнопки — «GitHub»', doc.getElementById('lbGoTxt').textContent, 'GitHub');
   click(lb.querySelector('.lb__x'));
   check('лайтбокс закрылся после проекта с репо', lb.hidden, true);
 }
 
-// Подпись главной кнопки в лайтбоксе берётся из данных
-click(cards[cards.length - 1].querySelector('.card__shot'));
-check('лайтбокс: подпись главной кнопки', doc.getElementById('lbGoTxt').textContent, lastP.links.demoLabel);
-click(lb.querySelector('.lb__x'));
+// Подпись главной кнопки в лайтбоксе берётся из данных. Проект ищем по наличию
+// demo, а не «последний»: последним может стоять проект с одной лишь ссылкой
+// на репозиторий, и тогда у кнопки другая подпись.
+const demoP = P.map((p, i) => ({ p, i })).filter(x => (x.p.links || {}).demo).pop();
+if (demoP) {
+  click(cards[demoP.i].querySelector('.card__shot'));
+  check('лайтбокс: подпись главной кнопки',
+        doc.getElementById('lbGoTxt').textContent, demoP.p.links.demoLabel || 'Открыть сайт');
+  click(lb.querySelector('.lb__x'));
+}
 
 // Демо в окне монитора. Вёрстки в jsdom нет, но логику перехвата клика и закрытия
 // проверить можно: окно jsdom 1024×768 даёт стекло ~540 px, то есть порог 430 пройден.

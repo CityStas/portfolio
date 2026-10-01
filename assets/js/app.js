@@ -298,8 +298,10 @@
       if (L.repo) {
         var r = el('a');
         r.href = L.repo; r.target = '_blank'; r.rel = 'noopener';
-        r.appendChild(svg(I.code));
-        r.appendChild(document.createTextNode('Код'));
+        // Значок GitHub, а не «</>»: подпись «GitHub» с иконкой кода читалась бы
+        // как две разные ссылки. Тот же значок стоит у GitHub в контактах.
+        r.appendChild(svg(I.gh));
+        r.appendChild(document.createTextNode('GitHub'));
         links.appendChild(r);
       }
       body.appendChild(links);
@@ -534,7 +536,7 @@
     } else if (L.repo) {
       go.href = L.repo;
       go.hidden = false;
-      if (gt) gt.textContent = 'Код';
+      if (gt) gt.textContent = 'GitHub';
     } else {
       go.hidden = true;
     }

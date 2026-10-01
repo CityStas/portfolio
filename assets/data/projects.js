@@ -96,21 +96,6 @@ window.SITE = {
 };
 
 window.PROJECTS = [
-  // Флагманский проект идёт первым: сайт открывается утверждением «AI-Native
-  // Developer», значит первая карточка должна это утверждение подтверждать.
-  {
-    title: 'HC AI',
-    kind: 'AI-продукт',
-    desc: 'Локальный мультимодальный ИИ-агент для Windows: чат, генерация изображений, зрение, upscale. Без интернета, облака и API-ключей.\n\n*В репозитории только код: модели (~13 ГБ) качаются скриптами по README.',
-    tags: ['Electron', 'React', 'node-llama-cpp', 'GGUF', 'Vulkan', 'stable-diffusion.cpp', 'Vision', 'Offline'],
-    year: '2026',
-    status: 'live',
-    // На карточке — результат генерации (кадр 2): по нему сразу видно, что
-    // приложение делает. В просмотре открывается кадр 1, интерфейс.
-    shot: 'assets/img/projects/hcai-2.jpg',
-    shots: ['assets/img/projects/hcai-1.jpg', 'assets/img/projects/hcai-2.jpg'],
-    links: { repo: 'https://github.com/CityStas/hc_local_ai_image' }
-  },
   {
     title: 'DedSpace 2D',
     kind: 'Игра',
@@ -179,6 +164,23 @@ window.PROJECTS = [
       demoLabel: 'RuStore',
       demoIcon: 'store'
     }
+  },
+
+  // HC AI замыкает список: сайт открывается играми, а флагманский AI-проект
+  // стоит последним — под него ведёт ссылка на репозиторий, и он не спорит
+  // с крупным заголовком над сеткой.
+  {
+    title: 'HC AI',
+    kind: 'AI-продукт',
+    desc: 'Локальный мультимодальный ИИ-агент для Windows: чат, генерация изображений, зрение, upscale. Без интернета, облака и API-ключей.\n\n*В репозитории только код: модели (~13 ГБ) качаются скриптами по README.',
+    tags: ['Electron', 'React', 'node-llama-cpp', 'GGUF', 'Vulkan', 'stable-diffusion.cpp', 'Vision', 'Offline'],
+    year: '2026',
+    status: 'live',
+    // На карточке — результат генерации (кадр 2): по нему сразу видно, что
+    // приложение делает. В просмотре открывается кадр 1, интерфейс.
+    shot: 'assets/img/projects/hcai-2.jpg',
+    shots: ['assets/img/projects/hcai-1.jpg', 'assets/img/projects/hcai-2.jpg'],
+    links: { repo: 'https://github.com/CityStas/hc_local_ai_image' }
   }
 
   // Шаблон карточки с клипом. Раскомментировать, когда появится запись:
