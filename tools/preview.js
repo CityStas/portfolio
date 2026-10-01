@@ -87,22 +87,23 @@ const URL = 'file:///' + path.join(ROOT, 'index.html').replace(/\\/g, '/');
     await page.keyboard.press('Escape').catch(() => {});
     await page.waitForTimeout(300);
 
-    // Меню раскрыто: оно позиционировано absolute и вылезает за .hdr,
-    // поэтому снимаем не элемент, а верх вьюпорта
+    // Мобильный вид и раскрытое меню. Выпадающий режим остался только до 900px
+    // (на широком экране пункты стоят в шапке открыто, а клик по имени уводит
+    // наверх) — поэтому оба кадра снимаем на узком окне, иначе -menu.jpg
+    // окажется дублем -top.jpg. Снимаем фокус: после Escape он возвращается
+    // на кнопку меню и в кадре остаётся обводка :focus-visible — для «как
+    // выглядит на телефоне» это шум.
+    await page.evaluate(() => { if (document.activeElement) document.activeElement.blur(); });
     await page.evaluate(() => window.scrollTo(0, 0));
-    await page.waitForTimeout(250);
+    await page.setViewportSize({ width: 420, height: 900 });
+    await page.waitForTimeout(400);
+    await page.screenshot({ path: path.join(OUT, theme + '-mobile.jpg'), type: 'jpeg', quality: 86 });
+
     await page.click('#logoBtn').catch(() => {});
     await page.waitForTimeout(350);
     await page.screenshot({ path: path.join(OUT, theme + '-menu.jpg'), type: 'jpeg', quality: 90 });
     await page.keyboard.press('Escape').catch(() => {});
     await page.waitForTimeout(200);
-
-    // мобильный вид. Снимаем фокус: после Escape он возвращается на кнопку меню
-    // и в кадре остаётся обводка :focus-visible — для «как выглядит на телефоне» это шум.
-    await page.evaluate(() => { if (document.activeElement) document.activeElement.blur(); });
-    await page.setViewportSize({ width: 420, height: 900 });
-    await page.waitForTimeout(400);
-    await page.screenshot({ path: path.join(OUT, theme + '-mobile.jpg'), type: 'jpeg', quality: 86 });
 
     console.log(theme + ': снято' + (errs.length ? '  ОШИБКИ: ' + errs.join(' | ') : '  ошибок нет'));
     await ctx.close();
