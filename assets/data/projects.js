@@ -101,7 +101,7 @@ window.PROJECTS = [
   {
     title: 'HC AI',
     kind: 'AI-продукт',
-    desc: 'Локальный мультимодальный ИИ-агент для Windows: чат, генерация изображений, зрение и апскейл считаются на своей машине. Без интернета, облака и API-ключей — Electron + React + node-llama-cpp + stable-diffusion.cpp на Vulkan.\n\n*В репозитории только код: модели (~13 ГБ) качаются скриптами по README.',
+    desc: 'Локальный мультимодальный ИИ-агент для Windows: чат, генерация изображений, зрение, upscale. Без интернета, облака и API-ключей.\n\n*В репозитории только код: модели (~13 ГБ) качаются скриптами по README.',
     tags: ['Electron', 'React', 'node-llama-cpp', 'GGUF', 'Vulkan', 'stable-diffusion.cpp', 'Vision', 'Offline'],
     year: '2026',
     status: 'live',
