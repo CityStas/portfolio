@@ -167,20 +167,20 @@ p { text-wrap: pretty; }
 @keyframes navIn { from { opacity: 0; transform: translateY(-6px); } }
 /* Пункты меню набраны тем же шрифтом, что и описания проектов (.card__d):
    семейство системное, 16px / 400. Раньше стояли 14.5px / 600 — жирный начерк
-   читался как «другой шрифт», хотя семейство было то же. */
+   читался как «другой шрифт», хотя семейство было то же.
+   Стиль рамки/фона — как у кнопок в карточках (.card__links a): --btn + --btn-line,
+   hover с translateY(-1px). Единый паттерн кнопок по всему сайту. */
 .nav a {
   display: flex; align-items: center; justify-content: space-between; gap: 18px;
-  padding: 10px 12px; border-radius: var(--r-xs);
-  color: var(--text); font-size: 16px; font-weight: 400;
-  transition: background .16s;
+  padding: 10px 14px; border-radius: var(--r-xs);
+  border: 1px solid var(--btn-line); background: var(--btn);
+  color: var(--text); font-size: 15px; font-weight: 500;
+  transition: background .18s, border-color .18s, transform .18s;
 }
-.nav a:hover { text-decoration: none; background: color-mix(in srgb, var(--text) 6%, transparent); }
+.nav a:hover { text-decoration: none; background: var(--btn-hover); border-color: var(--btn-line-2); transform: translateY(-1px); }
 .nav a::after { content: attr(data-num); font: 500 11.5px/1 var(--mono); letter-spacing: .12em; color: var(--dim); }
-/* Подсветка текущего раздела — нейтральная и полупрозрачная. Раньше стояла
-   color-mix с --accent поверх непрозрачного --surface-2: синяя заливка читалась
-   как кнопка действия, а не как «ты здесь». Оттенок берётся от --text, поэтому
-   в тёмной теме это белый с альфой, в светлой — чёрный, без своего тона. */
-.nav a.is-active { background: color-mix(in srgb, var(--text) 10%, transparent); }
+/* Подсветка текущего раздела — та же рамка/фон, что у нажатых кнопок (.is-on, .is-primary). */
+.nav a.is-active { background: var(--btn-hover); border-color: var(--btn-line-2); }
 .nav a.is-active::after { color: var(--muted); }
 
 .hdr__act { display: flex; align-items: center; gap: 8px; margin-left: auto; }
@@ -610,7 +610,7 @@ html[data-theme="light"] .ico--moon { display: none; }
   .reveal { opacity: 1; transform: none; transition: none; }
   .aurora i { animation: none; }
   .dot { animation: none; }
-  .card:hover, .btn:hover { transform: none; }
+  .card:hover, .btn:hover, .nav a:hover { transform: none; }
   .demo__x:hover { transform: none; }
   .card:hover .card__shot img { transform: none; }
   .lb__shot:hover { transform: none; }
@@ -653,12 +653,12 @@ html[data-theme="light"] .ico--moon { display: none; }
   .nav[hidden] { display: flex !important; }
 
   .nav a {
-    gap: 0; padding: 7px 12px;
-    color: var(--muted); font-size: 15px; font-weight: 500;
+    gap: 0; padding: 7px 14px;
+    border: 1px solid var(--btn-line); background: var(--btn);
+    color: var(--muted); font-size: 14px; font-weight: 600;
   }
-  /* В строке шапки состояние держится цветом текста, а не только подложкой:
-     заливка намеренно слабая (10 % текста), одного её мало. */
-  .nav a.is-active { color: var(--text); }
+  /* В строке шапки состояние держится цветом текста + плотной рамкой. */
+  .nav a.is-active { color: var(--text); border-color: var(--btn-line-2); }
   /* Номера разделов — деталь выпадающего списка, в строке шапки они лишние. */
   .nav a::after { content: none; }
   /* Каретка обещает выпадающий список, которого на широком экране нет. */
