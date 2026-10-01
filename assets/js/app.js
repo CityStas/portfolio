@@ -74,20 +74,6 @@
     }
   }
 
-  /* ---------- Стек ---------- */
-  function renderStack() {
-    var box = $('#stackList');
-    if (!box || !S.stack) return;
-    S.stack.forEach(function (g) {
-      var row = el('div', 'stack__grp reveal');
-      row.appendChild(el('div', 'stack__name', g.group));
-      var chips = el('div', 'chips');
-      g.items.forEach(function (i) { chips.appendChild(el('span', 'chip', i)); });
-      row.appendChild(chips);
-      box.appendChild(row);
-    });
-  }
-
   /* ---------- Проекты ---------- */
   var STATUS = {
     live:     ['live',     'в сети'],
@@ -95,26 +81,144 @@
     archived: ['archived', 'архив']
   };
 
+  // Кадры проекта. Обычный проект — один shot; если задан shots, это галерея,
+  // и она же служит источником для лайтбокса. shot при этом остаётся превью
+  // карточки, поэтому «на карточке кадр 2, в просмотре кадр 1» задаётся
+  // просто: shot — второй, shots — [первый, второй].
+  function shotsOf(p) {
+    if (p.shots && p.shots.length) return p.shots.slice();
+    return p.shot ? [p.shot] : [];
+  }
+
+  /* ---------- Клип в карточке ---------- */
+
+  // Тип источника выводим из расширения, а не из имени поля: если в clip положить
+  // webm, а объявить его как mp4, декодер откажется его играть — и молча, потому
+  // что play() при этом отработает без ошибки.
+  function srcType(url, fallback) {
+    var m = /\.([a-z0-9]+)(?:[?#]|$)/i.exec(String(url || ''));
+    var ext = m ? m[1].toLowerCase() : '';
+    if (ext === 'webm') return 'video/webm';
+    if (ext === 'mp4' || ext === 'm4v') return 'video/mp4';
+    if (ext === 'ogv' || ext === 'ogg') return 'video/ogg';
+    return fallback;
+  }
+
+  // Источники в порядке предпочтения: webm легче, mp4 играет везде. Браузер берёт
+  // первый, который умеет, — отдельная проверка поддержки не нужна.
+  function videoSources(v, p) {
+    v.textContent = '';
+    if (p.clipWebm) {
+      var w = document.createElement('source');
+      w.src = p.clipWebm; w.type = srcType(p.clipWebm, 'video/webm');
+      v.appendChild(w);
+    }
+    // Пустой clip — это не источник, а команда очистить: <source src=""> ушёл бы
+    // запросом на саму страницу.
+    if (!p.clip) return;
+    var m = document.createElement('source');
+    m.src = p.clip; m.type = srcType(p.clip, 'video/mp4');
+    v.appendChild(m);
+  }
+
+  // Отпускаем видео целиком: пауза, снятые источники, убранный постер. Одно место
+  // на закрытие лайтбокса и на переключение на проект без клипа.
+  function clearVideo(v) {
+    if (!v) return;
+    pauseVideo(v);
+    v.hidden = true;
+    v.textContent = '';
+    v.removeAttribute('poster');
+  }
+
+  function clipVideo(p, poster) {
+    var v = document.createElement('video');
+    v.className = 'card__clip';
+    v.muted = true;
+    v.loop = true;
+    v.playsInline = true;
+    // muted и playsinline нужны именно атрибутами: по одному свойству Safari
+    // автоплей не разрешает. Остальные браузеры лишнее молча игнорируют.
+    v.setAttribute('muted', '');
+    v.setAttribute('playsinline', '');
+    v.preload = 'none';                    // сеть трогаем только когда карточка на экране
+    v.setAttribute('aria-hidden', 'true'); // кнопка вокруг уже подписана текстом
+    if (poster) v.poster = poster;
+    if (p.shotPos) v.style.objectPosition = p.shotPos;
+    videoSources(v, p);
+    return v;
+  }
+
+  // play() возвращает промис, который браузер вправе отклонить: энергосбережение,
+  // фоновый таб, запрет автоплея. Это не ошибка страницы — остаёмся на постере.
+  function playVideo(v) {
+    try {
+      var r = v.play();
+      if (r && r.catch) r.catch(function () {});
+    } catch (e) {}
+  }
+
+  // Пауза нужна только играющему клипу: у стоящего она ничего не меняет, а jsdom
+  // на такой вызов пишет «Not implemented» в консоль — смоук-тест считает это ошибкой.
+  function pauseVideo(v) {
+    if (!v || v.paused) return;
+    try { v.pause(); } catch (e) {}
+  }
+
+  // Играют только клипы, попавшие в окно. Иначе все карточки разом уходят в сеть
+  // и держат декодеры, пока страница просто открыта.
+  function initClips() {
+    var vids = $$('.card__clip');
+    if (!vids.length) return;
+    if (!('IntersectionObserver' in window)) return;
+
+    // Просили меньше движения — клип не запускаем совсем, остаётся постер.
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    var io = new IntersectionObserver(function (es) {
+      es.forEach(function (e) {
+        if (e.isIntersecting) {
+          if (e.target.preload === 'none') e.target.preload = 'auto';
+          playVideo(e.target);
+        } else {
+          pauseVideo(e.target);
+        }
+      });
+    }, { rootMargin: '200px 0px', threshold: .25 });
+
+    vids.forEach(function (v) { io.observe(v); });
+  }
+
   function card(p, i) {
     var a = el('article', 'card reveal');
 
     // --- превью ---
-    if (p.shot) {
+    // Клип идёт поверх постера: если видео не проиграется или в системе попросили
+    // меньше движения, под ним остаётся статичный кадр, а не пустое место.
+    // Превью — именно shot, а не первый кадр галереи: у проекта может быть задано
+    // «на карточке кадр 2, в просмотре кадр 1». shotsOf() тут только подстраховка
+    // для проекта, у которого shot не задан вовсе.
+    var poster = p.clipPoster || p.shot || shotsOf(p)[0];
+    if (poster || p.clip) {
       var shot = el('button', 'card__shot');
       shot.type = 'button';
       shot.setAttribute('aria-label', 'Показать превью: ' + p.title);
 
-      var img = document.createElement('img');
-      img.src = p.shot;
-      img.alt = 'Превью проекта ' + p.title;
-      img.loading = i < 2 ? 'eager' : 'lazy';   // первые две карточки — сразу, остальные по скроллу
-      img.decoding = 'async';
-      img.width = 1280;
-      img.height = 800;
-      // Карточка 16:10, кадры шире — cover обрезает по бокам. Если важное в кадре
-      // смещено (враг справа), проект задаёт shotPos, куда сдвинуть окно.
-      if (p.shotPos) img.style.objectPosition = p.shotPos;
-      shot.appendChild(img);
+      if (p.clip) shot.appendChild(clipVideo(p, poster));
+
+      if (poster) {
+        var img = document.createElement('img');
+        img.src = poster;
+        img.alt = 'Превью проекта ' + p.title;
+        img.loading = i < 2 ? 'eager' : 'lazy';   // первые две карточки — сразу, остальные по скроллу
+        img.decoding = 'async';
+        img.width = 1280;
+        img.height = 800;
+        // Карточка 16:10, кадры шире — cover обрезает по бокам. Если важное в кадре
+        // смещено (враг справа), проект задаёт shotPos, куда сдвинуть окно.
+        if (p.shotPos) img.style.objectPosition = p.shotPos;
+        shot.appendChild(img);
+      }
 
       var hint = el('span', 'card__hint');
       hint.appendChild(svg(I.zoom));
@@ -220,6 +324,78 @@
     P.forEach(function (p, i) { box.appendChild(card(p, i)); });
   }
 
+  /* ---------- Фильтр по тематике ---------- */
+  var ALL = 'Все';
+  var activeTheme = ALL;
+
+  // Ярлык чипа называет группу, а не тип одной карточки: «Игры», не «Игра».
+  var THEME_LABEL = {
+    'Игра': 'Игры',
+    'Сайт': 'Сайты',
+    'AI-продукт': 'AI-проекты',
+    'Расширение': 'Расширения',
+    'Инструмент': 'Инструменты'
+  };
+  function themeLabel(t) { return THEME_LABEL[t] || t; }
+
+  // Тема проекта — это kind. Проект может лежать сразу в нескольких темах
+  // (игра + AI-инструмент) — тогда он задаёт themes массивом, и попадёт в оба чипа.
+  function themesOf(p) {
+    if (p.themes && p.themes.length) return p.themes.slice();
+    return p.kind ? [p.kind] : [];
+  }
+
+  function matches(p) {
+    if (activeTheme === ALL) return true;
+    return themesOf(p).indexOf(activeTheme) !== -1;
+  }
+
+  // Порядок чипов — как в данных: первый проект задаёт первый чип. Так порядок
+  // фильтров повторяет порядок карточек, и его не нужно дублировать в настройках.
+  function themeList() {
+    var out = [];
+    P.forEach(function (p) {
+      themesOf(p).forEach(function (t) { if (out.indexOf(t) === -1) out.push(t); });
+    });
+    return out;
+  }
+
+  // Карточки не пересобираются, а прячутся: так сохраняются и уже загруженные
+  // превью, и подписка на появление в кадре (скрытая карточка не пересекается
+  // с окном, поэтому is-in она получит ровно тогда, когда её покажут).
+  function applyFilter() {
+    $$('#grid .card').forEach(function (c, i) { c.hidden = !matches(P[i]); });
+  }
+
+  function setTheme(t) {
+    activeTheme = t;
+    $$('#filters .fchip').forEach(function (b) {
+      var on = b.getAttribute('data-th') === t;
+      b.classList.toggle('is-on', on);
+      b.setAttribute('aria-pressed', String(on));
+    });
+    applyFilter();
+  }
+
+  function renderFilters() {
+    var box = $('#filters');
+    if (!box) return;
+    var list = themeList();
+    // Один тип проектов — фильтровать нечего: ряд чипов только займёт строку.
+    if (list.length < 2) { box.hidden = true; return; }
+
+    [ALL].concat(list).forEach(function (t) {
+      var b = el('button', 'fchip');
+      b.type = 'button';
+      b.setAttribute('data-th', t);
+      b.textContent = themeLabel(t);
+      b.addEventListener('click', function () { setTheme(t); });
+      box.appendChild(b);
+    });
+    setTheme(activeTheme);
+    box.hidden = false;
+  }
+
   /* ---------- Контакты ---------- */
   function renderContacts() {
     var box = $('#links');
@@ -249,22 +425,91 @@
 
   /* ---------- Лайтбокс ---------- */
   var lbIdx = 0, lbLast = null;
+  var lbShots = [], lbShot = 0;   // галерея текущего проекта и открытый кадр
 
-  function withShot() {
-    return P.map(function (p, i) { return p.shot ? i : -1; }).filter(function (i) { return i !== -1; });
+  // Проекты, у которых есть что показать крупно: кадр или клип. Скрытые
+  // фильтром сюда не попадают — иначе стрелки уводили бы на карточку, которой
+  // на странице нет.
+  function withMedia() {
+    return P.map(function (p, i) {
+      if (!matches(p)) return -1;
+      return (shotsOf(p).length || p.clip) ? i : -1;
+    }).filter(function (i) { return i !== -1; });
+  }
+
+  // Кадр галереи. Смена src у одного <img>, а не второй <img> в разметке:
+  // так кадр не дублируется в DOM и не грузится дважды.
+  function setShot(n) {
+    var img = $('#lbImg');
+    if (!img || !lbShots.length) return;
+    lbShot = (n + lbShots.length) % lbShots.length;
+    img.src = lbShots[lbShot];
+    img.alt = 'Превью проекта ' + (P[lbIdx] ? P[lbIdx].title : '');
+    $$('#lbShots .lb__shot').forEach(function (b, i) {
+      var on = i === lbShot;
+      b.classList.toggle('is-on', on);
+      b.setAttribute('aria-current', on ? 'true' : 'false');
+    });
+  }
+
+  // Полоска превью. Один кадр — полоски нет, лишний ряд кнопок ни о чём не сообщает.
+  function renderShots() {
+    var box = $('#lbShots');
+    if (!box) return;
+    box.textContent = '';
+    if (lbShots.length < 2) { box.hidden = true; return; }
+
+    lbShots.forEach(function (src, n) {
+      var b = el('button', 'lb__shot');
+      b.type = 'button';
+      b.setAttribute('aria-label', 'Кадр ' + (n + 1) + ' из ' + lbShots.length);
+      var im = document.createElement('img');
+      im.src = src;
+      im.alt = '';
+      im.loading = 'lazy';
+      im.decoding = 'async';
+      b.appendChild(im);
+      b.addEventListener('click', function () { setShot(n); });
+      box.appendChild(b);
+    });
+    box.hidden = false;
   }
 
   function openLb(i) {
     var lb = $('#lb');
-    if (!lb || !P[i] || !P[i].shot) return;
+    if (!lb || !P[i] || !(shotsOf(P[i]).length || P[i].clip)) return;
 
     lbLast = document.activeElement;
     lbIdx = i;
 
     var p = P[i];
     var img = $('#lbImg');
-    img.src = p.shot;
-    img.alt = 'Превью проекта ' + p.title;
+    var vid = $('#lbVid');
+    // Постер нужен только клипу. Кадру он не нужен: кадр и есть кадр.
+    var poster = p.clipPoster || p.shot || shotsOf(p)[0];
+
+    // Галерея собирается до показа кадра: setShot ищет кнопки в разметке.
+    lbShots = shotsOf(p);
+    renderShots();
+
+    // Клип показываем с управлением: его можно перемотать, а не только смотреть
+    // петлю. У проектов без клипа остаётся <img> — с галереей, если кадров больше одного.
+    if (p.clip && vid) {
+      videoSources(vid, p);
+      if (poster) vid.poster = poster; else vid.removeAttribute('poster');
+      vid.hidden = false;
+      playVideo(vid);
+      img.hidden = true;
+      img.removeAttribute('src');       // кадр держать незачем, видео его перекрыло
+    } else {
+      clearVideo(vid);
+      img.hidden = false;
+      // Открываемся на первом кадре галереи, даже если на карточке был другой:
+      // в просмотре логично начать с начала, а не с середины.
+      if (lbShots.length) setShot(0);
+      else { img.removeAttribute('src'); img.alt = ''; }
+    }
+
     $('#lbTitle').textContent = p.title;
 
     // #lbDesc — это <p>, поэтому абзацы внутри него разделяются <br>, а не
@@ -276,13 +521,20 @@
       lbDesc.appendChild(el(d.note ? 'small' : 'span', d.note ? 'card__note' : '', d.text));
     });
 
+    // Кнопка лайтбокса — та же главная ссылка, что и на карточке. Если демо нет,
+    // но есть репозиторий, ведём в него: иначе у проекта, который живёт только
+    // исходниками, в просмотре не осталось бы ни одной ссылки.
     var go = $('#lbGo');
     var L = p.links || {};
+    var gt = $('#lbGoTxt');
     if (L.demo) {
       go.href = L.demo;
       go.hidden = false;
-      var gt = $('#lbGoTxt');
       if (gt) gt.textContent = L.demoLabel || 'Открыть сайт';
+    } else if (L.repo) {
+      go.href = L.repo;
+      go.hidden = false;
+      if (gt) gt.textContent = 'Код';
     } else {
       go.hidden = true;
     }
@@ -296,13 +548,29 @@
   function closeLb() {
     var lb = $('#lb');
     if (!lb || lb.hidden) return;
+    // Клип гасим и отпускаем источники: под закрытой модалкой он иначе продолжает
+    // играть и держит декодер. Разметку всё равно пересоберёт следующий openLb.
+    clearVideo($('#lbVid'));
+    // И кадр возвращаем в нейтральное состояние: закрытый лайтбокс не должен
+    // держать ничьё состояние — оба медиа-элемента пустые и в исходной видимости.
+    var img = $('#lbImg');
+    if (img) {
+      img.hidden = false;
+      img.removeAttribute('src');
+    }
+    // Полоску превью отпускаем вместе с кадром: закрытая модалка не должна
+    // держать в разметке и в памяти десяток картинок.
+    var shots = $('#lbShots');
+    if (shots) { shots.textContent = ''; shots.hidden = true; }
+    lbShots = [];
+    lbShot = 0;
     lb.hidden = true;
     document.body.style.overflow = '';
     if (lbLast && lbLast.focus) lbLast.focus();
   }
 
   function stepLb(dir) {
-    var list = withShot();
+    var list = withMedia();
     if (list.length < 2) return;
     var at = list.indexOf(lbIdx);
     openLb(list[(at + dir + list.length) % list.length]);
@@ -572,13 +840,14 @@
   function init() {
     fillSite();
     renderAbout();
-    renderStack();
     renderProjects();
+    renderFilters();
     renderContacts();
     initMenu();
     initTheme();
     initLb();
     initDemo();
+    initClips();
     initChrome();
   }
 

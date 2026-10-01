@@ -45,8 +45,10 @@ const dupes = ids.filter((id, i) => ids.indexOf(id) !== i);
 check('дубликатов id', dupes.length, 0);
 if (dupes.length) console.log('       дубли: ' + dupes.join(', '));
 
-// Меню живёт под кликом по имени в шапке; отдельной строки навигации нет
-check('пунктов в меню', q('#navMenu a').length, 4);
+// Меню живёт под кликом по имени в шапке; отдельной строки навигации нет.
+// Считаем от числа секций, а не литералом: раздел добавили или убрали — тест
+// подстроится сам, а рассинхрон меню и секций всё равно поймает.
+check('пунктов в меню', q('#navMenu a').length, q('main section.sec').length);
 check('меню закрыто по умолчанию', doc.getElementById('navMenu').hidden, true);
 check('кнопки «Резюме» в шапке нет', q('#hdrCv').length, 0);
 
@@ -69,9 +71,11 @@ const cards = q('#grid .card');
 check('карточек проектов', cards.length, P.length);
 check('карточек с превью', q('#grid .card__shot img').length, P.filter(p => p.shot).length);
 check('заглушек без превью', q('#grid .card__shot--empty').length, P.filter(p => !p.shot).length);
-check('групп стека', q('#stackList .stack__grp').length, S.stack.length);
-check('чипов стека', q('#stackList .chip').length,
-      S.stack.reduce((n, g) => n + g.items.length, 0));
+// Раздел «Стек» убран целиком 2026-10-01. Проверяем именно отсутствие всех
+// четырёх частей: секции, списка, данных и пункта меню.
+check('секции «Стек» нет', q('#stack, #stackList, .stack, .stack__grp').length, 0);
+check('данных стека нет', S.stack == null, true);
+check('пункта меню «Стек» нет', q('#navMenu a').some(a => /стек/i.test(a.textContent)), false);
 check('строк фактов', q('#facts .facts__row').length, S.facts.length);
 check('контактов', q('#links .link').length,
       ['telegram', 'email', 'hh', 'github'].filter(k => S[k]).length);
@@ -79,14 +83,35 @@ check('абзацев «О себе»', q('#aboutTxt p').length, S.about.length)
 check('имя в шапке', doc.querySelector('.logo span[data-site]').textContent, S.name);
 check('логотип-картинка в шапке', doc.querySelectorAll('.logo img.logo__mark').length, 1);
 
-// Фильтры над проектами убраны совсем — ни разметки, ни заглушки «ничего не нашлось»
-check('чипов-фильтров нет', q('#filters, .fbtn, #empty, .sec__top').length, 0);
+// Фильтры по тематике вернулись 2026-10-01 — уже не как отдельная секция,
+// а чипами справа от заголовка «Проекты». Набор чипов считается из данных:
+// тема проекта — это kind, у мультитемы — элементы themes.
+const themes = [];
+P.forEach(p => (p.themes && p.themes.length ? p.themes : [p.kind]).forEach(t => {
+  if (themes.indexOf(t) === -1) themes.push(t);
+}));
+const themesOfP = p => (p.themes && p.themes.length ? p.themes : [p.kind]);
+const chips = q('#filters .fchip');
+check('чипов-фильтров (+ «Все»)', chips.length, themes.length + 1);
+check('первый чип — «Все»', chips[0] && chips[0].textContent, 'Все');
+check('«Все» включён по умолчанию', chips[0] && chips[0].classList.contains('is-on'), true);
+check('по умолчанию видны все карточки', q('#grid .card').filter(c => !c.hidden).length, P.length);
+
+// Клик по чипу прячет карточки чужих тем. Берём первую тему из данных, чтобы
+// тест не зависел от порядка проектов.
+const tName = themes[0];
+click(chips[1]);
+check('фильтр: видны только карточки темы',
+  q('#grid .card').filter(c => !c.hidden).length,
+  P.filter(p => themesOfP(p).indexOf(tName) !== -1).length);
+check('фильтр: выбранный чип помечен', chips[1].getAttribute('aria-pressed'), 'true');
+check('фильтр: «Все» снят', chips[0].getAttribute('aria-pressed'), 'false');
+click(chips[0]);
+check('фильтр сброшен: видны все карточки', q('#grid .card').filter(c => !c.hidden).length, P.length);
 
 // Скрытое по просьбе: Chattrix, бейджи «в сети», кнопка PDF
 check('блока Chattrix нет', q('#grid .card').some(c => /chattrix/i.test(c.textContent)), false);
 check('бейджей «в сети» нет', q('#grid .badge--live').length, 0);
-check('чипа LM Studio нет в стеке', q('#stackList .chip').some(c => c.textContent === 'LM Studio'), false);
-check('чип Bionic в стеке', q('#stackList .chip').some(c => c.textContent === 'Bionic'), true);
 check('факт «опыт»', doc.querySelector('#facts .facts__row dd').textContent, S.facts[0][1]);
 
 // Сноска «*Быстрее всего отвечаю в Telegram.» убрана вместе со звёздочкой
@@ -184,6 +209,41 @@ click(doc.getElementById('lbNext'));
 check('лайтбокс: следующий проект', doc.getElementById('lbTitle').textContent, P[1].title);
 click(lb.querySelector('.lb__x'));
 check('лайтбокс закрылся', lb.hidden, true);
+
+// Галерея: у проекта с shots в лайтбоксе снизу полоска кадров, превью карточки
+// при этом берётся из shot, а просмотр открывается на первом кадре галереи.
+const galP = P.filter(p => p.shots && p.shots.length > 1)[0];
+if (galP) {
+  const gi = P.indexOf(galP);
+  const strip = doc.getElementById('lbShots');
+  click(cards[gi].querySelector('.card__shot'));
+  check('галерея: превью карточки — из shot',
+    cards[gi].querySelector('.card__shot img').getAttribute('src'), galP.shot);
+  check('галерея: полоска кадров показана', strip.hidden, false);
+  check('галерея: кадров в полоске', strip.querySelectorAll('.lb__shot').length, galP.shots.length);
+  check('галерея: открылся первый кадр', doc.getElementById('lbImg').getAttribute('src'), galP.shots[0]);
+  click(strip.querySelectorAll('.lb__shot')[1]);
+  check('галерея: клик по превью меняет кадр', doc.getElementById('lbImg').getAttribute('src'), galP.shots[1]);
+  check('галерея: выбранный кадр помечен',
+    strip.querySelectorAll('.lb__shot')[1].getAttribute('aria-current'), 'true');
+  click(lb.querySelector('.lb__x'));
+  check('галерея: полоска очищена при закрытии', strip.querySelectorAll('.lb__shot').length, 0);
+  check('галерея: полоска скрыта при закрытии', strip.hidden, true);
+}
+
+// Проект без демо, но с репозиторием: главная кнопка лайтбокса ведёт в код,
+// а не прячется — иначе в просмотре у такого проекта не осталось бы ссылок вовсе.
+const repoOnly = P.map((p, i) => ({ p, i }))
+  .filter(x => (x.p.links || {}).repo && !(x.p.links || {}).demo)[0];
+if (repoOnly) {
+  click(cards[repoOnly.i].querySelector('.card__shot'));
+  const go = doc.getElementById('lbGo');
+  check('лайтбокс: кнопка на репозиторий показана', go.hidden, false);
+  check('лайтбокс: адрес кнопки — репозиторий', go.getAttribute('href'), repoOnly.p.links.repo);
+  check('лайтбокс: подпись кнопки — «Код»', doc.getElementById('lbGoTxt').textContent, 'Код');
+  click(lb.querySelector('.lb__x'));
+  check('лайтбокс закрылся после проекта с репо', lb.hidden, true);
+}
 
 // Подпись главной кнопки в лайтбоксе берётся из данных
 click(cards[cards.length - 1].querySelector('.card__shot'));

@@ -1,5 +1,8 @@
 # служебное
 _preview/
+# сырые записи экрана: из них tools/clip.js режет клипы. Сами записи тяжёлые
+# и в репозитории не нужны — нарезанное уезжает в assets/media/
+_raw/
 node_modules/
 package.json
 package-lock.json

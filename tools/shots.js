@@ -47,7 +47,17 @@ const SITES = [
   { slug: 'rustore',     url: 'https://www.rustore.ru/catalog/app/com.orfree.app',
     wait: 7000, keys: [], clicks: [], look: null, walk: 0, scroll: 0,
     scrollTo: 12, hideSidebar: true,
-    clip: { x: 24, y: 0, width: 1083, height: 677 }, scale: 1.2 }
+    clip: { x: 24, y: 0, width: 1083, height: 677 }, scale: 1.2 },
+
+  // ModelLab — локальный тестер моделей, живёт по http://127.0.0.1:8090.
+  // Перед съёмкой приложение надо поднять самому (оно меряет свободную память,
+  // поэтому запускать его из-под чего-то ещё нельзя — замер уедет):
+  //     cd F:\Pets\Projects\local\Wendsday
+  //     python -m modellab.gui --open
+  // Ждём дольше обычного: страница опрашивает /api/state, и до первого ответа
+  // половина панелей пустая. Вьюпорт 1600x1000 — ровно 16:10, то есть кадр
+  // ложится в карточку без обрезки, clip тут не нужен.
+  { slug: 'modellab',    url: 'http://127.0.0.1:8090/',           wait: 6000,  keys: [], clicks: [], look: null, walk: 0, scroll: 0 }
 ];
 
 // node tools/shots.js shrooms lilcraft — снять только указанные

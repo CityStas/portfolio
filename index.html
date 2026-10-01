@@ -17,8 +17,8 @@
 <meta property="og:image:alt" content="Дмитрий О. - AI-Native Developer / Full-Stack AI Engineer">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="assets/img/favicon.svg?v=2" type="image/svg+xml">
+<link rel="preload" as="image" href="assets/img/projects/hcai-2.jpg">
 <link rel="preload" as="image" href="assets/img/projects/shrooms.jpg">
-<link rel="preload" as="image" href="assets/img/projects/bubblepeaks.jpg">
 <link rel="stylesheet" href="assets/fonts/handjet.css">
 <link rel="stylesheet" href="assets/css/style.css">
 <script>
@@ -46,9 +46,8 @@
 
       <nav class="nav" id="navMenu" aria-label="Разделы сайта" hidden>
         <a href="#projects" data-num="01">Проекты</a>
-        <a href="#stack" data-num="02">Стек</a>
-        <a href="#about" data-num="03">О себе</a>
-        <a href="#contact" data-num="04">Контакты</a>
+        <a href="#about" data-num="02">О себе</a>
+        <a href="#contact" data-num="03">Контакты</a>
       </nav>
     </div>
 
@@ -67,21 +66,20 @@
     <div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
     <div class="wrap">
       <h1 class="lead__h reveal">AI-Native Developer / Full-Stack AI Engineer</h1>
-      <h2 class="sec__h reveal"><span class="sec__num">01</span>Проекты</h2>
+      <div class="sec__bar">
+        <h2 class="sec__h reveal"><span class="sec__num">01</span>Проекты</h2>
+        <!-- Чипы-фильтры по тематике. Наполняются из данных: темы берутся из kind
+             проектов, так что новый тип проекта добавляет себе чип сам. Если тип
+             один — ряд скрывается, фильтровать нечего. -->
+        <div class="filters reveal" id="filters" role="group" aria-label="Фильтр проектов по тематике" hidden></div>
+      </div>
       <div class="grid" id="grid"></div>
-    </div>
-  </section>
-
-  <section class="sec" id="stack">
-    <div class="wrap">
-      <h2 class="sec__h reveal"><span class="sec__num">02</span>Стек</h2>
-      <div class="stack" id="stackList"></div>
     </div>
   </section>
 
   <section class="sec" id="about">
     <div class="wrap">
-      <h2 class="sec__h reveal"><span class="sec__num">03</span>О себе</h2>
+      <h2 class="sec__h reveal"><span class="sec__num">02</span>О себе</h2>
       <div class="about">
         <div class="about__txt reveal" id="aboutTxt"></div>
         <dl class="facts reveal" id="facts"></dl>
@@ -91,7 +89,7 @@
 
   <section class="sec" id="contact">
     <div class="wrap">
-      <h2 class="sec__h reveal"><span class="sec__num">04</span>Контакты</h2>
+      <h2 class="sec__h reveal"><span class="sec__num">03</span>Контакты</h2>
       <div class="links reveal" id="links"></div>
     </div>
   </section>
@@ -113,6 +111,13 @@
   <button class="lb__nav lb__nav--next" type="button" aria-label="Следующий проект" id="lbNext">&#8250;</button>
   <figure class="lb__fig">
     <img id="lbImg" alt="">
+    <!-- Клип подставляется вместо кадра, только если у проекта есть clip.
+         Источники собираются в app.js при открытии: держать их в разметке
+         нельзя — тогда все видео поехали бы в сеть при загрузке страницы. -->
+    <video id="lbVid" hidden muted loop playsinline controls></video>
+    <!-- Полоска кадров галереи. Наполняется при открытии, из данных (shots).
+         Один кадр — полоска скрыта: ряд кнопок из одной ничего не сообщает. -->
+    <div class="lb__shots" id="lbShots" hidden></div>
     <figcaption class="lb__cap">
       <div class="lb__txt">
         <h3 id="lbTitle"></h3>

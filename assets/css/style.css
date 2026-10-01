@@ -265,6 +265,27 @@ html[data-theme="light"] .ico--moon { display: none; }
   background: linear-gradient(90deg, var(--line), transparent);
 }
 
+/* Строка заголовка раздела с фильтрами справа. Линия ::after у заголовка
+   растягивается и отжимает чипы к правому краю — заголовок остаётся на месте,
+   а чипы не наезжают на него на узких окнах (там они уезжают на вторую строку). */
+.sec__bar {
+  display: flex; align-items: center; flex-wrap: wrap;
+  gap: 12px clamp(14px, 2.2vw, 28px); margin-bottom: 28px;
+}
+.sec__bar .sec__h { margin: 0; flex: 1 1 320px; min-width: 0; }
+
+/* Чипы-фильтры. Выделение — плотностью нейтральной рамки, как у кнопок
+   в карточках: акцентную заливку в этом языке не используем. */
+.filters { display: flex; flex-wrap: wrap; gap: 6px; }
+.fchip {
+  padding: 5px 12px; border-radius: 999px; cursor: pointer;
+  background: var(--btn); border: 1px solid var(--btn-line); color: var(--muted);
+  font: 600 12.5px/1.5 var(--font);
+  transition: color .18s, border-color .18s, background .18s;
+}
+.fchip:hover { color: var(--text); background: var(--btn-hover); border-color: var(--btn-line-2); }
+.fchip.is-on { color: var(--text); background: var(--btn-hover); border-color: var(--btn-line-3); }
+
 /* ---------- Сетка проектов ---------- */
 /* Одна колонка: карточки идут друг под другом во всю ширину, внутри карточки
    две колонки - превью слева, текст справа. Уже 900px карточка складывается. */
@@ -294,6 +315,11 @@ html[data-theme="light"] .ico--moon { display: none; }
   border: 0; border-right: 1px solid var(--line);
 }
 .card__shot img { width: 100%; height: 100%; object-fit: cover; transition: transform .5s cubic-bezier(.2,.7,.3,1); }
+/* Клип лежит поверх постера и растянут по нему: размер карточке задаёт <img>,
+   видео только закрывает его собой. Так кадр остаётся и в разметке, и визуально
+   работает запасным вариантом. z-index не задаём — градиент .card__shot::after
+   объявлен последним и должен остаться сверху. */
+.card__shot video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .card:hover .card__shot img { transform: scale(1.045); }
 .card__shot::after {
   content: ''; position: absolute; inset: 0;
@@ -362,8 +388,11 @@ html[data-theme="light"] .ico--moon { display: none; }
 /* В лайтбоксе #lbDesc — это <p>, и сноска внутри него идёт вплотную к тексту. */
 #lbDesc .card__note { display: block; margin-top: 8px; }
 
-.card__tags { display: flex; flex-wrap: wrap; gap: 6px; }
-.tag { padding: 4px 10px; border: 1px solid var(--line); border-radius: 999px; font-size: 12.5px; color: var(--muted); }
+/* Чипы стека. Кегль намеренно мелкий: у проектов их по 5–8, и крупные чипы
+   растягивали бы блок тела карточки на лишнюю строку-две. Иерархию задаёт
+   не размер, а приглушённый цвет — читаемость на 11.5px сохраняется. */
+.card__tags { display: flex; flex-wrap: wrap; gap: 5px; }
+.tag { padding: 3px 8px; border: 1px solid var(--line); border-radius: 999px; font-size: 11.5px; line-height: 1.5; color: var(--muted); }
 
 .card__links { display: flex; flex-wrap: wrap; gap: 8px; padding-top: 14px; border-top: 1px solid var(--line); position: relative; z-index: 4; }
 .card__links a {
@@ -385,19 +414,6 @@ html[data-theme="light"] .ico--moon { display: none; }
   border-color: var(--btn-line-3);
 }
 .card__links svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-
-/* ---------- Стек ---------- */
-.stack { display: grid; gap: 20px; }
-.stack__grp { display: grid; grid-template-columns: minmax(120px, 160px) 1fr; gap: 20px; align-items: start; padding-top: 20px; border-top: 1px solid var(--line); }
-.stack__grp:first-child { border-top: 0; padding-top: 0; }
-.stack__name { color: var(--dim); font: 600 12.5px/2.1 var(--mono); letter-spacing: .12em; text-transform: uppercase; }
-.chips { display: flex; flex-wrap: wrap; gap: 8px; }
-.chip {
-  padding: 7px 13px; border: 1px solid var(--line); border-radius: 999px;
-  background: var(--surface); color: var(--muted); font-size: 13.5px;
-  transition: color .18s, border-color .18s, transform .18s, background .18s;
-}
-.chip:hover { color: var(--text); border-color: var(--line-2); background: var(--surface-2); transform: translateY(-1px); }
 
 /* ---------- О себе ---------- */
 .about { display: grid; grid-template-columns: 1.3fr .9fr; gap: clamp(26px, 4vw, 56px); align-items: start; }
@@ -453,7 +469,33 @@ html[data-theme="light"] .ico--moon { display: none; }
 }
 @keyframes pop { from { opacity: 0; transform: translateY(14px) scale(.985); } }
 
-.lb__fig img { width: 100%; max-height: 66vh; object-fit: contain; background: var(--surface-2); }
+/* Только кадр лайтбокса: селектор сужен с .lb__fig img, иначе под него попадали
+   бы и миниатюры полоски галереи, и им достались бы max-height 66vh с contain. */
+.lb__fig > img { width: 100%; max-height: 66vh; object-fit: contain; background: var(--surface-2); }
+/* Клип в лайтбоксе: та же рамка, что у кадра, плюс полоса управления снизу.
+   display не задаём — иначе [hidden] перестанет прятать элемент. */
+.lb__fig video { width: 100%; max-height: 66vh; object-fit: contain; background: var(--surface-2); }
+
+/* Полоска кадров галереи: под медиа, над подписью. Кадров может быть много —
+   строка переносится, а не прокручивается: горизонтальный скролл внутри
+   модалки конфликтует с прокруткой страницы на тач-устройствах. */
+.lb__shots {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  padding: 14px 24px 0; border-top: 1px solid var(--line);
+}
+.lb__shot {
+  width: 96px; height: 54px; padding: 0; cursor: pointer; overflow: hidden;
+  border-radius: 7px; border: 1px solid var(--line-2); background: var(--surface-2);
+  transition: border-color .18s, box-shadow .18s, transform .18s;
+}
+.lb__shot img { width: 100%; height: 100%; object-fit: cover; }
+.lb__shot:hover { border-color: var(--btn-line-3); transform: translateY(-1px); }
+/* Открытый кадр: та же плотность рамки плюс кольцо. Одной рамки мало — она
+   сливается с рамками соседей при быстром взгляде. */
+.lb__shot.is-on {
+  border-color: var(--btn-line-3);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--text) 26%, transparent);
+}
 
 .lb__cap { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 20px 24px; flex-wrap: wrap; }
 .lb__txt { min-width: 240px; flex: 1; }
@@ -577,9 +619,10 @@ html[data-theme="light"] .ico--moon { display: none; }
   .reveal { opacity: 1; transform: none; transition: none; }
   .aurora i { animation: none; }
   .dot { animation: none; }
-  .card:hover, .link:hover, .btn:hover, .chip:hover { transform: none; }
+  .card:hover, .link:hover, .btn:hover { transform: none; }
   .demo__x:hover { transform: none; }
   .card:hover .card__shot img { transform: none; }
+  .lb__shot:hover { transform: none; }
   .lb__fig, .lb__back { animation: none; }
   .demo__mon, .demo__back { animation: none; }
   .nav { animation: none; }
@@ -589,7 +632,6 @@ html[data-theme="light"] .ico--moon { display: none; }
 /* ---------- Адаптив ---------- */
 @media (max-width: 900px) {
   .about { grid-template-columns: 1fr; }
-  .stack__grp { grid-template-columns: 1fr; gap: 8px; }
   .lb__nav { display: none; }
   .card { flex-direction: column; }
   .card__shot { flex: none; border-right: 0; border-bottom: 1px solid var(--line); }
@@ -601,4 +643,6 @@ html[data-theme="light"] .ico--moon { display: none; }
   .card__body { padding: 18px; }
   .lb__cap { padding: 16px 18px; }
   .lb__go { width: 100%; }
+  .lb__shots { padding: 12px 18px 0; gap: 6px; }
+  .lb__shot { width: 76px; height: 43px; }
 }

@@ -79,7 +79,9 @@ function check(name, got, expected) {
     const data = await page.evaluate(() => ({
       role: window.SITE.role,
       count: window.PROJECTS.length,
-      labels: window.PROJECTS.map(p => (p.links || {}).demoLabel || null)
+      // Только проекты с демо-ссылкой: главная кнопка есть лишь у них, и список
+      // подписей должен совпадать с тем, что реально нашлось на странице.
+      labels: window.PROJECTS.filter(p => (p.links || {}).demo).map(p => (p.links || {}).demoLabel || null)
     }));
 
     check('h1 совпадает с SITE.role', await page.locator('h1.lead__h').innerText(), data.role);
@@ -178,10 +180,34 @@ function check(name, got, expected) {
       return r.top > -200 && r.top < 400;
     }), true);
 
-    // Фильтров над проектами нет — карточки видны все сразу
+    // Чипы-фильтры по тематике: набор считается из данных (тема = kind, у
+    // мультитемы — элементы themes), поэтому тест не привязан к числу проектов.
+    const themes = await page.evaluate(() => {
+      const out = [];
+      window.PROJECTS.forEach(p => (p.themes && p.themes.length ? p.themes : [p.kind])
+        .forEach(t => { if (out.indexOf(t) === -1) out.push(t); }));
+      return out;
+    });
+    const themed = t => page.evaluate(x => window.PROJECTS
+      .filter(p => (p.themes && p.themes.length ? p.themes : [p.kind]).indexOf(x) !== -1).length, t);
+
     await page.evaluate(() => window.scrollTo(0, 0));
-    check('чипов-фильтров нет', await page.locator('#filters, .fbtn, #empty, .sec__top').count(), 0);
+    check('чипов-фильтров (+ «Все»)', await page.locator('#filters .fchip').count(), themes.length + 1);
     check('видны все карточки', await page.locator('#grid .card:visible').count(), data.count);
+
+    await page.locator('#filters .fchip').nth(1).click();
+    await page.waitForTimeout(300);
+    check('фильтр скрыл карточки чужих тем',
+          await page.locator('#grid .card:visible').count(), await themed(themes[0]));
+    check('выбранный чип помечен',
+          await page.locator('#filters .fchip').nth(1).getAttribute('aria-pressed'), 'true');
+    check('чип «Все» снят',
+          await page.locator('#filters .fchip').first().getAttribute('aria-pressed'), 'false');
+
+    await page.locator('#filters .fchip').first().click();
+    await page.waitForTimeout(300);
+    check('сброс фильтра показывает все карточки',
+          await page.locator('#grid .card:visible').count(), data.count);
 
     // Контакты: сноски под заголовком нет, а кнопки начинаются под текстом
     // заголовка, а не под его номером. Мерить надо по тексту: «04» стоит в потоке
@@ -203,14 +229,45 @@ function check(name, got, expected) {
     check('кнопки контактов выровнены с текстом заголовка, <= 1px', Math.abs(align.d) <= 1, true);
     if (Math.abs(align.d) > 1) console.log('       текст ' + align.text + ', кнопки ' + align.links);
 
-    // Все превью одной пропорции 16:10. Иначе карточка обрежет кадр по бокам,
-    // а в лайтбоксе он окажется ниже остальных — именно на этом ломались дважды.
+    // Превью не должно быть УЖЕ 16:10: тогда cover обрежет кадр по вертикали и
+    // срежет содержимое — именно на узких кадрах ломалось дважды. Шире — нормально:
+    // cover обрежет по бокам, а в лайтбоксе кадр виден целиком (object-fit: contain).
     const ratios = await page.evaluate(() => Array.from(
       document.querySelectorAll('#grid .card__shot img'),
       i => ({ src: i.getAttribute('src'), r: i.naturalWidth / i.naturalHeight })
     ));
-    const offRatio = ratios.filter(x => Math.abs(x.r - 1.6) > 0.02);
-    check('пропорция всех превью 16:10', offRatio.map(x => x.src + ' = ' + x.r.toFixed(3)).join(', '), '');
+    const offRatio = ratios.filter(x => x.r < 1.6 - 0.02);
+    check('превью не уже 16:10', offRatio.map(x => x.src + ' = ' + x.r.toFixed(3)).join(', '), '');
+
+    // Галерея в лайтбоксе: у проекта с shots снизу полоска кадров, превью карточки
+    // при этом берётся из shot, а просмотр открывается на первом кадре галереи.
+    const gal = await page.evaluate(() => {
+      const i = window.PROJECTS.findIndex(p => p.shots && p.shots.length > 1);
+      return i === -1 ? null : { i, shots: window.PROJECTS[i].shots };
+    });
+    if (gal) {
+      await page.locator('#grid .card').nth(gal.i).locator('.card__shot').click();
+      await page.waitForTimeout(400);
+      check('галерея: полоска кадров видна', await page.locator('#lbShots').isVisible(), true);
+      check('галерея: кадров в полоске',
+            await page.locator('#lbShots .lb__shot').count(), gal.shots.length);
+      check('галерея: открылся первый кадр',
+            await page.locator('#lbImg').getAttribute('src'), gal.shots[0]);
+      await page.locator('#lbShots .lb__shot').nth(1).click();
+      await page.waitForTimeout(400);
+      check('галерея: клик по превью меняет кадр',
+            await page.locator('#lbImg').getAttribute('src'), gal.shots[1]);
+      check('галерея: выбранный кадр обведён',
+            await page.locator('#lbShots .lb__shot').nth(1).getAttribute('aria-current'), 'true');
+      // Кадр обязан влезать в окно: 66vh по высоте и ширина контейнера по ширине.
+      const gb = await page.locator('#lbImg').boundingBox();
+      check('галерея: кадр в пределах окна',
+            !!gb && gb.height <= 1000 * 0.66 + 2 && gb.width <= 1600, true);
+      await page.keyboard.press('Escape');
+      await page.waitForTimeout(300);
+      check('галерея: лайтбокс закрылся', await page.locator('#lb').isVisible(), false);
+      check('галерея: полоска очищена', await page.locator('#lbShots .lb__shot').count(), 0);
+    }
 
     // Лайтбокс
     await page.locator('#grid .card .card__shot').first().click();
@@ -263,7 +320,7 @@ function check(name, got, expected) {
     const startUrl = page.url();
     const pagesBefore = ctx.pages().length;
 
-    await page.locator('#grid .card').first().locator('a.is-primary').click();
+    await page.locator('#grid .card').nth(embed[0].i).locator('a.is-primary').click();
     await page.waitForTimeout(700);
 
     check('демо открылось в окне монитора', await page.locator('#demo').isVisible(), true);
@@ -364,7 +421,7 @@ function check(name, got, expected) {
           await page.locator('#demoMon').evaluate(n => n.classList.contains('is-ready')), false);
 
     // Повторное открытие и выход крестиком — игра успевает забрать фокус
-    await page.locator('#grid .card').first().locator('a.is-primary').click();
+    await page.locator('#grid .card').nth(embed[0].i).locator('a.is-primary').click();
     await page.waitForTimeout(700);
     check('демо открылось повторно', await page.locator('#demo').isVisible(), true);
     await page.locator('.demo__x').click();
@@ -377,8 +434,8 @@ function check(name, got, expected) {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.waitForTimeout(300);
     await page.evaluate(() => window.scrollTo(0, 0));
-    await page.locator('#grid .card').first().locator('a.is-primary').scrollIntoViewIfNeeded();
-    await page.locator('#grid .card').first().locator('a.is-primary').click();
+    await page.locator('#grid .card').nth(embed[0].i).locator('a.is-primary').scrollIntoViewIfNeeded();
+    await page.locator('#grid .card').nth(embed[0].i).locator('a.is-primary').click();
     await page.waitForTimeout(600);
     check('на 390px демо не перехватывается окном', await page.locator('#demo').isVisible(), false);
     for (const p of ctx.pages()) if (p !== page) await p.close();
@@ -387,7 +444,9 @@ function check(name, got, expected) {
 
     // Тот же Demo, но из лайтбокса: окно встаёт поверх него, и при закрытии
     // лайтбокс обязан остаться открытым — с заблокированной прокруткой.
-    await page.locator('#grid .card .card__shot').first().click();
+    // Карточка берётся по индексу проекта с demoEmbed: у проектов без demo
+    // главной кнопки в лайтбоксе нет вовсе, и клик по ней некуда вести.
+    await page.locator('#grid .card').nth(embed[0].i).locator('.card__shot').click();
     await page.waitForTimeout(400);
     await page.locator('#lbGo').click();
     await page.waitForTimeout(600);
@@ -448,10 +507,11 @@ function check(name, got, expected) {
     check('меню на 390px: пункт нажимается, меню закрылось',
           await page.locator('#navMenu').isVisible(), false);
 
-    // Лайтбокс на телефоне: кадр, кнопка закрытия и главная ссылка в пределах экрана
-    await page.locator('#grid .card .card__shot').first().scrollIntoViewIfNeeded();
+    // Лайтбокс на телефоне: кадр, кнопка закрытия и главная ссылка в пределах экрана.
+    // Снова карточка с demoEmbed — главная кнопка есть только у неё.
+    await page.locator('#grid .card').nth(embed[0].i).locator('.card__shot').scrollIntoViewIfNeeded();
     await page.waitForTimeout(250);
-    await page.locator('#grid .card .card__shot').first().click();
+    await page.locator('#grid .card').nth(embed[0].i).locator('.card__shot').click();
     await page.waitForTimeout(400);
     check('лайтбокс на 390px: открылся', await page.locator('#lb').isVisible(), true);
     const lbImg = await page.locator('#lbImg').boundingBox();
