@@ -154,6 +154,7 @@ const expectLinks = [];
 if (lastP.links.demo) expectLinks.push([lastP.links.demo, lastP.links.demoLabel || 'Открыть сайт']);
 if (lastP.links.web) expectLinks.push([lastP.links.web, 'Веб-версия']);
 if (lastP.links.tg) expectLinks.push([lastP.links.tg, lastP.links.tgLabel || 'Telegram-бот']);
+if (lastP.links.vk) expectLinks.push([lastP.links.vk, 'ВКонтакте']);
 if (lastP.links.repo) expectLinks.push([lastP.links.repo, 'GitHub']);
 check('последняя карточка — из данных', last.querySelector('.card__t').textContent, lastP.title);
 check('последняя карточка: превью', last.querySelector('.card__shot img').getAttribute('src'), lastP.shot);
@@ -169,6 +170,19 @@ P.forEach((p, i) => {
   if (!want) return;
   const got = cards[i].querySelector('.card__links a.is-primary').textContent.trim();
   check('подпись кнопки у «' + p.title + '»', got, want);
+});
+
+// Второстепенные ссылки (vk, tg) проверяются по данным, а не по одной карточке:
+// так новый проект с кнопкой ВКонтакте получает проверку сам, без правки теста.
+P.forEach((p, i) => {
+  const L = p.links || {};
+  [['vk', 'ВКонтакте', null], ['tg', null, L.tgLabel || 'Telegram-бот']].forEach(([key, fixed, fallback]) => {
+    if (!L[key]) return;
+    const a = cards[i].querySelector('.card__links a[href="' + L[key] + '"]');
+    if (!a) { bad++; console.log('FAIL кнопка ' + key + ' у «' + p.title + '»: не найдена'); return; }
+    check('кнопка ' + key + ' у «' + p.title + '»: подпись', a.textContent.trim(), fixed || fallback);
+    check('кнопка ' + key + ' у «' + p.title + '»: иконка', a.querySelectorAll('svg').length, 1);
+  });
 });
 
 // Контакты. Ждём ровно те ссылки, чьи поля заданы в SITE, и в том же порядке,

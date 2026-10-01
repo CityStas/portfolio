@@ -37,7 +37,7 @@
      clipWebm — второй источник, VP9. Легче mp4; в разметке идёт первым, браузер
                 берёт его, если умеет, иначе молча откатывается на clip
      clipPoster — кадр-заглушка до загрузки видео; по умолчанию берётся shot
-     links    — { demo: 'https://...', demoLabel: 'RuStore', demoIcon: 'store', demoEmbed: true, web: 'https://...', repo: 'https://...' }
+     links    — { demo: 'https://...', demoLabel: 'RuStore', demoIcon: 'store', demoEmbed: true, web: 'https://...', tg: 'https://...', vk: 'https://...', repo: 'https://...' }
                 demoLabel — подпись главной кнопки, по умолчанию «Открыть сайт»;
                             у игровых демо — 'Demo', у RuStore — 'RuStore'
                 demoIcon  — 'store' рисует иконку магазина приложений, иначе внешнюю ссылку
@@ -48,6 +48,8 @@
                             работать с клавиатуры. На узких окнах, где стекло
                             экрана вышло бы меньше 430 px, ссылка всё равно
                             открывается в новой вкладке.
+                tgLabel   — подпись кнопки Telegram, по умолчанию «Telegram-бот»;
+                            у кнопки ВКонтакте подпись постоянная — «ВКонтакте»
                 demo      — локальное зеркало: '/games/<slug>/' у игр,
                             '/apps/<slug>/' у сайтов. Файлы лежат в этом же
                             репозитории и отдаются с того же домена.
@@ -157,10 +159,10 @@ window.PROJECTS = [
     kind: 'Сайт',
     desc: 'Витрина магазина скейтбордов: переадресация в бизнес-профиль Авито.',
     tags: ['HTML/CSS', 'JavaScript', 'GitHub Pages', 'Адаптив'],
-    year: '2025-2026',
+    year: '2019-2026',
     status: 'live',
     shot: 'assets/img/projects/bazaskate.jpg',
-    links: { demo: 'https://bazaskate.shop/', repo: '' }
+    links: { demo: 'https://bazaskate.shop/', vk: 'https://vk.ru/bazaskateboarding', repo: '' }
   },
   {
     title: 'Dubbed',

@@ -44,6 +44,9 @@
     zoom: '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.6-3.6M11 8.5v5M8.5 11h5"/>',
     code: '<path d="m9 18-6-6 6-6M15 6l6 6-6 6"/>',
     tg:   '<path d="m21 4-3 16-6-4.5L21 4z"/><path d="M12 15.5 9 19v-4l9-11"/>',
+    // ВК нарисован литерами, а не фирменным знаком: остальные иконки набора
+    // тоже контурные (GitHub, Telegram, почта), заливка выбивалась бы из ряда.
+    vk:   '<path d="M2.5 7 7 17l4.5-10M14.5 7v10M14.5 12l6-5M14.5 12l6 5"/>',
     gh:   '<path d="M9 19c-4 1.2-4-2.2-5.5-2.8M15 21v-3.4c0-1 .1-1.4-.5-2 2.4-.3 4.4-1.2 4.4-5a3.9 3.9 0 0 0-1.1-2.7 3.6 3.6 0 0 0-.1-2.7s-.9-.3-2.9 1.1a10 10 0 0 0-5.2 0C7.6 4.5 6.7 4.8 6.7 4.8a3.6 3.6 0 0 0-.1 2.7A3.9 3.9 0 0 0 5.5 10.2c0 3.8 2 4.7 4.4 5-.6.6-.6 1.2-.5 2V21"/>',
     hh:   '<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5.5A2.5 2.5 0 0 1 10.5 3h3A2.5 2.5 0 0 1 16 5.5V7M3 12h18"/>',
     mail: '<rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="m4.2 7.6 7 4.9a2 2 0 0 0 2.3 0l7-4.9"/>',
@@ -269,7 +272,7 @@
     }
 
     var L = p.links || {};
-    if (L.demo || L.repo || L.web || L.tg) {
+    if (L.demo || L.repo || L.web || L.tg || L.vk) {
       var links = el('div', 'card__links');
       if (L.demo) {
         var d = el('a', 'is-primary');
@@ -294,6 +297,13 @@
         tg.appendChild(svg(I.tg));
         tg.appendChild(document.createTextNode(L.tgLabel || 'Telegram-бот'));
         links.appendChild(tg);
+      }
+      if (L.vk) {
+        var vk = el('a');
+        vk.href = L.vk; vk.target = '_blank'; vk.rel = 'noopener';
+        vk.appendChild(svg(I.vk));
+        vk.appendChild(document.createTextNode('ВКонтакте'));
+        links.appendChild(vk);
       }
       if (L.repo) {
         var r = el('a');
