@@ -240,34 +240,41 @@ function check(name, got, expected) {
             .map(b => b.textContent.trim()))).join(' / '),
           'Все / AI-проекты / Игры / Сайты / Инструменты');
 
-    await page.locator('#filters .fchip').nth(1).click();
+    // Чип ищем по подписи темы, а не по индексу: порядок чипов задаёт
+    // THEME_ORDER, и он не обязан совпадать с порядком тем в данных.
+    const THEME_LABEL = {
+      'Игра': 'Игры', 'Сайт': 'Сайты', 'AI-продукт': 'AI-проекты',
+      'Расширение': 'Расширения', 'Инструмент': 'Инструменты'
+    };
+    const chipIdx = await page.evaluate(([t, label]) => {
+      const chips = Array.from(document.querySelectorAll('#filters .fchip'));
+      const i = chips.findIndex(c => c.textContent.trim() === (label[t] || t));
+      return i < 0 ? 1 : i;
+    }, [themes[0], THEME_LABEL]);
+    await page.locator('#filters .fchip').nth(chipIdx).click();
     await page.waitForTimeout(300);
     check('фильтр скрыл карточки чужих тем',
           await page.locator('#grid .card:visible').count(), await themed(themes[0]));
     check('выбранный чип помечен',
-          await page.locator('#filters .fchip').nth(1).getAttribute('aria-pressed'), 'true');
+          await page.locator('#filters .fchip').nth(chipIdx).getAttribute('aria-pressed'), 'true');
     check('чип «Все» снят',
           await page.locator('#filters .fchip').first().getAttribute('aria-pressed'), 'false');
 
     // Мультитема: проект из themes[] обязан находиться в каждом своём чипе.
-    // Первый такой проект — VDIE: подпись «AI-продукт», а в «Инструментах»
-    // он по themes.
+    // VDIE из мультитемы ушёл (стал чистым «Инструментом»), первый такой
+    // проект теперь — ModelLab.
     const multi = await page.evaluate(() => {
       const p = window.PROJECTS.filter(x => x.themes && x.themes.length > 1)[0];
       return p ? { title: p.title, themes: p.themes } : null;
     });
     if (multi) {
-      const label = {
-        'Игра': 'Игры', 'Сайт': 'Сайты', 'AI-продукт': 'AI-проекты',
-        'Расширение': 'Расширения', 'Инструмент': 'Инструменты'
-      };
       for (const t of multi.themes) {
-        await page.locator('#filters .fchip', { hasText: label[t] || t }).click();
+        await page.locator('#filters .fchip', { hasText: THEME_LABEL[t] || t }).click();
         await page.waitForTimeout(250);
         const seen = await page.evaluate(title => Array.from(document.querySelectorAll('#grid .card'))
           .filter(c => !c.hidden && c.querySelector('.card__t').textContent.trim() === title).length,
           multi.title);
-        check('«' + multi.title + '» виден в теме «' + (label[t] || t) + '»', seen, 1);
+        check('«' + multi.title + '» виден в теме «' + (THEME_LABEL[t] || t) + '»', seen, 1);
       }
     }
 

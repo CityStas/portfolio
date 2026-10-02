@@ -117,13 +117,22 @@ check('«Все» включён по умолчанию', chips[0] && chips[0].
 check('по умолчанию видны все карточки', q('#grid .card').filter(c => !c.hidden).length, P.length);
 
 // Клик по чипу прячет карточки чужих тем. Берём первую тему из данных, чтобы
-// тест не зависел от порядка проектов.
+// тест не зависел от порядка проектов, но чип ищем ПО ПОДПИСИ: порядок чипов
+// задаёт THEME_ORDER, и он не обязан совпадать с порядком тем в данных.
+// (VDIE стал «Инструментом» и уехал в начало данных, а первым чипом остались
+// «AI-проекты» — брать chips[1] наугад больше нельзя.)
+const THEME_LABEL = {
+  'Игра': 'Игры', 'Сайт': 'Сайты', 'AI-продукт': 'AI-проекты',
+  'Расширение': 'Расширения', 'Инструмент': 'Инструменты'
+};
+const chipOf = t => chips.filter(c => c.textContent === (THEME_LABEL[t] || t))[0];
 const tName = themes[0];
-click(chips[1]);
+const tChip = chipOf(tName) || chips[1];
+click(tChip);
 check('фильтр: видны только карточки темы',
   q('#grid .card').filter(c => !c.hidden).length,
   P.filter(p => themesOfP(p).indexOf(tName) !== -1).length);
-check('фильтр: выбранный чип помечен', chips[1].getAttribute('aria-pressed'), 'true');
+check('фильтр: выбранный чип помечен', tChip.getAttribute('aria-pressed'), 'true');
 check('фильтр: «Все» снят', chips[0].getAttribute('aria-pressed'), 'false');
 click(chips[0]);
 check('фильтр сброшен: видны все карточки', q('#grid .card').filter(c => !c.hidden).length, P.length);
@@ -135,18 +144,15 @@ check('порядок чипов', chips.map(c => c.textContent).join(' / '),
   'Все / AI-проекты / Игры / Сайты / Инструменты');
 
 // Мультитема: проект из themes[] обязан находиться в каждом своём чипе.
-// Первый такой проект — VDIE (AI-продукт, который ещё и инструмент).
+// VDIE из мультитемы ушёл (стал чистым «Инструментом»), первый такой проект
+// теперь — ModelLab.
 const multi = P.filter(p => p.themes && p.themes.length > 1)[0];
 if (multi) {
-  const label = {
-    'Игра': 'Игры', 'Сайт': 'Сайты', 'AI-продукт': 'AI-проекты',
-    'Расширение': 'Расширения', 'Инструмент': 'Инструменты'
-  };
   multi.themes.forEach(t => {
-    click(chips.filter(c => c.textContent === (label[t] || t))[0]);
+    click(chipOf(t));
     const seen = q('#grid .card').filter(c => !c.hidden &&
       c.querySelector('.card__t').textContent.trim() === multi.title).length;
-    check('«' + multi.title + '» виден в теме «' + (label[t] || t) + '»', seen, 1);
+    check('«' + multi.title + '» виден в теме «' + (THEME_LABEL[t] || t) + '»', seen, 1);
   });
   click(chips[0]);
 }
