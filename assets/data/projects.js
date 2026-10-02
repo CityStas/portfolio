@@ -204,7 +204,8 @@ window.PROJECTS = [
     shot: 'assets/img/projects/dubbed.jpg',
     // Лендинг зеркалится в apps/dubbed/ вместе с установщиками: с dubbed.dvodev.space
     // без VPN отдавалась примерно половина запросов, и .zip/.xpi могли не скачаться.
-    links: { demo: '/apps/dubbed/', repo: '' }
+    // repo — репозиторий расширения на GitHub (там же лендинг и сборки).
+    links: { demo: '/apps/dubbed/', repo: 'https://github.com/CityStas/dubbed' }
   },
 
   // Превью - страница RuStore: единственная ссылка карточки. Веб-версия и
