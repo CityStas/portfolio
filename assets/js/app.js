@@ -822,7 +822,7 @@
         setOpen(false);
         btn.removeAttribute('aria-expanded');
         btn.removeAttribute('aria-controls');
-        btn.title = 'Наверх';
+        btn.title = 'О себе';
       } else {
         btn.setAttribute('aria-controls', 'navMenu');
         btn.setAttribute('aria-expanded', String(!nav.hidden));
@@ -831,7 +831,15 @@
     }
 
     btn.addEventListener('click', function (e) {
-      if (isWide()) { window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+      // На широком экране имя — такой же якорь, как пункт меню «О себе»: это
+      // подпись автора, а не кнопка «наверх». Раньше клик уводил к началу
+      // страницы, и рядом с пунктом «О себе» читалось как две разные кнопки
+      // с одним смыслом.
+      if (isWide()) {
+        var about = document.getElementById('about');
+        if (about) about.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return;
+      }
       e.stopPropagation();               // иначе клик тут же закроет меню обработчиком ниже
       setOpen(nav.hidden);
     });

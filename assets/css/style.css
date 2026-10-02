@@ -49,6 +49,21 @@
   --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
   /* Пиксельный шрифт для заголовков и имени. Лежит локально: assets/fonts/handjet.css */
   --display: 'Handjet', var(--font);
+
+  /* Объём для пиксельных надписей (меню разделов). Не рамка и не заливка:
+     светлая нитка сверху + ступенчатая тень снизу дают выпуклость, а кегль
+     Handjet делает срез «квадратным», поэтому ступени читаются как грани. */
+  --emb-hi:   rgba(255,255,255,.20);
+  --emb-1:    rgba(0,0,0,.62);
+  --emb-2:    rgba(0,0,0,.46);
+  --emb-3:    rgba(0,0,0,.30);
+  --emb-drop: rgba(0,0,0,.55);
+  --emboss:      0 -1px 0 var(--emb-hi), 0 1px 0 var(--emb-1), 0 2px 0 var(--emb-2), 0 3px 0 var(--emb-3);
+  --emboss-lit:  0 -1px 0 var(--emb-hi), 0 1px 0 var(--emb-1), 0 2px 0 var(--emb-2), 0 3px 0 var(--emb-3), 0 7px 16px var(--emb-drop);
+  --emboss-on:   0 -1px 0 var(--emb-hi),
+                 0 1px 0 color-mix(in srgb, var(--accent) 78%, transparent),
+                 0 2px 0 color-mix(in srgb, var(--accent) 48%, transparent),
+                 0 3px 0 color-mix(in srgb, var(--accent) 26%, transparent);
 }
 
 html[data-theme="light"] {
@@ -77,6 +92,14 @@ html[data-theme="light"] {
   --shadow:    0 18px 40px -28px rgba(16,24,40,.4);
   --shadow-lg: 0 34px 70px -34px rgba(16,24,40,.35);
   --grad-head: linear-gradient(180deg, #101725 28%, #7d8896);
+
+  /* Тот же объём, но в светлой теме выпуклость держит нижняя тень, а не
+     верхняя нитка: на почти белом фоне подсветка сверху не читается. */
+  --emb-hi:   rgba(255,255,255,.98);
+  --emb-1:    rgba(16,24,40,.36);
+  --emb-2:    rgba(16,24,40,.23);
+  --emb-3:    rgba(16,24,40,.13);
+  --emb-drop: rgba(16,24,40,.18);
 }
 
 * { box-sizing: border-box; }
@@ -129,16 +152,19 @@ p { text-wrap: pretty; }
 .hdr__in { display: flex; align-items: center; gap: 16px; height: 66px; }
 .hdr__brand { position: relative; }
 
-/* Имя в шапке — кнопка: по клику раскрывается меню по структуре сайта */
+/* Имя в шапке — кнопка: по клику раскрывается меню по структуре сайта.
+   Объём тот же, что у пунктов меню (--emboss): на широком экране имя работает
+   как якорь «О себе» и должно читаться тем же рядом, а не отдельным элементом. */
 .logo {
   display: flex; align-items: center; gap: 11px; color: var(--text);
   font-family: var(--display); font-weight: 600; font-size: 24px; line-height: 1;
   letter-spacing: .055em;
   background: none; border: 0; padding: 5px 9px 5px 5px; margin-left: -5px;
   border-radius: var(--r-xs); cursor: pointer;
-  transition: background .18s;
+  text-shadow: var(--emboss);
+  transition: background .18s, color .18s, text-shadow .18s;
 }
-.logo:hover { background: var(--surface); }
+.logo:hover { background: var(--surface); text-shadow: var(--emboss-lit); }
 .logo__mark {
   width: 34px; height: 34px; flex: none; border-radius: 50%;
   object-fit: cover; display: block;
@@ -165,22 +191,26 @@ p { text-wrap: pretty; }
 }
 .nav[hidden] { display: none; }
 @keyframes navIn { from { opacity: 0; transform: translateY(-6px); } }
-/* Пункты меню набраны тем же шрифтом, что и описания проектов (.card__d):
-   семейство системное, 16px / 400. Раньше стояли 14.5px / 600 — жирный начерк
-   читался как «другой шрифт», хотя семейство было то же.
-   Стиль рамки/фона — как у кнопок в карточках (.card__links a): --btn + --btn-line,
-   hover с translateY(-1px). Единый паттерн кнопок по всему сайту. */
+/* Пункт меню — не кнопка, а пиксельная надпись: то же семейство --display, что
+   у заголовков и имени в шапке. Ни рамки, ни заливки: объём даёт ступенчатая
+   тень снизу плюс светлая нитка сверху (--emboss). Раньше здесь стояли кнопки
+   в общем паттерне (.card__links a) — меню читалось как ряд действий, а не как
+   навигация. */
 .nav a {
   display: flex; align-items: center; justify-content: space-between; gap: 18px;
-  padding: 10px 14px; border-radius: var(--r-xs);
-  border: 1px solid var(--btn-line); background: var(--btn);
-  color: var(--text); font-size: 15px; font-weight: 500;
-  transition: background .18s, border-color .18s, transform .18s;
+  padding: 8px 10px; border: 0; border-radius: 0; background: none;
+  font-family: var(--display); font-weight: 600;
+  font-size: 25px; line-height: 1; letter-spacing: .045em;
+  color: var(--muted); text-shadow: var(--emboss);
+  transition: color .18s, text-shadow .18s, transform .18s;
 }
-.nav a:hover { text-decoration: none; background: var(--btn-hover); border-color: var(--btn-line-2); transform: translateY(-1px); }
-.nav a::after { content: attr(data-num); font: 500 11.5px/1 var(--mono); letter-spacing: .12em; color: var(--dim); }
-/* Подсветка текущего раздела — та же рамка/фон, что у нажатых кнопок (.is-on, .is-primary). */
-.nav a.is-active { background: var(--btn-hover); border-color: var(--btn-line-2); }
+.nav a:hover { text-decoration: none; color: var(--text); text-shadow: var(--emboss-lit); transform: translateY(-1px); }
+.nav a:active { transform: translateY(0); }
+.nav a::after { content: attr(data-num); font: 500 11.5px/1 var(--mono); letter-spacing: .12em; color: var(--dim); text-shadow: none; }
+/* Текущий раздел подсвечен акцентной гранью снизу — не рамкой и не заливкой,
+   а цветом самой выпуклости. Форма надписи не меняется, поэтому «где я» видно
+   без плашки, но не читается как кнопка действия. */
+.nav a.is-active { color: var(--text); text-shadow: var(--emboss-on); }
 .nav a.is-active::after { color: var(--muted); }
 
 .hdr__act { display: flex; align-items: center; gap: 8px; margin-left: auto; }
@@ -668,17 +698,18 @@ html[data-theme="light"] .ico--moon { display: none; }
      до того, как отработает скрипт. */
   .nav[hidden] { display: flex !important; }
 
-  .nav a {
-    gap: 0; padding: 7px 14px;
-    border: 1px solid var(--btn-line); background: var(--btn);
-    color: var(--muted); font-size: 14px; font-weight: 600;
-  }
-  /* В строке шапки состояние держится цветом текста + плотной рамкой. */
-  .nav a.is-active { color: var(--text); border-color: var(--btn-line-2); }
+  /* В строке шапки надписи чуть мельче, чем в выпадающей панели: рядом стоит
+     имя тем же пиксельным кеглем, и равный размер заставил бы их спорить. */
+  .nav a { gap: 0; padding: 6px 11px; font-size: 23px; letter-spacing: .05em; }
   /* Номера разделов — деталь выпадающего списка, в строке шапки они лишние. */
   .nav a::after { content: none; }
   /* Каретка обещает выпадающий список, которого на широком экране нет. */
   .logo__caret { display: none; }
+  /* Имя здесь — якорь «О себе», а не кнопка меню, поэтому плашки при наведении
+     нет: у пунктов меню её тоже нет. На узком экране плашка остаётся — там имя
+     и есть триггер выпадающего списка. */
+  .logo { border-radius: 0; }
+  .logo:hover { background: none; }
 }
 
 /* ---------- Адаптив ---------- */

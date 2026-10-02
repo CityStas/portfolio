@@ -191,12 +191,17 @@ function check(name, got, expected) {
     // неисправленным и держало гейт красным независимо от правок контента.
     check('подписи пунктов меню', navInline.labels, 'Проекты / О себе');
 
-    // Клик по имени на широком экране уводит наверх, а не раскрывает список.
-    await page.evaluate(() => window.scrollTo(0, 1200));
+    // Клик по имени на широком экране ведёт к «О себе» — тот же якорь, что у
+    // пункта меню, а не «наверх». Раньше имя уводило к началу страницы, и рядом
+    // с пунктом «О себе» это читалось как две кнопки с одним смыслом.
+    await page.evaluate(() => window.scrollTo(0, 0));
     await page.waitForTimeout(250);
     await page.click('#logoBtn');
-    await page.waitForFunction(() => window.scrollY < 40, null, { timeout: 3000 }).catch(() => {});
-    check('клик по имени вернул наверх', await page.evaluate(() => window.scrollY < 40), true);
+    await page.waitForTimeout(900);
+    check('клик по имени ведёт к «О себе»', await page.evaluate(() => {
+      const r = document.getElementById('about').getBoundingClientRect();
+      return r.top > -200 && r.top < window.innerHeight / 2;
+    }), true);
     // Самая хрупкая часть: скрипт ставит hidden, а CSS на широком экране его
     // перебивает. Если порядок правил в style.css поедет, меню исчезнет молча.
     check('hidden выставлен, но CSS его перебивает', await page.evaluate(() => {
