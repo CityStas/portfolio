@@ -126,7 +126,7 @@ window.PROJECTS = [
     kind: 'Engine',
     themes: ['Инструмент'],
     desc: 'Управление рабочим столом Windows руками через веб-камеру, без мыши: указательный палец ведёт курсор, вторая рука отвечает за нажатия, перетаскивание и зум.\n\n*Для работы требуется камера.',
-    tags: ['Python', 'MediaPipe', 'Computer Vision', 'Real-time', 'WinAPI'],
+    tags: ['Python', 'MediaPipe', 'OpenCV', 'Computer Vision', 'Real-time', 'WinAPI'],
     year: '2026',
     status: 'live',
     // На карточке играет клип: жест видно только в движении, кадр его не передаёт.
@@ -216,7 +216,7 @@ window.PROJECTS = [
     // больше нет, категория переехала в «Инструменты».
     themes: ['AI-продукт', 'Инструмент', 'Сайт'],
     desc: 'Бесплатное расширение для Chrome/Firefox: Быстрая AI-озвучка фильмов, сериалов и видео прямо в браузере.',
-    tags: ['JavaScript', 'MV3', 'Chrome', 'Firefox', 'TTS', 'Субтитры'],
+    tags: ['JavaScript', 'MV3', 'Chrome', 'Firefox', 'TTS'],
     year: '2026',
     status: 'live',
     shot: 'assets/img/projects/dubbed.webp',
