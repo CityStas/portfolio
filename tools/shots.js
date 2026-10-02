@@ -84,7 +84,7 @@ const only = process.argv.slice(2);
       ignoreHTTPSErrors: true
     });
     const page = await ctx.newPage();
-    const file = path.join(OUT, s.slug + '.jpg');
+    const file = path.join(OUT, s.slug + '.webp');
 
     try {
       process.stdout.write(s.slug.padEnd(12) + ' открываю... ');
@@ -140,7 +140,7 @@ const only = process.argv.slice(2);
         await page.waitForTimeout(600);
       }
 
-      const shot = { path: file, type: 'jpeg', quality: 88 };
+      const shot = { path: file, type: 'webp', quality: 82 };
       if (s.clip) shot.clip = s.clip;
       await page.screenshot(shot);
       const kb = Math.round(fs.statSync(file).size / 1024);

@@ -387,12 +387,12 @@ q('#navMenu a').forEach(a => {
 for (const rel of ['assets/css/style.css', 'assets/js/app.js', 'assets/data/projects.js',
                    'assets/fonts/handjet.css', 'assets/fonts/handjet-cyrillic.woff2',
                    'assets/img/favicon.svg', 'assets/img/logo.png', 'assets/img/og-v2.jpg',
-                   'assets/img/projects/shrooms.jpg', 'assets/img/projects/bubblepeaks.jpg',
-                   'assets/img/projects/bubblepeaks-splash.jpg',
-                   'assets/img/projects/lilcraft.jpg', 'assets/img/projects/bazaskate.jpg',
-                   'assets/img/projects/dubbed.jpg', 'assets/img/projects/rustore.jpg',
-                   'assets/img/projects/modellab.jpg',
-                   'assets/img/projects/modellab-tables.jpg']) {
+                   'assets/img/projects/shrooms.webp', 'assets/img/projects/bubblepeaks.webp',
+                   'assets/img/projects/bubblepeaks-splash.webp',
+                   'assets/img/projects/lilcraft.webp', 'assets/img/projects/bazaskate.webp',
+                   'assets/img/projects/dubbed.webp', 'assets/img/projects/rustore.webp',
+                   'assets/img/projects/modellab.webp',
+                   'assets/img/projects/modellab-tables.webp']) {
   const ok = fs.existsSync(path.join(root, rel));
   if (!ok) bad++;
   console.log((ok ? 'OK   ' : 'FAIL ') + 'файл ' + rel);

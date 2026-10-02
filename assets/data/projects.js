@@ -132,7 +132,7 @@ window.PROJECTS = [
     // На карточке играет клип: жест видно только в движении, кадр его не передаёт.
     // Просмотр открывает тот же клип с управлением — галерею кадров ставить
     // нельзя, при clip лайтбокс показывает видео, а полоска осталась бы мёртвой.
-    shot: 'assets/img/projects/vdie.jpg',
+    shot: 'assets/img/projects/vdie.webp',
     clip: 'assets/media/vdie.mp4',
     clipWebm: 'assets/media/vdie.webm',
     links: { repo: 'https://github.com/CityStas/vdie' }
@@ -146,8 +146,8 @@ window.PROJECTS = [
     status: 'live',
     // На карточке — результат генерации (кадр 2): по нему сразу видно, что
     // приложение делает. В просмотре открывается кадр 1, интерфейс.
-    shot: 'assets/img/projects/hcai-2.jpg',
-    shots: ['assets/img/projects/hcai-1.jpg', 'assets/img/projects/hcai-2.jpg'],
+    shot: 'assets/img/projects/hcai-2.webp',
+    shots: ['assets/img/projects/hcai-1.webp', 'assets/img/projects/hcai-2.webp'],
     links: { repo: 'https://github.com/CityStas/hc_local_ai_image' }
   },
 
@@ -169,8 +169,8 @@ window.PROJECTS = [
     // На карточке — пульт с приборами: по нему сразу видно, что это за приложение.
     // В просмотре открывается общий вид страницы с таблицами и логом движка,
     // то есть кадр, которого на карточке не было.
-    shot: 'assets/img/projects/modellab.jpg',
-    shots: ['assets/img/projects/modellab-tables.jpg', 'assets/img/projects/modellab.jpg'],
+    shot: 'assets/img/projects/modellab.webp',
+    shots: ['assets/img/projects/modellab-tables.webp', 'assets/img/projects/modellab.webp'],
     links: { repo: 'https://github.com/CityStas/wedns_modellab' }
   },
   {
@@ -180,7 +180,7 @@ window.PROJECTS = [
     tags: ['Godot 4', 'GDScript', '2D', 'Web', 'Web-экспорт'],
     year: '2026',
     status: 'live',
-    shot: 'assets/img/projects/shrooms.jpg',
+    shot: 'assets/img/projects/shrooms.webp',
     links: { demo: '/games/deddemo/', demoLabel: 'Demo', demoEmbed: true, repo: '' }
   },
   {
@@ -193,8 +193,8 @@ window.PROJECTS = [
     // Карточка показывает заставку с логотипом, просмотр открывается геймплеем:
     // по клику должно быть видно что-то новое, иначе кажется, что лайтбокс
     // не сработал. Тот же приём, что у HC AI — shot берётся из shots, но не первым.
-    shot: 'assets/img/projects/bubblepeaks-splash.jpg',
-    shots: ['assets/img/projects/bubblepeaks.jpg', 'assets/img/projects/bubblepeaks-splash.jpg'],
+    shot: 'assets/img/projects/bubblepeaks-splash.webp',
+    shots: ['assets/img/projects/bubblepeaks.webp', 'assets/img/projects/bubblepeaks-splash.webp'],
     links: { demo: '/games/bubblepeaks/', demoLabel: 'Demo', demoEmbed: true, repo: '' }
   },
   {
@@ -204,7 +204,7 @@ window.PROJECTS = [
     tags: ['three.js', 'WebGL', 'Voxel', 'Web'],
     year: '2026',
     status: 'live',
-    shot: 'assets/img/projects/lilcraft.jpg',
+    shot: 'assets/img/projects/lilcraft.webp',
     links: { demo: '/games/lilcraft/', demoLabel: 'Demo', demoEmbed: true, repo: '' }
   },
   {
@@ -219,7 +219,7 @@ window.PROJECTS = [
     tags: ['JavaScript', 'MV3', 'Chrome', 'Firefox', 'TTS', 'Субтитры'],
     year: '2026',
     status: 'live',
-    shot: 'assets/img/projects/dubbed.jpg',
+    shot: 'assets/img/projects/dubbed.webp',
     // Лендинг зеркалится в apps/dubbed/ вместе с установщиками: с dubbed.dvodev.space
     // без VPN отдавалась примерно половина запросов, и .zip/.xpi могли не скачаться.
     // repo — репозиторий расширения на GitHub (там же лендинг и сборки).
@@ -232,7 +232,7 @@ window.PROJECTS = [
     tags: ['HTML/CSS', 'JavaScript', 'GitHub Pages', 'Адаптив'],
     year: '2019-2026',
     status: 'live',
-    shot: 'assets/img/projects/bazaskate.jpg',
+    shot: 'assets/img/projects/bazaskate.webp',
     links: { demo: 'https://bazaskate.shop/', vk: 'https://vk.ru/bazaskateboarding', repo: '' }
   },
 
@@ -245,7 +245,7 @@ window.PROJECTS = [
     tags: ['LLM', 'OpenRouter', 'Capacitor', 'Android', 'RuStore'],
     year: '2025-2026',
     status: 'live',
-    shot: 'assets/img/projects/rustore.jpg',
+    shot: 'assets/img/projects/rustore.webp',
     links: {
       demo: 'https://www.rustore.ru/catalog/app/com.orfree.app',
       demoLabel: 'RuStore',

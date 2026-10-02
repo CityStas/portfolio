@@ -94,7 +94,7 @@ function check(name, got, expected) {
   await page.route('**/projects.js', async route => {
     const body = fs.readFileSync(path.join(ROOT, 'assets/data/projects.js'), 'utf8') +
       "\nwindow.PROJECTS.push({title:'TEST CLIP',kind:'Инструмент',desc:'t',year:'2026',status:'live'," +
-      "shot:'assets/img/projects/rustore.jpg',clip:'assets/media/__test.webm'," +
+      "shot:'assets/img/projects/rustore.webp',clip:'assets/media/__test.webm'," +
       "links:{demo:'https://example.com/'}});";
     await route.fulfill({ contentType: 'application/javascript', body });
   });
@@ -169,7 +169,7 @@ function check(name, got, expected) {
   check('в лайтбоксе видео', lbOn.vidShown, true);
   check('кадр спрятан', lbOn.imgHidden, true);
   check('у видео есть управление', lbOn.controls, true);
-  check('постер подставлен', lbOn.poster, 'assets/img/projects/rustore.jpg');
+  check('постер подставлен', lbOn.poster, 'assets/img/projects/rustore.webp');
   check('в лайтбоксе играет', lbOn.playing, true);
 
   await page.keyboard.press('Escape');
