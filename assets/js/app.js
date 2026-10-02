@@ -890,7 +890,7 @@
       var meta = document.querySelector('meta[name="theme-color"]');
       if (meta) {
         meta.setAttribute('content',
-          document.documentElement.getAttribute('data-theme') === 'light' ? '#f6f7fa' : '#08090c');
+          document.documentElement.getAttribute('data-theme') === 'light' ? '#e2e6ec' : '#08090c');
       }
     }
     syncMeta();

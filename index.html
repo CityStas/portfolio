@@ -52,8 +52,31 @@
 
     <div class="hdr__act">
       <button class="iconbtn" id="themeBtn" type="button" aria-label="Переключить тему" title="Светлая / тёмная тема">
-        <svg class="ico ico--sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.6v2.6M12 18.8v2.6M2.6 12h2.6M18.8 12h2.6M5.4 5.4l1.8 1.8M16.8 16.8l1.8 1.8M18.6 5.4l-1.8 1.8M7.2 16.8l-1.8 1.8"/></svg>
-        <svg class="ico ico--moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.2A8.4 8.4 0 0 1 9.8 4a8.6 8.6 0 1 0 10.2 10.2z"/></svg>
+        <!-- Иконки нарисованы по сетке 12x12 блоками: при 24px один блок ровно
+             2 CSS px, срез квадратный и без сглаживания (crispEdges). Обычные
+             SVG-кривые рядом с пиксельными меню и именем читались как чужая
+             графика. -->
+        <svg class="ico ico--sun" viewBox="0 0 12 12" aria-hidden="true">
+          <rect x="4" y="4" width="4" height="4"/>
+          <rect x="5" y="0" width="2" height="2"/><rect x="5" y="10" width="2" height="2"/>
+          <rect x="0" y="5" width="2" height="2"/><rect x="10" y="5" width="2" height="2"/>
+          <rect x="1" y="1" width="2" height="2"/><rect x="9" y="1" width="2" height="2"/>
+          <rect x="1" y="9" width="2" height="2"/><rect x="9" y="9" width="2" height="2"/>
+        </svg>
+        <svg class="ico ico--moon" viewBox="0 0 12 12" aria-hidden="true">
+          <rect x="4" y="0" width="4" height="1"/>
+          <rect x="3" y="1" width="6" height="1"/>
+          <rect x="2" y="2" width="7" height="1"/>
+          <rect x="1" y="3" width="8" height="1"/>
+          <rect x="1" y="4" width="7" height="1"/>
+          <rect x="0" y="5" width="7" height="1"/>
+          <rect x="0" y="6" width="7" height="1"/>
+          <rect x="1" y="7" width="7" height="1"/>
+          <rect x="1" y="8" width="8" height="1"/>
+          <rect x="2" y="9" width="7" height="1"/>
+          <rect x="3" y="10" width="6" height="1"/>
+          <rect x="4" y="11" width="4" height="1"/>
+        </svg>
       </button>
     </div>
   </div>
