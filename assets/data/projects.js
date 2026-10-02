@@ -90,7 +90,7 @@ window.SITE = {
   facts: [
     ['Опыт', '2+ года в разработке и инфраструктуре'],
     ['Полный цикл', 'research → prototype → backend → deploy'],
-    ['Фокус', 'AI Engineer / LLM Integration Engineer / AI Full-Stack Engineer'],
+    ['Фокус', 'AI Engineer / Applied AI Engineer/ AI Full-Stack Engineer'],
     ['Формат', 'Удалённо']
   ]
 
