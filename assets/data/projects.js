@@ -176,7 +176,7 @@ window.PROJECTS = [
     kind: 'Игра',
     desc: 'Воксельная песочница в браузере на three.js: генерация чанков, меш-оптимизация + "пасхалка".',
     tags: ['three.js', 'WebGL', 'Voxel', 'Web'],
-    year: '2025-2026',
+    year: '2026',
     status: 'live',
     shot: 'assets/img/projects/lilcraft.jpg',
     links: { demo: '/games/lilcraft/', demoLabel: 'Demo', demoEmbed: true, repo: '' }
@@ -189,7 +189,7 @@ window.PROJECTS = [
     themes: ['Расширение', 'AI-продукт', 'Сайт'],
     desc: 'Бесплатное расширение для Chrome/Firefox: Быстрая AI-озвучка фильмов, сериалов и видео прямо в браузере.',
     tags: ['JavaScript', 'MV3', 'Chrome', 'Firefox', 'TTS', 'Субтитры'],
-    year: '2025-2026',
+    year: '2026',
     status: 'live',
     shot: 'assets/img/projects/dubbed.jpg',
     // Лендинг зеркалится в apps/dubbed/ вместе с установщиками: с dubbed.dvodev.space
