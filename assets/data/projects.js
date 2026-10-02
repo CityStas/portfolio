@@ -182,16 +182,6 @@ window.PROJECTS = [
     links: { demo: '/games/lilcraft/', demoLabel: 'Demo', demoEmbed: true, repo: '' }
   },
   {
-    title: 'БАЗА Скейтборды',
-    kind: 'Сайт',
-    desc: 'Витрина магазина скейтбордов: переадресация в бизнес-профиль Авито + full circle администрирование паблика VK.',
-    tags: ['HTML/CSS', 'JavaScript', 'GitHub Pages', 'Адаптив'],
-    year: '2019-2026',
-    status: 'live',
-    shot: 'assets/img/projects/bazaskate.jpg',
-    links: { demo: 'https://bazaskate.shop/', vk: 'https://vk.ru/bazaskateboarding', repo: '' }
-  },
-  {
     title: 'Dubbed',
     kind: 'Расширение',
     // Живёт в двух темах: само по себе расширение, а работает поверх сайтов —
@@ -206,6 +196,16 @@ window.PROJECTS = [
     // без VPN отдавалась примерно половина запросов, и .zip/.xpi могли не скачаться.
     // repo — репозиторий расширения на GitHub (там же лендинг и сборки).
     links: { demo: '/apps/dubbed/', repo: 'https://github.com/CityStas/dubbed' }
+  },
+  {
+    title: 'БАЗА Скейтборды',
+    kind: 'Сайт',
+    desc: 'Витрина магазина скейтбордов: переадресация в бизнес-профиль Авито + full circle администрирование паблика VK.',
+    tags: ['HTML/CSS', 'JavaScript', 'GitHub Pages', 'Адаптив'],
+    year: '2019-2026',
+    status: 'live',
+    shot: 'assets/img/projects/bazaskate.jpg',
+    links: { demo: 'https://bazaskate.shop/', vk: 'https://vk.ru/bazaskateboarding', repo: '' }
   },
 
   // Превью - страница RuStore: единственная ссылка карточки. Веб-версия и
