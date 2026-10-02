@@ -64,7 +64,16 @@
   /* ---------- О себе ---------- */
   function renderAbout() {
     var box = $('#aboutTxt');
-    if (box && S.about) S.about.forEach(function (p) { box.appendChild(el('p', null, p)); });
+    // Абзац, начинающийся со «*», выводится сноской — тот же приём, что в
+    // описаниях карточек (descParts): мельче и глуше основного текста.
+    // Абзац без «*» остаётся ровно одним <p>, как было.
+    if (box && S.about) S.about.forEach(function (p) {
+      var parts = descParts(p);
+      if (!parts.length) parts = [{ text: p == null ? '' : p, note: false }];
+      parts.forEach(function (d) {
+        box.appendChild(el(d.note ? 'small' : 'p', d.note ? 'about__note' : null, d.text));
+      });
+    });
 
     // Контакты перенесены из отдельной секции «03 Контакты» (удалена) сюда,
     // в текст «О себе». GitHub скрыт — выводятся только Telegram и HH.
@@ -89,13 +98,16 @@
     }
 
     var dl = $('#facts');
-    if (dl && S.facts) {
-      S.facts.forEach(function (row) {
+    if (dl) {
+      (S.facts || []).forEach(function (row) {
         var w = el('div', 'facts__row');
         w.appendChild(el('dt', null, row[0]));
         w.appendChild(el('dd', null, row[1]));
         dl.appendChild(w);
       });
+      // Факты убраны из данных — пустую рамку не оставляем: <dl> уходит из
+      // разметки, и текст занимает всю ширину (.about__txt:only-child).
+      if (!dl.children.length) dl.parentNode.removeChild(dl);
     }
   }
 

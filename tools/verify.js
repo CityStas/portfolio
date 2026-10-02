@@ -206,7 +206,11 @@ function check(name, got, expected) {
     await page.waitForTimeout(500);
     check('перешли к «О себе»', await page.evaluate(() => {
       const r = document.getElementById('about').getBoundingClientRect();
-      return r.top > -200 && r.top < 400;
+      // «О себе» — последняя секция: у нижней границы прокрутки она встаёт не
+      // к самому верху окна, а как влезло. Поэтому сверяем с половиной экрана,
+      // а не с жёстким отступом: тот зависел от высоты страницы и ломался от
+      // любой правки в блоке (убрали список фактов — отступ уехал).
+      return r.top > -200 && r.top < window.innerHeight / 2;
     }), true);
 
     // Чипы-фильтры по тематике: набор считается из данных (тема = kind, у

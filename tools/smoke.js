@@ -76,10 +76,16 @@ check('заглушек без превью', q('#grid .card__shot--empty').leng
 check('секции «Стек» нет', q('#stack, #stackList, .stack, .stack__grp').length, 0);
 check('данных стека нет', S.stack == null, true);
 check('пункта меню «Стек» нет', q('#navMenu a').some(a => /стек/i.test(a.textContent)), false);
-check('строк фактов', q('#facts .facts__row').length, S.facts.length);
+const facts = S.facts || [];
+check('строк фактов', q('#facts .facts__row').length, facts.length);
 check('контактов', q('.about__links a').length,
       ['telegram', 'email', 'hh', 'github'].filter(k => S[k]).length);
 check('абзацев «О себе»', q('#aboutTxt p:not(.about__links)').length, S.about.length);
+// Абзац со «*» на первой позиции рисуется сноской. Ожидание считаем из данных:
+// убрали сноску из текста — уйдёт и проверка, а не упадёт тест.
+const aboutNotes = (S.about || []).reduce((n, p) => n + String(p)
+  .split(/\n\s*\n/).filter(t => t.trim().charAt(0) === '*').length, 0);
+check('сносок «О себе»', q('#aboutTxt .about__note').length, aboutNotes);
 check('имя в шапке', doc.querySelector('.logo span[data-site]').textContent, S.name);
 check('логотип-картинка в шапке', doc.querySelectorAll('.logo img.logo__mark').length, 1);
 
@@ -135,7 +141,10 @@ if (multi) {
 // Скрытое по просьбе: Chattrix, бейджи «в сети», кнопка PDF
 check('блока Chattrix нет', q('#grid .card').some(c => /chattrix/i.test(c.textContent)), false);
 check('бейджей «в сети» нет', q('#grid .badge--live').length, 0);
-check('факт «опыт»', doc.querySelector('#facts .facts__row dd').textContent, S.facts[0][1]);
+// Факты убраны из данных (2026-10-02): пустой рамки на странице быть не должно,
+// <dl> уходит из разметки целиком. Вернут данные — проверка ниже снова включится.
+if (facts.length) check('факт «опыт»', q('#facts .facts__row dd')[0].textContent, facts[0][1]);
+else check('пустого блока фактов нет', q('#facts').length, 0);
 
 // Секция «Контакты» удалена: ссылки перенесены в «О себе» (renderAbout).
 check('секции «Контакты» нет', q('#contact').length, 0);
