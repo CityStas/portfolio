@@ -7,8 +7,21 @@ const { JSDOM, VirtualConsole } = require('jsdom');
 const root = path.resolve(__dirname, '..');
 
 const errors = [];
+// jsdom не реализует часть медиа-API и сообщает об этом как об ошибке, хотя
+// страница тут ни при чём. pause() в app.js обойдён (не вызывается у стоящего
+// клипа), а play() обойти нельзя — клип на карточке обязан играть. Поэтому
+// такие сообщения отбрасываем, но считаем: если их вдруг не будет, когда
+// ожидались, это тоже сигнал.
+const JSDOM_GAPS = [
+  "Not implemented: HTMLMediaElement's play() method"
+];
+let gaps = 0;
+const keep = m => {
+  if (JSDOM_GAPS.some(g => m.indexOf(g) !== -1)) { gaps++; return false; }
+  return true;
+};
 const vc = new VirtualConsole();
-vc.on('jsdomError', e => errors.push('jsdomError: ' + e.message));
+vc.on('jsdomError', e => { if (keep(e.message)) errors.push('jsdomError: ' + e.message); });
 vc.on('error', (...a) => errors.push('console.error: ' + a.join(' ')));
 
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
@@ -116,13 +129,13 @@ click(chips[0]);
 check('фильтр сброшен: видны все карточки', q('#grid .card').filter(c => !c.hidden).length, P.length);
 
 // Порядок чипов задан списком THEME_ORDER в данных, а не порядком карточек:
-// HC AI переезжает наверх, а «AI-проекты» обязаны остаться первым чипом.
+// флагман переезжает наверх, а «AI-проекты» обязаны остаться первым чипом.
 // Литерал здесь намеренно — это решение о продукте, а не производная от данных.
 check('порядок чипов', chips.map(c => c.textContent).join(' / '),
-  'Все / AI-проекты / Игры / Сайты / Расширения');
+  'Все / AI-проекты / Игры / Сайты / Инструменты');
 
 // Мультитема: проект из themes[] обязан находиться в каждом своём чипе.
-// Сейчас это Dubbed — расширение, которое работает поверх сайтов.
+// Первый такой проект — VDIE (AI-продукт, который ещё и инструмент).
 const multi = P.filter(p => p.themes && p.themes.length > 1)[0];
 if (multi) {
   const label = {
@@ -433,5 +446,6 @@ check('ссылочные подгруппы: font-display swap', byFile.every(b
 check('preload шрифта не нужен (шрифт уже в CSS)', q('link[rel=preload][as=font]').length, 0);
 
 if (errors.length) { bad++; console.log('ОШИБКИ В JS:\n' + errors.join('\n')); }
+if (gaps) console.log('(известные пробелы jsdom, не ошибки страницы: ' + gaps + ')');
 console.log(bad === 0 ? '\nИТОГ: всё зелёное' : '\nИТОГ: проблем ' + bad);
 process.exit(bad === 0 ? 0 : 1);

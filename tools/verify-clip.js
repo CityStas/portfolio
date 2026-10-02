@@ -100,9 +100,13 @@ function check(name, got, expected) {
   });
   await page.goto('http://127.0.0.1:' + PORT + '/', { waitUntil: 'load' });
 
-  // 3. Разметка карточки.
+  // 3. Разметка карточки. Клип ищем именно в подсунутой карточке: настоящий
+  //    клип на странице теперь тоже есть (флагманская карточка), и общий
+  //    селектор .card__clip попадал бы в него, а не в свежесозданный элемент.
   const info = await page.evaluate(() => {
-    const v = document.querySelector('.card__clip');
+    const card = Array.from(document.querySelectorAll('.card'))
+      .find(c => c.textContent.indexOf('TEST CLIP') !== -1);
+    const v = card && card.querySelector('.card__clip');
     if (!v) return null;
     return {
       tag: v.tagName,
@@ -126,10 +130,13 @@ function check(name, got, expected) {
   check('постер под видео остался', info && info.posterBelow, true);
 
   // 4. Клип реально играет, когда карточка попала в окно.
-  await page.evaluate(() => document.querySelector('.card__clip').scrollIntoView({ block: 'center' }));
+  await page.evaluate(() => Array.from(document.querySelectorAll('.card'))
+    .find(c => c.textContent.indexOf('TEST CLIP') !== -1)
+    .querySelector('.card__clip').scrollIntoView({ block: 'center' }));
   await page.waitForTimeout(2500);
   const playing = await page.evaluate(() => {
-    const v = document.querySelector('.card__clip');
+    const v = Array.from(document.querySelectorAll('.card'))
+      .find(c => c.textContent.indexOf('TEST CLIP') !== -1).querySelector('.card__clip');
     return { paused: v.paused, t: v.currentTime, preload: v.preload, ready: v.readyState };
   });
   check('клип заиграл', playing.paused, false);
@@ -141,7 +148,9 @@ function check(name, got, expected) {
   await page.evaluate(() => window.scrollTo(0, 0));
   await page.waitForTimeout(1200);
   check('клип встал на паузу вне окна',
-    await page.evaluate(() => document.querySelector('.card__clip').paused), true);
+    await page.evaluate(() => Array.from(document.querySelectorAll('.card'))
+      .find(c => c.textContent.indexOf('TEST CLIP') !== -1)
+      .querySelector('.card__clip').paused), true);
 
   // 6. Лайтбокс: видео вместо кадра, и обратно.
   const testCard = page.locator('.card', { hasText: 'TEST CLIP' }).locator('.card__shot');

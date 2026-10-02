@@ -186,7 +186,10 @@ function check(name, got, expected) {
     check('меню в шапке видно', navInline.visible, true);
     check('меню умещается в строке шапки', navInline.inHeader, true);
     check('меню в потоке, а не выпадающая панель', navInline.pos, 'static');
-    check('подписи пунктов меню', navInline.labels, 'Проекты / О себе / Контакты');
+    // Литерал: состав меню — решение о продукте. «Контакты» из него убраны
+    // вместе с секцией (ссылки переехали в «О себе»), здесь это осталось
+    // неисправленным и держало гейт красным независимо от правок контента.
+    check('подписи пунктов меню', navInline.labels, 'Проекты / О себе');
 
     // Клик по имени на широком экране уводит наверх, а не раскрывает список.
     await page.evaluate(() => window.scrollTo(0, 1200));
@@ -235,7 +238,7 @@ function check(name, got, expected) {
     check('порядок чипов',
           (await page.evaluate(() => Array.from(document.querySelectorAll('#filters .fchip'))
             .map(b => b.textContent.trim()))).join(' / '),
-          'Все / AI-проекты / Игры / Сайты / Расширения');
+          'Все / AI-проекты / Игры / Сайты / Инструменты');
 
     await page.locator('#filters .fchip').nth(1).click();
     await page.waitForTimeout(300);
@@ -247,7 +250,8 @@ function check(name, got, expected) {
           await page.locator('#filters .fchip').first().getAttribute('aria-pressed'), 'false');
 
     // Мультитема: проект из themes[] обязан находиться в каждом своём чипе.
-    // Сейчас это Dubbed — расширение, которое работает поверх сайтов.
+    // Первый такой проект — VDIE: подпись «AI-продукт», а в «Инструментах»
+    // он по themes.
     const multi = await page.evaluate(() => {
       const p = window.PROJECTS.filter(x => x.themes && x.themes.length > 1)[0];
       return p ? { title: p.title, themes: p.themes } : null;
