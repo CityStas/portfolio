@@ -276,6 +276,21 @@ function check(name, got, expected) {
     check('секции #contact нет', await page.locator('#contact').count(), 0);
     check('контакты в «О себе» есть', await page.locator('.about__links a').count(), 2);
 
+    // Факты убраны из данных (2026-10-02): пустой <dl> не должен рисовать рамку
+    // полосой поперёк страницы. Элемент остаётся в разметке, высота — ноль.
+    // Ожидание берём из данных: вернут facts — проверка снова начнёт требовать высоту.
+    check('пустой список фактов не рисует полосу', await page.evaluate(() => {
+      const f = document.getElementById('facts');
+      return (f && f.getBoundingClientRect().height > 0) ? 1 : 0;
+    }), await page.evaluate(() => (window.SITE && window.SITE.facts) ? 1 : 0));
+
+    // Текст «О себе» держится левой колонки грида и не растягивается на всю
+    // ширину: рамка справа ушла, а дорожка 1.3fr/.9fr осталась.
+    check('текст «О себе» в левой колонке', await page.evaluate(() => {
+      const a = document.querySelector('.about'), t = document.querySelector('.about__txt');
+      return t.getBoundingClientRect().width < a.getBoundingClientRect().width - 40;
+    }), true);
+
     // Превью не должно быть УЖЕ 16:10: тогда cover обрежет кадр по вертикали и
     // срежет содержимое — именно на узких кадрах ломалось дважды. Шире — нормально:
     // cover обрежет по бокам, а в лайтбоксе кадр виден целиком (object-fit: contain).

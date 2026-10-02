@@ -105,9 +105,9 @@
         w.appendChild(el('dd', null, row[1]));
         dl.appendChild(w);
       });
-      // Факты убраны из данных — пустую рамку не оставляем: <dl> уходит из
-      // разметки, и текст занимает всю ширину (.about__txt:only-child).
-      if (!dl.children.length) dl.parentNode.removeChild(dl);
+      // Факты убраны из данных — <dl> остаётся в разметке (он держит вторую
+      // колонку грида, текст «О себе» не растягивается на всю ширину), но
+      // пустым не рисуется: .facts:empty { display: none } в style.css.
     }
   }
 

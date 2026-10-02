@@ -423,9 +423,6 @@ html[data-theme="light"] .ico--moon { display: none; }
 
 /* ---------- О себе ---------- */
 .about { display: grid; grid-template-columns: 1.3fr .9fr; gap: clamp(26px, 4vw, 56px); align-items: start; }
-/* Факты убраны из данных (2026-10-02) — app.js удаляет пустой <dl>, и текст
-   занимает всю ширину. Вернут данные — вернётся и вторая колонка. */
-.about__txt:only-child { grid-column: 1 / -1; }
 .about__txt p { margin: 0 0 16px; color: var(--muted); font-size: 16.5px; }
 .about__txt p:last-child { margin-bottom: 0; }
 /* Сноска — абзац со «*» на первой позиции. Тот же приём, что в описаниях
@@ -435,8 +432,10 @@ html[data-theme="light"] .ico--moon { display: none; }
 .about__note { display: block; margin: 24px 0 0; color: var(--dim); font-size: 13px; line-height: 1.5; opacity: .85; }
 
 .facts { margin: 0; display: grid; gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--r-s); overflow: hidden; }
-/* Страховка на случай, если JS не отработал: пустой список не должен
-   оставлять на странице рамку-полосу. */
+/* Факты убраны из данных (2026-10-02). <dl> остаётся в разметке — явные дорожки
+   грида существуют независимо от содержимого, поэтому текст «О себе» по-прежнему
+   живёт в левой колонке и не растягивается. Пустым список не рисуется: без этого
+   правила рамка .facts превращается в полосу поперёк страницы. */
 .facts:empty { display: none; }
 .facts__row { display: flex; justify-content: space-between; gap: 16px; padding: 15px 18px; background: var(--surface); }
 .facts__row dt { color: var(--dim); font-size: 13.5px; flex: none; }
@@ -445,7 +444,13 @@ html[data-theme="light"] .ico--moon { display: none; }
 /* ---------- Контакты в «О себе» ---------- */
 /* Секция «03 Контакты» удалена. Ссылки перенесены в текст «О себе»
    как строчные текстовые ссылки, не кнопки. */
-.about__links { margin-top: 18px; font-size: 14.5px; color: var(--dim); }
+/* Отступ тот же, что у сноски над строкой связи (24px): иначе сноска липнет
+   к «Связь» и висит между двумя разными по величине разрывами. */
+.about__links { margin-top: 24px; font-size: 14.5px; color: var(--dim); }
+/* «Связь» — абзац внутри .about__txt, а правило .about__txt p (0,1,1) специфичнее
+   одиночного класса (0,1,0) и съедало margin-top. Отсюда отдельное правило ровно
+   про отступ: без него строка связи прилипала к сноске вплотную. */
+.about__txt .about__links { margin-top: 24px; }
 .about__links a { color: var(--text); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
 .about__links a:hover { color: var(--accent, #6c8aff); }
 
