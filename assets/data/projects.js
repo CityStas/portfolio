@@ -182,7 +182,7 @@ window.PROJECTS = [
     title: 'DedSpace 2D',
     kind: 'Игра',
     desc: '2D-платформер на Godot 4: игрок, подбор предметов, враги, уровни. Оптимизирован под работу в браузере.',
-    tags: ['Godot 4', 'GDScript', '2D', 'Web', 'Web-экспорт'],
+    tags: ['Godot 4', 'GDScript', '2D', 'Web'],
     year: '2026',
     status: 'live',
     shot: 'assets/img/projects/shrooms.webp',
@@ -192,7 +192,7 @@ window.PROJECTS = [
     title: 'Bubble Peaks 3D',
     kind: 'Игра',
     desc: 'Трёхмерный уровень на Godot 4 с Forward+ рендером: свет, материалы, рельеф. Оптимизирован под работу в браузере.',
-    tags: ['Godot 4', '3D', 'Forward+', 'Web', 'Web-экспорт'],
+    tags: ['Godot 4', '3D', 'Forward+', 'Web'],
     year: '2026',
     status: 'live',
     // Карточка показывает заставку с логотипом, просмотр открывается геймплеем:
