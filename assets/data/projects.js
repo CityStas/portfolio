@@ -71,7 +71,7 @@
 
 window.SITE = {
   name: 'Дмитрий О.',
-  role: 'AI Engineer / Applied AI Engineer',
+  role: 'AI Engineer / AI Full-Stack Engineer',
   tagline: 'AI-продукты полного цикла: исследование моделей, прототип, backend, деплой. Отдельно - свои игры на Godot и three.js.',
   location: 'Екатеринбург',
 
@@ -140,7 +140,7 @@ window.PROJECTS = [
   {
     title: 'HC AI',
     kind: 'AI-продукт',
-    desc: 'Локальный мультимодальный ИИ-агент для Windows: чат, генерация изображений, зрение, upscale. Без интернета, облака и API-ключей.\n\n*В репозитории только код: модели (~13 ГБ) качаются скриптами по README.',
+    desc: 'Локальный мультимодальный ИИ-агент для Windows: чат, генерация изображений, зрение, upscale. Без интернета, облака и API-ключей. Бонус: версия с интеграцией 3D Generation Pipelines (TRELLIS, TripoSplat).\n\n*В репозитории только код: модели (~13 ГБ) качаются скриптами по README.',
     tags: ['Electron', 'React', 'GGUF', 'Vulkan', 'stable-diffusion.cpp', 'Vision'],
     year: '2026',
     status: 'live',
