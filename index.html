@@ -1,12 +1,11 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru" data-theme="dark">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Дмитрий О. | Портфолио</title>
 <meta name="description" content="AI-продукты полного цикла: исследование моделей, прототип, backend, деплой. Плюс собственные игры на Godot и three.js.">
 <meta name="color-scheme" content="dark light">
-<meta name="theme-color" content="#08090c">
+<meta name="theme-color" content="#08090d">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Дмитрий О. - AI-Native Developer">
 <meta property="og:description" content="AI-продукты полного цикла. Плюс собственные игры на Godot и three.js.">
@@ -28,154 +27,33 @@
     if (t) document.documentElement.setAttribute('data-theme', t);
   } catch (e) {}
 </script>
-<link rel="stylesheet" href="ai-lab-ui-refresh.css">
+<!-- ai-lab-ui-refresh.css из 19241a8 намеренно не подключён: слой красит карточки
+     в белый полупрозрачный градиент с белой рамкой, а на светлой теме это даёт
+     невидимые карточки (замер: background rgba(0,0,0,0), border rgba(255,255,255,.09)
+     на фоне #d7d9dd). Файл в репозитории остался - чтобы вернуть слой, раскомментируйте. -->
+<!-- <link rel="stylesheet" href="ai-lab-ui-refresh.css"> -->
 </head>
 <body>
-
-<div class="progress" aria-hidden="true"><i id="progressBar"></i></div>
-
+<div class="noise" aria-hidden="true"></div><div class="progress"><i id="progressBar"></i></div>
 <a class="skip" href="#main">Перейти к содержимому</a>
-
-<header class="hdr" id="top">
-  <div class="wrap hdr__in">
-    <div class="hdr__brand">
-      <button class="logo" id="logoBtn" type="button" aria-expanded="false" aria-controls="navMenu" title="Меню разделов">
-        <img class="logo__mark" src="assets/img/logo.png" alt="" width="34" height="34" aria-hidden="true">
-        <span data-site="name">Дмитрий О.</span>
-        <svg class="logo__caret" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
-      </button>
-
-      <nav class="nav" id="navMenu" aria-label="Разделы сайта" hidden>
-        <a href="#projects" data-num="01">Проекты</a>
-        <a href="#about" data-num="02">О себе</a>
-      </nav>
-    </div>
-
-    <div class="hdr__act">
-      <button class="iconbtn" id="themeBtn" type="button" aria-label="Переключить тему" title="Светлая / тёмная тема">
-        <!-- Иконки нарисованы по сетке 12x12 блоками: при 24px один блок ровно
-             2 CSS px, срез квадратный и без сглаживания (crispEdges). Обычные
-             SVG-кривые рядом с пиксельными меню и именем читались как чужая
-             графика. -->
-        <svg class="ico ico--sun" viewBox="0 0 12 12" aria-hidden="true">
-          <rect x="4" y="4" width="4" height="4"/>
-          <rect x="5" y="0" width="2" height="2"/><rect x="5" y="10" width="2" height="2"/>
-          <rect x="0" y="5" width="2" height="2"/><rect x="10" y="5" width="2" height="2"/>
-          <rect x="1" y="1" width="2" height="2"/><rect x="9" y="1" width="2" height="2"/>
-          <rect x="1" y="9" width="2" height="2"/><rect x="9" y="9" width="2" height="2"/>
-        </svg>
-        <svg class="ico ico--moon" viewBox="0 0 12 12" aria-hidden="true">
-          <rect x="5" y="0" width="2" height="1"/>
-          <rect x="3" y="1" width="3" height="1"/>
-          <rect x="2" y="2" width="3" height="1"/>
-          <rect x="1" y="3" width="3" height="1"/>
-          <rect x="1" y="4" width="2" height="1"/>
-          <rect x="0" y="5" width="3" height="1"/>
-          <rect x="0" y="6" width="3" height="1"/>
-          <rect x="1" y="7" width="2" height="1"/>
-          <rect x="1" y="8" width="3" height="1"/>
-          <rect x="2" y="9" width="3" height="1"/>
-          <rect x="3" y="10" width="3" height="1"/>
-          <rect x="5" y="11" width="2" height="1"/>
-        </svg>
-      </button>
-    </div>
-  </div>
-</header>
-
+<header class="hdr" id="top"><div class="wrap hdr__in">
+  <a class="brand" href="https://dvodev.space/" aria-label="На главную"><span class="brand__mark"><img src="assets/img/logo.png" alt="" width="30" height="30"></span><span data-site="name">Дмитрий О.</span></a>
+  <nav class="nav" id="navMenu" aria-label="Разделы сайта" hidden><a href="#projects"><b>01</b>Проекты</a><a href="#about"><b>02</b>О себе</a></nav>
+  <div class="hdr__act"><button class="iconbtn" id="themeBtn" type="button" aria-label="Переключить тему"><span>◐</span></button><button class="menu-btn" id="logoBtn" type="button" aria-label="Меню">MENU</button></div>
+</div></header>
 <main id="main">
-
-  <section class="sec sec--lead" id="projects">
-    <div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
-    <div class="wrap">
-      <h1 class="lead__h reveal">AI-Native Developer / AI Full-Stack Engineer</h1>
-      <div class="sec__bar">
-        <h2 class="sec__h reveal"><span class="sec__num">01</span>Проекты</h2>
-        <!-- Чипы-фильтры по тематике. Наполняются из данных: темы берутся из kind
-             проектов, так что новый тип проекта добавляет себе чип сам. Если тип
-             один — ряд скрывается, фильтровать нечего. -->
-        <div class="filters reveal" id="filters" role="group" aria-label="Фильтр проектов по тематике" hidden></div>
-      </div>
-      <div class="grid" id="grid"></div>
-    </div>
-  </section>
-
-  <section class="sec" id="about">
-    <div class="wrap">
-      <h2 class="sec__h reveal"><span class="sec__num">02</span>О себе</h2>
-      <div class="about">
-        <div class="about__txt reveal" id="aboutTxt"></div>
-        <dl class="facts reveal" id="facts"></dl>
-      </div>
-    </div>
-  </section>
-
+<section class="hero"><div class="wrap hero__grid">
+  <div class="hero__copy reveal"><h1>AI-Native<br><em>Developer</em></h1><p class="hero__role">AI Full-Stack <em>Engineer</em></p></div>
+</div></section>
+<section class="projects sec" id="projects"><div class="wrap">
+  <div class="section-head reveal"><div><span class="section-num">01</span><h2>Проекты</h2></div></div>
+  <div class="filter-row"><div class="filters" id="filters" role="group" aria-label="Фильтр проектов" hidden></div></div>
+  <div class="grid" id="grid"></div>
+</div></section>
+<section class="about sec" id="about"><div class="wrap"><div class="section-head reveal"><div><span class="section-num">02</span><h2>О себе<span class="dot">.</span></h2></div></div><div class="about__layout"><div class="about__txt reveal" id="aboutTxt"></div></div></div></section>
 </main>
-
-<footer class="ftr">
-  <div class="wrap ftr__in">
-    <span>&copy; <span id="year">2026</span> <span data-site="name">Дмитрий О.</span></span>
-    <span class="ftr__note"><button class="totop" id="totop" type="button">Наверх ↑</button></span>
-  </div>
-</footer>
-
-<!-- Просмотр превью в полный размер -->
-<div class="lb" id="lb" role="dialog" aria-modal="true" aria-label="Просмотр проекта" hidden>
-  <div class="lb__back" data-lb-close></div>
-  <button class="lb__x" type="button" aria-label="Закрыть" data-lb-close>&times;</button>
-  <button class="lb__nav lb__nav--prev" type="button" aria-label="Предыдущий проект" id="lbPrev">&#8249;</button>
-  <button class="lb__nav lb__nav--next" type="button" aria-label="Следующий проект" id="lbNext">&#8250;</button>
-  <figure class="lb__fig">
-    <img id="lbImg" alt="">
-    <!-- Клип подставляется вместо кадра, только если у проекта есть clip.
-         Источники собираются в app.js при открытии: держать их в разметке
-         нельзя — тогда все видео поехали бы в сеть при загрузке страницы. -->
-    <video id="lbVid" hidden muted loop playsinline controls></video>
-    <!-- Полоска кадров галереи. Наполняется при открытии, из данных (shots).
-         Один кадр — полоска скрыта: ряд кнопок из одной ничего не сообщает. -->
-    <div class="lb__shots" id="lbShots" hidden></div>
-    <figcaption class="lb__cap">
-      <div class="lb__txt">
-        <h3 id="lbTitle"></h3>
-        <p id="lbDesc"></p>
-      </div>
-      <a class="btn btn--primary lb__go" id="lbGo" href="#" target="_blank" rel="noopener">
-        <span id="lbGoTxt">Открыть сайт</span>
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg>
-      </a>
-    </figcaption>
-  </figure>
-</div>
-
-<!-- Демо в окне монитора: рамка нарисована на CSS, игра идёт в iframe внутри неё.
-     Размер стекла ограничен 720p — движок растягивает canvas по кадру, так что
-     это не только вид, но и меньше пикселей на кадр. -->
-<div class="demo" id="demo" role="dialog" aria-modal="true" aria-label="Демо проекта" hidden>
-  <div class="demo__back" data-demo-close></div>
-
-  <div class="demo__ui">
-    <span class="demo__name" id="demoTitle"></span>
-    <a class="demo__ext" id="demoExt" href="#" target="_blank" rel="noopener">
-      <span>В новой вкладке</span>
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg>
-    </a>
-    <button class="demo__x" type="button" aria-label="Закрыть демо" data-demo-close>&times;</button>
-  </div>
-
-  <div class="demo__mon" id="demoMon">
-    <div class="demo__bezel">
-      <div class="demo__screen" id="demoScreen">
-        <p class="demo__fail" id="demoFail" hidden>
-          Демо не загрузилось. <a id="demoFailLink" href="#" target="_blank" rel="noopener">Открыть в новой вкладке</a>.
-        </p>
-      </div>
-      <span class="demo__led" aria-hidden="true"></span>
-    </div>
-    <div class="demo__stand" aria-hidden="true"></div>
-  </div>
-</div>
-
-<script src="assets/data/projects.js"></script>
-<script src="assets/js/app.js"></script>
-</body>
-</html>
+<footer class="ftr"><div class="wrap ftr__in"><span>© <span id="year">2026</span> Дмитрий О.</span><button class="totop" id="totop" type="button">↑ TOP</button></div></footer>
+<div class="lb" id="lb" role="dialog" aria-modal="true" aria-label="Просмотр проекта" hidden><div class="lb__back" data-lb-close></div><button class="lb__x" type="button" aria-label="Закрыть" data-lb-close>×</button><button class="lb__nav lb__nav--prev" type="button" aria-label="Предыдущий проект" id="lbPrev">←</button><button class="lb__nav lb__nav--next" type="button" aria-label="Следующий проект" id="lbNext">→</button><figure class="lb__fig"><div class="lb__media"><img id="lbImg" alt=""><video id="lbVid" hidden muted loop playsinline controls></video></div><div class="lb__shots" id="lbShots" hidden></div><figcaption class="lb__cap"><div><span class="lb__label">PROJECT / PREVIEW</span><h3 id="lbTitle"></h3><p id="lbDesc"></p></div><a class="btn btn--primary lb__go" id="lbGo" href="#" target="_blank" rel="noopener"><span id="lbGoTxt">Открыть</span> ↗</a></figcaption></figure></div>
+<div class="demo" id="demo" role="dialog" aria-modal="true" aria-label="Демо проекта" hidden><div class="demo__back" data-demo-close></div><div class="demo__ui"><span class="demo__name" id="demoTitle"></span><a class="demo__ext" id="demoExt" href="#" target="_blank" rel="noopener">Открыть ↗</a><button class="demo__x" type="button" aria-label="Закрыть" data-demo-close>×</button></div><div class="demo__mon" id="demoMon"><div class="demo__bezel"><div class="demo__screen" id="demoScreen"><p class="demo__fail" id="demoFail" hidden>Демо не загрузилось. <a id="demoFailLink" href="#" target="_blank">Открыть в новой вкладке</a>.</p></div><span class="demo__led"></span></div><div class="demo__stand"></div></div></div>
+<script src="assets/data/projects.js"></script><script src="assets/js/app.js"></script>
+</body></html>
