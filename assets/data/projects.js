@@ -154,7 +154,7 @@ window.PROJECTS = [
   {
     title: 'HC AI',
     kind: 'AI-продукт',
-    desc: 'Локальный мультимодальный ИИ-агент для Windows: чат, генерация изображений, зрение, upscale. Без интернета. Оптимизировано под 8GB VRAM.\n\n*В репозитории только код: модели (~13 ГБ) качаются скриптами по README.\nБонус: версия с интеграцией 3D Generation Pipelines (TRELLIS, TripoSplat), по запросу.',
+    desc: 'Локальный мультимодальный ИИ-агент для Windows: чат, генерация изображений, vision, upscale, 3D. Оптимизировано под 8GB VRAM.\n\n*В репозитории только код: модели (~13 ГБ) качаются скриптами по README.\nБонус: версия с интеграцией 3D Generation (репо по запросу).',
     tags: ['Electron', 'React', 'GGUF', 'Vulkan', 'stable-diffusion.cpp', 'Vision'],
     year: '2026',
     status: 'live',
