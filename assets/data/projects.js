@@ -133,6 +133,27 @@ window.PROJECTS = [
   // Developer», значит первая карточка должна это утверждение подтверждать.
   // VDIE - самый сложный из проектов, поэтому стоит выше HC AI.
   {
+       title: 'HC AI',
+    kind: 'AI-продукт',
+    desc: 'Локальный мультимодальный ИИ-агент для Windows: чат, генерация изображений, vision, upscale, 3D. Оптимизировано под 8GB VRAM.\n\n*В репозитории только код: модели (~13 ГБ, 3D ~30 ГБ) качаются скриптами по README.\nБонус: версия с интеграцией 3D Generation (репо по запросу).',
+    tags: ['Electron', 'React', 'GGUF', 'Vulkan', 'stable-diffusion.cpp', 'Vision'],
+    year: '2026',
+    status: 'live',
+    // На карточке - кадр генерации: по нему сразу видно, что приложение делает.
+    // В просмотре открывается кадр приложения (shotOpen), а полоска снизу идёт
+    // от «пустого» экрана через интерфейс к клипу с 3D-моделью.
+    shot: 'assets/img/projects/hcai-main.webp',
+    shotOpen: 1,
+    shots: [
+      'assets/img/projects/hcai-splash.webp',
+      'assets/img/projects/hcai-app.webp',
+      { clip: 'assets/media/hcai.mp4', webm: 'assets/media/hcai.webm',
+        poster: 'assets/img/projects/hcai-app.webp' }
+    ],
+    links: { repo: 'https://github.com/CityStas/hc_local_ai_image' }
+    
+  },
+  {
     title: 'VDIE',
     // Подпись карточки - «Engine», а не «Инструмент»: это движок машинного
     // зрения, а не утилита. В фильтр «Инструменты» он попадает через themes,
@@ -150,26 +171,6 @@ window.PROJECTS = [
     clip: 'assets/media/vdie.mp4',
     clipWebm: 'assets/media/vdie.webm',
     links: { repo: 'https://github.com/CityStas/vdie' }
-  },
-  {
-    title: 'HC AI',
-    kind: 'AI-продукт',
-    desc: 'Локальный мультимодальный ИИ-агент для Windows: чат, генерация изображений, vision, upscale, 3D. Оптимизировано под 8GB VRAM.\n\n*В репозитории только код: модели (~13 ГБ) качаются скриптами по README.\nБонус: версия с интеграцией 3D Generation (репо по запросу).',
-    tags: ['Electron', 'React', 'GGUF', 'Vulkan', 'stable-diffusion.cpp', 'Vision'],
-    year: '2026',
-    status: 'live',
-    // На карточке - кадр генерации: по нему сразу видно, что приложение делает.
-    // В просмотре открывается кадр приложения (shotOpen), а полоска снизу идёт
-    // от «пустого» экрана через интерфейс к клипу с 3D-моделью.
-    shot: 'assets/img/projects/hcai-main.webp',
-    shotOpen: 1,
-    shots: [
-      'assets/img/projects/hcai-splash.webp',
-      'assets/img/projects/hcai-app.webp',
-      { clip: 'assets/media/hcai.mp4', webm: 'assets/media/hcai.webm',
-        poster: 'assets/img/projects/hcai-app.webp' }
-    ],
-    links: { repo: 'https://github.com/CityStas/hc_local_ai_image' }
   },
 
   // ModelLab - AI-продукт и одновременно инструмент: подпись карточки остаётся
