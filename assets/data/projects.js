@@ -181,19 +181,22 @@ window.PROJECTS = [
   // Стоит сразу после HC AI: обе карточки про запуск моделей на своём железе,
   // и вместе они читаются как «делаю и то, и другое», а не как случайный набор.
   {
-    title: 'ModelLab',
-    kind: 'AI-продукт',
-    themes: ['AI-продукт', 'Инструмент'],
-    desc: '"Пульт" для локальных LLM на слабом железе: скорость и память меряются одним прогоном, контекст подбирается под свободную VRAM, конфигурации сравниваются прогонами вперемешку.',
-    tags: ['Python', 'llama.cpp', 'GGUF', 'Benchmark', 'VRAM', 'CUDA'],
+    title: 'Dubbed',
+    kind: 'Расширение',
+    // Живёт в трёх темах: сам по себе инструмент, AI-продукт по сути (озвучка
+    // нейросетью) и «Сайт» - потому что работает поверх сайтов. kind остаётся
+    // подписью карточки («Расширение»), темы заданы массивом: чипа «Расширения»
+    // больше нет, категория переехала в «Инструменты».
+    themes: ['AI-продукт', 'Сайт'],
+    desc: 'Бесплатное расширение для Chrome/Firefox: Быстрая AI-озвучка фильмов, сериалов и видео прямо в браузере.',
+    tags: ['JavaScript', 'MV3', 'Chrome', 'Firefox', 'TTS'],
     year: '2026',
     status: 'live',
-    // На карточке - пульт с приборами: по нему сразу видно, что это за приложение.
-    // В просмотре открывается общий вид страницы с таблицами и логом движка,
-    // то есть кадр, которого на карточке не было.
-    shot: 'assets/img/projects/modellab.webp',
-    shots: ['assets/img/projects/modellab-tables.webp', 'assets/img/projects/modellab.webp'],
-    links: { repo: 'https://github.com/CityStas/wedns_modellab' }
+    shot: 'assets/img/projects/dubbed.webp',
+    // Лендинг зеркалится в apps/dubbed/ вместе с установщиками: с dubbed.dvodev.space
+    // без VPN отдавалась примерно половина запросов, и .zip/.xpi могли не скачаться.
+    // repo - репозиторий расширения на GitHub (там же лендинг и сборки).
+    links: { demo: '/apps/dubbed/', repo: 'https://github.com/CityStas/dubbed' }
   },
   {
     title: 'DedSpace 2D',
@@ -230,22 +233,19 @@ window.PROJECTS = [
     links: { demo: '/games/lilcraft/', demoLabel: 'Demo', demoEmbed: true, repo: '' }
   },
   {
-    title: 'Dubbed',
-    kind: 'Расширение',
-    // Живёт в трёх темах: сам по себе инструмент, AI-продукт по сути (озвучка
-    // нейросетью) и «Сайт» - потому что работает поверх сайтов. kind остаётся
-    // подписью карточки («Расширение»), темы заданы массивом: чипа «Расширения»
-    // больше нет, категория переехала в «Инструменты».
-    themes: ['AI-продукт', 'Сайт'],
-    desc: 'Бесплатное расширение для Chrome/Firefox: Быстрая AI-озвучка фильмов, сериалов и видео прямо в браузере.',
-    tags: ['JavaScript', 'MV3', 'Chrome', 'Firefox', 'TTS'],
+    title: 'ModelLab',
+    kind: 'AI-продукт',
+    themes: ['AI-продукт', 'Инструмент'],
+    desc: '"Пульт" для локальных LLM на слабом железе: скорость и память меряются одним прогоном, контекст подбирается под свободную VRAM, конфигурации сравниваются прогонами вперемешку.',
+    tags: ['Python', 'llama.cpp', 'GGUF', 'Benchmark', 'VRAM', 'CUDA'],
     year: '2026',
     status: 'live',
-    shot: 'assets/img/projects/dubbed.webp',
-    // Лендинг зеркалится в apps/dubbed/ вместе с установщиками: с dubbed.dvodev.space
-    // без VPN отдавалась примерно половина запросов, и .zip/.xpi могли не скачаться.
-    // repo - репозиторий расширения на GitHub (там же лендинг и сборки).
-    links: { demo: '/apps/dubbed/', repo: 'https://github.com/CityStas/dubbed' }
+    // На карточке - пульт с приборами: по нему сразу видно, что это за приложение.
+    // В просмотре открывается общий вид страницы с таблицами и логом движка,
+    // то есть кадр, которого на карточке не было.
+    shot: 'assets/img/projects/modellab.webp',
+    shots: ['assets/img/projects/modellab-tables.webp', 'assets/img/projects/modellab.webp'],
+    links: { repo: 'https://github.com/CityStas/wedns_modellab' }
   },
 
 
