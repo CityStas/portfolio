@@ -14,4 +14,9 @@ html[data-theme=light]{--bg:#d7d9dd;--panel:#e4e5e9;--panel2:#cbcdd2;--text:#101
 @media(max-width:560px){.wrap{width:calc(100% - 24px)}.hdr__in{height:65px}.hero{padding-bottom:0}.hero__grid{padding-top:90px;padding-bottom:40px}.hero__copy{--h1:13vw}.hero__role{margin-top:14px}.sec{padding:90px 0;scroll-margin-top:65px}.hero + .sec,.about{padding-top:90px}.section-head h2{font-size:48px}.filter-row{align-items:flex-start;gap:12px;flex-direction:column}.card__body{padding:19px}.card__t{font-size:38px}.ftr__in{gap:20px;flex-wrap:wrap}.lb__x{right:12px}.lb__cap h3{font-size:28px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation:none!important;transition:none!important}.reveal{opacity:1;transform:none}}
 @media(min-width:901px){.nav[hidden]{display:flex!important}}
+/* Клип в полоске лайтбокса: постер с кнопкой play. См. isClipShot в app.js. */
+.lb__shots[hidden]{display:none}
+.lb__shot--clip{position:relative}
+.lb__play{position:absolute;inset:0;display:grid;place-items:center;color:#fff;background:rgba(4,5,8,.42)}
+.lb__play svg{width:20px;height:20px;fill:currentColor;stroke:none}
 @media(max-width:900px){.nav[hidden]{display:none!important}.nav:not([hidden]){position:absolute;top:65px;left:0;right:0;margin:0;padding:18px;background:var(--bg);border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:15px}.nav:not([hidden]) a{font-size:13px}}

@@ -130,6 +130,14 @@
     return p.shot ? [p.shot] : [];
   }
 
+  // Элемент галереи - строка (путь к картинке) или объект-клип
+  // { clip, webm, poster }. Клип внутри shots - третий вид медиа в полоске:
+  // в превью он показан постером с кнопкой play, в основном окне играет видео
+  // с управлением. Строки обрабатываются ровно как раньше, поэтому старые
+  // данные ничего не замечают.
+  function isClipShot(s) { return !!s && typeof s === 'object' && !!s.clip; }
+  function shotPoster(s) { return isClipShot(s) ? (s.poster || '') : (s || ''); }
+
   /* ---------- Клип в карточке ---------- */
 
   // Тип источника выводим из расширения, а не из имени поля: если в clip положить
@@ -238,7 +246,7 @@
     // Превью - именно shot, а не первый кадр галереи: у проекта может быть задано
     // «на карточке кадр 2, в просмотре кадр 1». shotsOf() тут только подстраховка
     // для проекта, у которого shot не задан вовсе.
-    var poster = p.clipPoster || p.shot || shotsOf(p)[0];
+    var poster = p.clipPoster || p.shot || shotPoster(shotsOf(p)[0]);
     if (poster || p.clip) {
       var shot = el('button', 'card__shot');
       shot.type = 'button';
@@ -529,13 +537,33 @@
   }
 
   // Кадр галереи. Смена src у одного <img>, а не второй <img> в разметке:
-  // так кадр не дублируется в DOM и не грузится дважды.
+  // так кадр не дублируется в DOM и не грузится дважды. Если кадр - клип,
+  // играет <video>, а картинка убирается: держать её под видео незачем.
   function setShot(n) {
-    var img = $('#lbImg');
-    if (!img || !lbShots.length) return;
+    if (!lbShots.length) return;
+    var img = $('#lbImg'), vid = $('#lbVid');
     lbShot = (n + lbShots.length) % lbShots.length;
-    img.src = lbShots[lbShot];
-    img.alt = 'Превью проекта ' + (P[lbIdx] ? P[lbIdx].title : '');
+    var e = lbShots[lbShot];
+    var p = P[lbIdx] || {};
+
+    if (isClipShot(e)) {
+      if (vid) {
+        videoSources(vid, { clip: e.clip, clipWebm: e.webm || '' });
+        var cp = e.poster || p.clipPoster || p.shot || '';
+        if (cp) vid.poster = cp; else vid.removeAttribute('poster');
+        vid.hidden = false;
+        playVideo(vid);
+      }
+      if (img) { img.hidden = true; img.removeAttribute('src'); }
+    } else {
+      clearVideo(vid);
+      if (img) {
+        img.hidden = false;
+        img.src = e;
+        img.alt = 'Превью проекта ' + (p.title || '');
+      }
+    }
+
     $$('#lbShots .lb__shot').forEach(function (b, i) {
       var on = i === lbShot;
       b.classList.toggle('is-on', on);
@@ -550,16 +578,26 @@
     box.textContent = '';
     if (lbShots.length < 2) { box.hidden = true; return; }
 
-    lbShots.forEach(function (src, n) {
-      var b = el('button', 'lb__shot');
+    lbShots.forEach(function (e, n) {
+      var clip = isClipShot(e);
+      var b = el('button', 'lb__shot' + (clip ? ' lb__shot--clip' : ''));
       b.type = 'button';
-      b.setAttribute('aria-label', 'Кадр ' + (n + 1) + ' из ' + lbShots.length);
-      var im = document.createElement('img');
-      im.src = src;
-      im.alt = '';
-      im.loading = 'lazy';
-      im.decoding = 'async';
-      b.appendChild(im);
+      b.setAttribute('aria-label', (clip ? 'Клип ' : 'Кадр ') + (n + 1) + ' из ' + lbShots.length);
+      var src = clip ? (e.poster || '') : e;
+      if (src) {
+        var im = document.createElement('img');
+        im.src = src;
+        im.alt = '';
+        im.loading = 'lazy';
+        im.decoding = 'async';
+        b.appendChild(im);
+      }
+      // Клип помечаем значком play: по постеру иначе не понять, что за ним видео.
+      if (clip) {
+        var play = el('span', 'lb__play');
+        play.appendChild(svg('<path d="M8 5v14l11-7z"/>'));
+        b.appendChild(play);
+      }
       b.addEventListener('click', function () { setShot(n); });
       box.appendChild(b);
     });
@@ -577,28 +615,22 @@
     var img = $('#lbImg');
     var vid = $('#lbVid');
     // Постер нужен только клипу. Кадру он не нужен: кадр и есть кадр.
-    var poster = p.clipPoster || p.shot || shotsOf(p)[0];
+    var poster = p.clipPoster || p.shot || shotPoster(shotsOf(p)[0]);
 
     // Галерея собирается до показа кадра: setShot ищет кнопки в разметке.
-    lbShots = shotsOf(p);
+    // Проект с одним лишь clip (без shots) - это галерея из одного клипа:
+    // полоска не рисуется (один элемент), просмотр открывает видео с управлением.
+    lbShots = p.clip ? [{ clip: p.clip, webm: p.clipWebm, poster: poster }] : shotsOf(p);
     renderShots();
 
-    // Клип показываем с управлением: его можно перемотать, а не только смотреть
-    // петлю. У проектов без клипа остаётся <img> - с галереей, если кадров больше одного.
-    if (p.clip && vid) {
-      videoSources(vid, p);
-      if (poster) vid.poster = poster; else vid.removeAttribute('poster');
-      vid.hidden = false;
-      playVideo(vid);
-      img.hidden = true;
-      img.removeAttribute('src');       // кадр держать незачем, видео его перекрыло
+    // Кадр открытия задаёт shotOpen (по умолчанию первый). Карточка могла
+    // показывать другой кадр, но в просмотре логично начинать не с середины.
+    if (lbShots.length) {
+      var start = Math.min(Math.max(p.shotOpen || 0, 0), lbShots.length - 1);
+      setShot(start);
     } else {
       clearVideo(vid);
-      img.hidden = false;
-      // Открываемся на первом кадре галереи, даже если на карточке был другой:
-      // в просмотре логично начать с начала, а не с середины.
-      if (lbShots.length) setShot(0);
-      else { img.removeAttribute('src'); img.alt = ''; }
+      if (img) { img.hidden = false; img.removeAttribute('src'); img.alt = ''; }
     }
 
     $('#lbTitle').textContent = p.title;
