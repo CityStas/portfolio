@@ -187,11 +187,17 @@
     c.appendChild(el('h2', 'screen-title', I18N.t('credits.line1')));
     c.appendChild(el('div', 'screen-sub', I18N.t('credits.line2')));
     var r = el('div', 'logo-rule'); r.style.margin = '20px 0'; c.appendChild(r);
-    ['line3', 'line4', 'line5'].forEach(function (k) {
-      var p = el('p', '', I18N.t('credits.' + k));
-      p.style.cssText = 'max-width:60ch;color:var(--text-dim);font-size:13.5px;line-height:1.8;margin:4px 0;';
-      c.appendChild(p);
-    });
+    // The body lines are read out of the data, not hardcoded: dropping a
+    // `credits.lineN` key from strings.json removes that line, and no code
+    // change is needed. Keys are numeric-sorted, so line10 follows line9.
+    Object.keys((global.AH_STRINGS || {}).credits || {})
+      .filter(function (k) { return /^line\d+$/.test(k) && parseInt(k.slice(4), 10) > 2; })
+      .sort(function (a, b) { return parseInt(a.slice(4), 10) - parseInt(b.slice(4), 10); })
+      .forEach(function (k) {
+        var p = el('p', '', I18N.t('credits.' + k));
+        p.style.cssText = 'max-width:60ch;color:var(--text-dim);font-size:13.5px;line-height:1.8;margin:4px 0;';
+        c.appendChild(p);
+      });
     var b = btn(I18N.t('ui.back'), 'ghost', function () { c.remove(); });
     b.style.marginTop = '26px';
     c.appendChild(b);

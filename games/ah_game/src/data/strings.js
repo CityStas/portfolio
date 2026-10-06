@@ -393,18 +393,6 @@ window.AH_STRINGS = {
     "line2": {
       "ru": "Визуальная новелла 18+",
       "en": "An 18+ visual novel"
-    },
-    "line3": {
-      "ru": "Изображения сгенерированы локально (Z-Image-Turbo). Ни один внешний сервис не использовался.",
-      "en": "Images generated locally (Z-Image-Turbo). No external service was used."
-    },
-    "line4": {
-      "ru": "Текст, движок, дизайн - оригинальная работа.",
-      "en": "Text, engine and design are original work."
-    },
-    "line5": {
-      "ru": "Все персонажи - взрослые (21+).",
-      "en": "All characters are adults (21+)."
     }
   },
   "log": {
