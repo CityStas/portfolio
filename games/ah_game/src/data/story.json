@@ -1,0 +1,621 @@
+{
+  "meta": {
+    "id": "after_hours",
+    "title": { "ru": "AFTER HOURS", "en": "AFTER HOURS" },
+    "subtitle": { "ru": "Глава I · Полночь", "en": "Chapter I · Midnight" },
+    "rating": "18+",
+    "version": 3
+  },
+
+  "stats": {
+    "trust":      { "start": 20, "decay": -2, "icon": "◆", "label": { "ru": "Доверие",     "en": "Trust" } },
+    "attraction": { "start": 15, "decay": -1, "icon": "❤", "label": { "ru": "Тяга",        "en": "Attraction" } },
+    "tension":    { "start": 10, "decay": -1, "icon": "⚡", "label": { "ru": "Напряжение",  "en": "Tension" } },
+    "curiosity":  { "start": 25, "decay": -1, "icon": "?", "label": { "ru": "Интерес",     "en": "Curiosity" } },
+    "mood":       { "start": 50, "decay": -1, "icon": "◐", "label": { "ru": "Настроение",  "en": "Mood" } }
+  },
+
+  "persona": {
+    "direct":  { "label": { "ru": "Прямой",  "en": "Direct" },  "bias": { "trust": 2 } },
+    "warm":    { "label": { "ru": "Тёплый",  "en": "Warm" },    "bias": { "trust": 3, "tension": -2 } },
+    "sharp":   { "label": { "ru": "Острый",  "en": "Sharp" },   "bias": { "tension": 3, "attraction": 2 } },
+    "guarded": { "label": { "ru": "Закрытый", "en": "Guarded" }, "bias": { "curiosity": 3, "trust": -1 } },
+    "priority": ["warm", "sharp", "direct", "guarded"]
+  },
+
+  "scenes": [
+    {
+      "id": "s1_arrival",
+      "act": 1,
+      "location": "hotel_lobby",
+      "bg": "bg_00",
+      "beat": true,
+      "title": { "ru": "Прибытие", "en": "Arrival" },
+      "nodes": [
+        { "t": "narrate",
+          "ru": "Гранд-Меридиан, 00:47. Вестибюль - собор с выключенным светом. Дождь превратил улицу в чёрное зеркало, и в нём плавают золотые окна.",
+          "en": "The Grand Meridian, 00:47. The lobby is a cathedral with the lights turned down. Rain has turned the street into black glass, and the gold windows float in it.",
+          "alt": { "ru": "Гранд-Меридиан, 00:47. Вестибюль - собор с выключенным светом. Дождь превратил улицу в чёрное зеркало, и в нём плавают золотые окна. В одном из них кто-то стоит и смотрит на вас. Вы не первый раз это видите. Вы просто впервые решили, что это можно записать.", "en": "The Grand Meridian, 00:47. The lobby is a cathedral with the lights turned down. Rain has turned the street into black glass, and the gold windows float in it. In one of them someone is standing and looking at you. This is not the first time you have seen it. You have simply decided, for the first time, that it can be written down." } },
+        { "t": "narrate",
+          "ru": "Где-то за колоннами играет радиоприёмник - тихо, как будто его стыдятся. Диктор читает сводку, и вы ловите себя на том, что ждёте одну конкретную строчку. Её там нет.",
+          "en": "Somewhere behind the columns a radio is playing - low, as if it were ashamed of itself. The announcer reads the news, and you catch yourself waiting for one specific line. It never comes.",
+          "alt": { "ru": "Где-то за колоннами играет радиоприёмник - тихо, как будто его стыдятся. Диктор называет ваше имя и переходит к погоде. Погода на завтра такая же, как сегодня. Всё на завтра такое же, как сегодня.", "en": "Somewhere behind the columns a radio is playing - low, as if it were ashamed of itself. The announcer says your name and moves on to the weather. Tomorrow's weather is the same as today's. Everything about tomorrow is the same as today." } },
+        { "t": "say", "who": "maya", "sprite": "suspicious",
+          "ru": "Бар закрыт. Стойка - тоже. И лифт выше третьего не идёт - не нажимайте, он всё равно не поедет.",
+          "en": "The bar is closed. So is the counter. And the lift does not go above the third floor - don't press it, it will not move anyway." },
+        { "t": "narrate",
+          "ru": "Она стояла в проёме бара, вытирая бокал, который уже был сухим. Перед ней на стойке лежала карточка-ключ. Одна. Вы не успели прочитать номер.",
+          "en": "She stood in the doorway of the bar, drying a glass that was already dry. On the counter in front of her lay a key card. One. You did not get to read the number.",
+          "alt": { "ru": "Она стояла в проёме бара и вытирала бокал, который уже был сухим. Вы не помните, как вошли. Зато помните, что видели её здесь раньше - сегодня, вчера, четыре года назад. Каждый раз она вытирает один и тот же сухой бокал.", "en": "She stood in the doorway of the bar, drying a glass that was already dry. You do not remember coming in. You do remember seeing her here before - today, yesterday, four years ago. Every time she is drying the same dry glass." } },
+        { "t": "goto", "next": "s2_first_meeting" }
+      ]
+    },
+
+    {
+      "id": "s2_first_meeting",
+      "act": 1,
+      "location": "bar",
+      "bg": "bg_02",
+      "cg": "img_13",
+      "title": { "ru": "Первая встреча", "en": "First Meeting" },
+      "nodes": [
+        { "t": "say", "who": "maya", "sprite": "neutral",
+          "ru": "Двадцать семь. Менеджер по мероприятиям. Четыре года в этой должности. Ночная смена - потому что днём я не могу смотреть на этот зал.",
+          "en": "Twenty-seven. Events manager. Four years in the post. Night shift - because in daylight I cannot look at this room." },
+        { "t": "narrate",
+          "ru": "Она поставила бокал. Не предложила вам стул. Три лампы над стойкой были выключены, и под ними стояли бутылки без этикеток.",
+          "en": "She set the glass down. She did not offer you a stool. Three lamps above the counter were switched off, and under them stood bottles with no labels.",
+          "alt": { "ru": "Она поставила бокал. Не предложила вам стул. Стул рядом отъехал сам, и вы сели, потому что спорить с этим бессмысленно. Вы пробовали спорить. Вы не помните когда, но пробовали.", "en": "She set the glass down. She did not offer you a stool. The stool beside you slid out on its own, and you sat, because arguing with it is pointless. You have tried arguing. You do not remember when, but you have tried." } },
+        { "t": "choice", "id": "c_first_words", "prompt": { "ru": "Ответить.", "en": "Answer her." },
+          "options": [
+            { "persona": "direct",
+              "ru": "Я знаю. Я ухожу.",
+              "en": "I know. I'm leaving.",
+              "effects": { "trust": 4 }, "mood": 2 },
+            { "persona": "warm",
+              "ru": "Тяжёлая ночь?",
+              "en": "Rough night?",
+              "effects": { "trust": 5, "tension": -2 }, "mood": 4 },
+            { "persona": "sharp",
+              "ru": "Вы всегда так разговариваете с гостями?",
+              "en": "You always talk to guests like that?",
+              "effects": { "tension": 5, "attraction": 3 }, "mood": -2 }
+          ] },
+        { "t": "goto", "next": "s3_bar_establish" }
+      ]
+    },
+
+    {
+      "id": "s3_bar_establish",
+      "act": 1,
+      "location": "bar",
+      "bg": "bg_02",
+      "title": { "ru": "Стойка", "en": "The Bar" },
+      "nodes": [
+        { "t": "narrate",
+          "ru": "Она налила вторую порцию, не спросив. Поставила её на два места правее вас. Так, будто между вами кто-то сидит.",
+          "en": "She poured a second measure without asking. She set it down two seats to your right. As if someone were sitting between you." },
+        { "t": "say", "who": "maya", "sprite": "neutral",
+          "ru": "Коньяк. Если не пьёте - скажите сейчас, я не люблю выбрасывать.",
+          "en": "Cognac. If you don't drink it, say so now. I don't like throwing things away." },
+        { "t": "narrate",
+          "ru": "Город снаружи был стеной огней. Она стояла спиной к нему, и свет обходил её по краю. На четвёртом этаже не горело ни одно окно - единственный тёмный ряд во всём доме.",
+          "en": "Outside, the city was a wall of lights. She stood with her back to it, and the light went around her edges. On the fourth floor not one window was lit - the only dark row in the whole building.",
+          "alt": { "ru": "Город снаружи был стеной огней. В стекле её отражение повернулось к вам на полсекунды раньше, чем она сама. Вы давно перестали считать эти полсекунды. Они всегда в одну сторону.", "en": "Outside, the city was a wall of lights. In the glass her reflection turned to you half a second before she did. You stopped counting those half seconds a long time ago. They always run one way." } },
+        { "t": "choice", "id": "c_why_here", "prompt": { "ru": "Начать разговор.", "en": "Start a conversation." },
+          "options": [
+            { "persona": "warm",
+              "ru": "Почему вы всё ещё здесь?",
+              "en": "Why are you still here?",
+              "effects": { "curiosity": 4 }, "mood": 3 },
+            { "persona": "direct",
+              "ru": "Налейте и мне.",
+              "en": "Pour me one too.",
+              "effects": { "trust": 3, "attraction": 3 }, "mood": 3 },
+            { "persona": "guarded",
+              "ru": "(Ничего не говорить. Просто смотреть.)",
+              "en": "(Say nothing. Just watch her.)",
+              "effects": { "curiosity": 6, "trust": -2 }, "mood": -3 }
+          ] },
+        { "t": "goto", "next": "s4_conversation" }
+      ]
+    },
+
+    {
+      "id": "s4_conversation",
+      "act": 1,
+      "location": "bar",
+      "bg": "bg_02",
+      "cg": "img_14",
+      "title": { "ru": "Разговор", "en": "Conversation" },
+      "nodes": [
+        { "t": "narrate",
+          "ru": "Она села - через одно место от вас, как будто это ничего не значит.",
+          "en": "She sat, one seat away from you, as if it meant nothing.",
+          "alt": { "ru": "Она села - через одно место от вас, как будто это ничего не значит. Между вами пустой стул, и вы весь вечер будете объяснять себе, что он пустой. Вы будете объяснять это и после того, как стул перестанет быть пустым.", "en": "She sat down - one seat away from you, as if it meant nothing. There is an empty chair between you, and you will spend the whole evening explaining to yourself that it is empty. You will still be explaining it after the chair stops being empty." } },
+        { "t": "say", "who": "maya", "sprite": "playful",
+          "ru": "Сейчас вы спросите что-нибудь. Они всегда спрашивают одно и то же. И ни один ещё не спросил про 402.",
+          "en": "You are about to ask me something. They always ask the same thing. And not one of them has ever asked about 402." },
+        { "t": "choice", "id": "c_402", "prompt": { "ru": "Спросить.", "en": "Ask." },
+          "options": [
+            { "persona": "guarded",
+              "ru": "Что в номере 402?",
+              "en": "What's in room 402?",
+              "require": { "stat": "curiosity", "gte": 35 },
+              "effects": { "curiosity": 8, "tension": 2 }, "mood": -4,
+              "unlockHint": { "ru": "Нужен «Интерес» ≥ 35", "en": "Needs Curiosity ≥ 35" } },
+            { "persona": "warm",
+              "ru": "Можете не объяснять.",
+              "en": "You don't have to explain.",
+              "effects": { "trust": 6 }, "mood": 5 },
+            { "persona": "sharp",
+              "ru": "Это место - сцена. А вы на ней одни.",
+              "en": "This place is a stage. And you're on it alone.",
+              "effects": { "tension": 4, "attraction": 2 }, "mood": 1 },
+            { "persona": "warm",
+              "ru": "Почему вы остались?",
+              "en": "Why did you stay?",
+              "require": { "stat": "trust", "gte": 40 },
+              "effects": { "trust": 8, "mood": 5 }, "mood": 5,
+              "unlockHint": { "ru": "Нужно «Доверие» ≥ 40", "en": "Needs Trust ≥ 40" } }
+          ] },
+        { "t": "goto", "next": "s5_act1_end" }
+      ]
+    },
+
+    {
+      "id": "s5_act1_end",
+      "act": 1,
+      "location": "bar",
+      "bg": "bg_02",
+      "beat": true,
+      "title": { "ru": "Конец первого акта", "en": "End of Act I" },
+      "nodes": [
+        { "t": "narrate",
+          "ru": "Она закрыла кассу ключом, который носила на запястье, как браслет.",
+          "en": "She locked the register with a key she wore on her wrist like a bracelet." },
+        { "t": "player" },
+        { "t": "say", "who": "maya", "sprite": "neutral",
+          "ru": "Идёмте. Хочу вам кое-что показать. Не спрашивайте что. И не оборачивайтесь, когда мы пройдём мимо лифта.",
+          "en": "Come with me. I want to show you something. Don't ask what. And don't turn around when we pass the lift." },
+        { "t": "actEnd", "next": "s6_hallway", "title": { "ru": "Акт II", "en": "Act II" },
+          "subtitle": { "ru": "Комната", "en": "The Room" } }
+      ]
+    },
+
+    {
+      "id": "s6_hallway",
+      "act": 2,
+      "location": "hallway",
+      "bg": "bg_09",
+      "title": { "ru": "Коридор", "en": "The Hallway" },
+      "nodes": [
+        { "t": "narrate",
+          "ru": "Коридор четвёртого этажа. Ковёр глушит шаги, и от этого кажется, что вы идёте по чужому воспоминанию. Двери пронумерованы по порядку, но 402 стоит между 408 и 410.",
+          "en": "The fourth-floor corridor. The carpet swallows your steps, and it feels like walking through someone else's memory. The doors are numbered in order, but 402 stands between 408 and 410.",
+          "alt": { "ru": "Коридор четвёртого этажа. Ковёр глушит шаги, и вы слышите вторую пару - ровно в полушаге позади. Оборачиваться вы перестали ещё на лестнице. Обернётесь - и окажется, что вы идёте один, а это хуже.", "en": "The fourth-floor corridor. The carpet swallows your steps, and you hear a second pair - exactly half a step behind. You stopped turning around on the stairs. Turn around and it will turn out you are walking alone, and that is worse." } },
+        { "t": "say", "who": "maya", "sprite": "neutral",
+          "ru": "Не отставайте. Здесь камеры работают до пяти, а потом их выключают. Не потому что экономят - потому что в пять кто-то приходит и просит их выключить.",
+          "en": "Keep up. The cameras here run until five, then they get switched off. Not to save money - because at five someone comes and asks for them to be switched off." },
+        { "t": "choice", "id": "c_where_going", "prompt": { "ru": "Спросить.", "en": "Ask." },
+          "options": [
+            { "persona": "direct",
+              "ru": "Куда мы идём?",
+              "en": "Where are we going?",
+              "effects": { "curiosity": 3 }, "mood": 0 },
+            { "persona": "sharp",
+              "ru": "Вы часто так делаете?",
+              "en": "You do this often?",
+              "effects": { "tension": 3 }, "mood": -2 },
+            { "persona": "warm",
+              "ru": "Я вас не обижу.",
+              "en": "I'm not going to hurt you.",
+              "effects": { "trust": 7 }, "mood": 6,
+              "flags": { "roof_shared": true } }
+          ] },
+        { "t": "goto", "next": "s7_lounge" }
+      ]
+    },
+
+    {
+      "id": "s7_lounge",
+      "act": 2,
+      "location": "private_lounge",
+      "bg": "bg_10",
+      "beat": true,
+      "title": { "ru": "Лаунж", "en": "The Lounge" },
+      "nodes": [
+        { "t": "narrate",
+          "ru": "Лаунж для важных гостей. Двенадцать кресел, одно занято. На столе лежит фотография - лицом вниз. На подлокотнике занятого кресла - пепел. Ещё тёплый.",
+          "en": "The lounge for important guests. Twelve armchairs, one occupied. A photograph lies on the table, face down. On the arm of the occupied chair there is ash. Still warm.",
+          "alt": { "ru": "Лаунж для важных гостей. Двенадцать кресел, одно занято. Вы видите, кто там сидит. Она - нет. Она садится так, чтобы не смотреть в ту сторону, и ждёт, пока вы перестанете видеть тоже. Вы не перестанете.", "en": "The lounge for important guests. Twelve armchairs, one occupied. You can see who is sitting there. She cannot. She sits so as not to look that way, and waits for you to stop seeing it too. You will not stop." } },
+        { "t": "say", "who": "maya", "sprite": "suspicious",
+          "ru": "Садитесь. Только не туда. Не на его место.",
+          "en": "Sit. Not there, though. Not his chair." },
+        { "t": "narrate",
+          "ru": "Она не смотрит на фотографию. Это самое громкое, что она делает.",
+          "en": "She isn't looking at the photograph. It is the loudest thing she does.",
+          "alt": { "ru": "Она не смотрит на фотографию. Это самое громкое, что она делает. В комнате есть и другие звуки, но вы решили их не считать. Так проще. Так вы доживёте до утра.", "en": "She is not looking at the photograph. It is the loudest thing she does. There are other sounds in the room, but you have decided not to count them. It is easier this way. This is how you will last until morning." } },
+        { "t": "choice", "id": "c_photo", "prompt": { "ru": "Фотография.", "en": "The photograph." },
+          "options": [
+            { "persona": "direct",
+              "ru": "(Перевернуть её.)",
+              "en": "(Turn it over.)",
+              "effects": { "curiosity": 8, "tension": 3 }, "mood": -5,
+              "flags": { "saw_photo": true } },
+            { "persona": "warm",
+              "ru": "(Не трогать. Позволить ей решить.)",
+              "en": "(Leave it alone. Let her decide.)",
+              "require": { "stat": "trust", "gte": 45 },
+              "effects": { "trust": 10, "attraction": 4 }, "mood": 6,
+              "unlockHint": { "ru": "Нужно «Доверие» ≥ 45", "en": "Needs Trust ≥ 45" } },
+            { "persona": "guarded",
+              "ru": "Кто на ней?",
+              "en": "Who's in it?",
+              "effects": { "tension": 6, "curiosity": 5 }, "mood": -4,
+              "flags": { "saw_photo": true } }
+          ] },
+        { "t": "branch", "eval": "saw_photo", "then": "s8_photo", "else": "s8b_trust_variant" }
+      ]
+    },
+
+    {
+      "id": "s8_photo",
+      "act": 2,
+      "location": "private_lounge",
+      "bg": "bg_10",
+      "cg": "img_12",
+      "title": { "ru": "Фотография", "en": "The Photograph" },
+      "nodes": [
+        { "t": "narrate",
+          "ru": "Гала-вечер, 2019. Сотня улыбок. Она - в третьем ряду, смеётся так, как, судя по всему, больше не смеялась ни разу. На обороте - дата и одно слово её рукой: «последний».",
+          "en": "A gala, 2019. A hundred smiles. She is in the third row, laughing the way she evidently has not laughed since. On the back, a date and one word in her hand: «the last one»." },
+        { "t": "narrate",
+          "ru": "Рядом с ней - фигура, чьё лицо выжжено из снимка. Не засветкой. Спичкой. Выжжено аккуратно, по контуру, и это в нём самое неприятное.",
+          "en": "Beside her is a figure whose face has been burned out of the print. Not by light leak. With a match. Burned carefully, along the contour, and that is the worst part of it.",
+          "alt": { "ru": "Рядом с ней - фигура, чьё лицо выжжено из снимка. Не засветкой. Спичкой. Вы знаете эту спичку. Она из вашего кармана, и вы знали это ещё до того, как увидели снимок. Вы просто не хотели знать.", "en": "Beside her is a figure whose face has been burned out of the print. Not by light leak. With a match. You know that match. It is from your own pocket, and you knew that before you ever saw the print. You simply did not want to know." } },
+        { "t": "say", "who": "maya", "sprite": "vulnerable",
+          "ru": "Я знаю, как это выглядит. Мне всё равно.",
+          "en": "I know how this looks. I don't care." },
+        { "t": "choice", "id": "c_photo_reaction", "prompt": { "ru": "Что вы скажете.", "en": "What you say." },
+          "options": [
+            { "persona": "direct",
+              "ru": "Вы его знали.",
+              "en": "You knew him.",
+              "effects": { "trust": 4, "tension": 4 }, "mood": -2,
+              "flags": { "took_key": true } },
+            { "persona": "warm",
+              "ru": "Мне не нужна эта история.",
+              "en": "I don't need the story.",
+              "effects": { "trust": 8 }, "mood": 7 },
+            { "persona": "sharp",
+              "ru": "(Коснуться края снимка.)",
+              "en": "(Touch the corner of the photograph.)",
+              "effects": { "attraction": 5, "curiosity": 4 }, "mood": 2 }
+          ] },
+        { "t": "goto", "next": "s9_rooftop" }
+      ]
+    },
+
+    {
+      "id": "s8b_trust_variant",
+      "act": 2,
+      "location": "private_lounge",
+      "bg": "bg_10",
+      "cg": "img_14",
+      "title": { "ru": "Она решает сама", "en": "Her Choice" },
+      "nodes": [
+        { "t": "narrate",
+          "ru": "Вы не тронули снимок. Она смотрела на него тридцать секунд, а потом убрала в карман - не переворачивая. У платья не было карманов.",
+          "en": "You did not touch the print. She looked at it for thirty seconds, then put it in her pocket - without turning it over. The dress had no pockets." },
+        { "t": "say", "who": "maya", "sprite": "vulnerable",
+          "ru": "Однажды я расскажу. Не сегодня. Но, кажется, кому-то.",
+          "en": "One day I'll tell it. Not tonight. But to someone, it seems." },
+        { "t": "narrate",
+          "ru": "Это была не благодарность. Это было разрешение остаться.",
+          "en": "It wasn't gratitude. It was permission to stay." },
+        { "t": "goto", "next": "s9_rooftop" }
+      ]
+    },
+
+    {
+      "id": "s9_rooftop",
+      "act": 2,
+      "location": "rooftop",
+      "bg": "bg_11",
+      "beat": true,
+      "title": { "ru": "Крыша", "en": "The Rooftop" },
+      "nodes": [
+        { "t": "narrate",
+          "ru": "Служебная лестница, восемь пролётов. Дверь на крышу открывается плечом. На ступенях мокрые следы. Дождь начался час назад, а следы свежее дождя.",
+          "en": "The service stair, eight flights. The roof door opens with a shoulder. There are wet footprints on the steps. The rain started an hour ago, and the footprints are newer than the rain.",
+          "alt": { "ru": "Служебная лестница, восемь пролётов. Вы считаете их дважды: в первый раз выходит девять. Второй раз вы считать не стали. Какой смысл, если счёт всё равно не сходится.", "en": "The service stair, eight flights. You count them twice: the first time it comes out to nine. The second time you did not bother. What is the point, if the count never comes out right." } },
+        { "t": "narrate",
+          "ru": "Город внизу ещё горит, но небо на востоке уже сдалось - там тонкая полоса серого.",
+          "en": "The city below is still burning, but the sky to the east has surrendered. A thin grey line.",
+          "alt": { "ru": "Город внизу ещё горит, но небо на востоке уже сдалось - там тонкая полоса серого. В этой полосе кто-то стоит и смотрит вверх, на вас. С девятого этажа лиц не видно, и вас это устраивает. Вас устраивает всё, что не приходится рассматривать.", "en": "Below, the city is still burning, but the sky in the east has already given up - a thin grey band. In that band someone is standing and looking up at you. Faces are not visible from the ninth floor, and that suits you. Anything you do not have to look at closely suits you." } },
+        { "t": "say", "who": "maya", "sprite": "neutral",
+          "ru": "Здесь я решаю. Всё, что ниже этой двери, - не моё.",
+          "en": "Here is where I decide. Everything below that door isn't mine." },
+        { "t": "choice", "id": "c_pivot", "prompt": { "ru": "Выбор.", "en": "Choose." },
+          "options": [
+            { "persona": "warm",
+              "ru": "(Остаться на крыше. Рядом.)",
+              "en": "(Stay on the roof. Beside her.)",
+              "effects": { "trust": 8, "mood": 6 }, "path": "TRUST" },
+            { "persona": "sharp",
+              "ru": "Пойдёмте со мной.",
+              "en": "Come with me.",
+              "effects": { "attraction": 8, "tension": 5 }, "path": "TENSION" },
+            { "persona": "guarded",
+              "ru": "Расскажите про 402.",
+              "en": "Tell me about 402.",
+              "effects": { "curiosity": 10 }, "path": "MYSTERY" }
+          ] },
+        { "t": "goto", "next": "s10_trust_moment" }
+      ]
+    },
+
+    {
+      "id": "s10_trust_moment",
+      "act": 2,
+      "location": "rooftop",
+      "bg": "bg_11",
+      "beat": true,
+      "title": { "ru": "Момент", "en": "The Moment" },
+      "nodes": [
+        { "t": "say", "who": "maya", "sprite": "vulnerable",
+          "ru": "Я четыре года прихожу сюда в пять утра, чтобы никто не видел, как я в порядке.",
+          "en": "For four years I've come up here at five in the morning so nobody sees me being fine." },
+        { "t": "ai",
+          "prompt": { "ru": "Она только что призналась в чём-то настоящем. Ответьте одной живой репликой - не утешением и не вопросом.", "en": "She has just admitted something true. Answer with one live line - not comfort, not a question." },
+          "fallback": { "ru": "Тогда я тоже перестану делать вид. По крайней мере, до рассвета.",
+                        "en": "Then I'll stop pretending too. Until sunrise, at least." } },
+        { "t": "narrate",
+          "ru": "Ветер поднял прядь и бросил её ей на щёку. Она не убрала.",
+          "en": "The wind lifted a strand of hair and dropped it across her cheek. She didn't move it.",
+          "alt": { "ru": "Ветер поднял прядь и бросил её ей на щёку. Она не убрала. Вы хотите убрать и обнаруживаете, что ваша рука уже поднята. Вы не помните, как её подняли. Вы вообще мало что помните с той стороны.", "en": "The wind lifted a strand of hair and threw it across her cheek. She did not move it. You want to move it and find that your hand is already raised. You do not remember raising it. You remember very little from the other side." } },
+        { "t": "say", "who": "maya", "sprite": "vulnerable",
+          "ru": "Если вы сейчас что-то скажете, скажите правду. У меня нет сил на вежливость.",
+          "en": "If you say something now, make it true. I don't have the strength for politeness." },
+        { "t": "cg", "img": "img_15" },
+        { "t": "actEnd", "next": "s11_route", "title": { "ru": "Акт III", "en": "Act III" },
+          "subtitle": { "ru": "После закрытия", "en": "After Hours" } }
+      ]
+    },
+
+    {
+      "id": "s11_route",
+      "act": 3,
+      "location": "rooftop",
+      "bg": "bg_11",
+      "title": { "ru": "Развилка", "en": "The Split" },
+      "nodes": [
+        { "t": "branch", "eval": "path", "then": {
+            "TRUST": "s11_trust", "TENSION": "s11_tension", "MYSTERY": "s11_mystery" },
+          "else": "s11_trust" }
+      ]
+    },
+
+    {
+      "id": "s11_trust",
+      "act": 3,
+      "location": "rooftop",
+      "bg": "bg_11",
+      "cg": "img_15",
+      "title": { "ru": "Доверие", "en": "Trust" },
+      "nodes": [
+        { "t": "narrate",
+          "ru": "Она села на парапет, свесив ноги в город, и похлопала по камню рядом.",
+          "en": "She sat on the parapet, legs hanging over the city, and patted the stone beside her.",
+          "alt": { "ru": "Она села на парапет, свесив ноги в город, и похлопала по камню рядом. Камень слева ещё тёплый. Вы садитесь справа. Вы всегда садитесь справа. Слева вы уже сидели.", "en": "She sat on the parapet with her legs over the city and patted the stone beside her. The stone on the left is still warm. You sit on the right. You always sit on the right. You have already sat on the left." } },
+        { "t": "say", "who": "maya", "sprite": "vulnerable",
+          "ru": "Его звали Дан. Он был здесь главным. Он умер в 402-м, и я была единственной, кто знал, что он там. Четыре дня. Я приходила и уходила, и он всё это время был там.",
+          "en": "His name was Dan. He ran this place. He died in 402, and I was the only one who knew he was in there. Four days. I came and went, and the whole time he was in there." },
+        { "t": "choice", "id": "c_trust_react", "prompt": { "ru": "Ответить.", "en": "Answer." },
+          "options": [
+            { "persona": "warm",
+              "ru": "Вы ни в чём не виноваты.",
+              "en": "None of this was your fault.",
+              "effects": { "trust": 10, "mood": 8 }, "flags": { "told_truth": true } },
+            { "persona": "direct",
+              "ru": "Почему вы никому не сказали?",
+              "en": "Why didn't you tell anyone?",
+              "effects": { "trust": 5, "curiosity": 5 } },
+            { "persona": "sharp",
+              "ru": "А ключ от 402 всё ещё у вас.",
+              "en": "And you still have the key to 402.",
+              "effects": { "tension": 6, "curiosity": 6 } }
+          ] },
+        { "t": "goto", "next": "s12_office" }
+      ]
+    },
+
+    {
+      "id": "s11_tension",
+      "act": 3,
+      "location": "rooftop",
+      "bg": "bg_11",
+      "cg": "img_16",
+      "title": { "ru": "Напряжение", "en": "Tension" },
+      "nodes": [
+        { "t": "narrate",
+          "ru": "Она подошла слишком близко - на расстояние, где уже нельзя делать вид, что это разговор.",
+          "en": "She stepped too close, to the distance where you can no longer pretend this is a conversation.",
+          "alt": { "ru": "Она подошла слишком близко - на расстояние, где уже нельзя делать вид, что это разговор. На этом расстоянии видно, что у неё две тени. У вас тоже. Тени не спорят, тени просто повторяют, и в этом всё, что нужно знать про эту ночь.", "en": "She came too close - close enough that you can no longer pretend this is a conversation. At this distance you can see she has two shadows. So do you. Shadows do not argue, shadows only repeat, and that is everything you need to know about tonight." } },
+        { "t": "say", "who": "maya", "sprite": "angry",
+          "ru": "Вы понимаете, что я могу снять трубку и вас выведут за четыре минуты?",
+          "en": "Do you understand I can pick up a phone and have you walked out in four minutes?" },
+        { "t": "say", "who": "maya", "sprite": "angry",
+          "ru": "И всё равно стою здесь. Объясните мне это.",
+          "en": "And I'm still standing here. Explain that to me." },
+        { "t": "choice", "id": "c_tension_react", "prompt": { "ru": "Не отступать.", "en": "Don't step back." },
+          "options": [
+            { "persona": "sharp",
+              "ru": "Потому что вам нравится не знать, что будет.",
+              "en": "Because you like not knowing what happens next.",
+              "effects": { "tension": 8, "attraction": 6 }, "flags": { "pushed_hard": true } },
+            { "persona": "warm",
+              "ru": "Потому что вам надоело быть одной.",
+              "en": "Because you're tired of being alone.",
+              "effects": { "trust": 7, "tension": -6 }, "mood": 4 },
+            { "persona": "direct",
+              "ru": "Позвоните. Я подожду.",
+              "en": "Make the call. I'll wait.",
+              "effects": { "tension": 4, "trust": 3 } }
+          ] },
+        { "t": "goto", "next": "s12_office" }
+      ]
+    },
+
+    {
+      "id": "s11_mystery",
+      "act": 3,
+      "location": "rooftop",
+      "bg": "bg_11",
+      "cg": "img_12",
+      "title": { "ru": "Тайна", "en": "Mystery" },
+      "nodes": [
+        { "t": "narrate",
+          "ru": "Она достала фотографию. В свете фонаря выжженное лицо выглядело как дыра в мире.",
+          "en": "She took out the photograph. Under the lamp the burned face looked like a hole in the world.",
+          "alt": { "ru": "Она достала фотографию. В свете фонаря выжженное лицо выглядело как дыра в мире. Вы уже видели эту дыру сегодня - в витрине, в стекле, в окне напротив. Она не появляется. Она просто перестаёт прятаться.", "en": "She took out the photograph. In the lamplight the burned-out face looked like a hole in the world. You have already seen that hole tonight - in a shop window, in glass, in the window opposite. It does not appear. It simply stops hiding." } },
+        { "t": "say", "who": "maya", "sprite": "suspicious",
+          "ru": "Вы первый, кто спросил про 402 и не спросил, что там за привидение.",
+          "en": "You're the first person to ask about 402 without asking what kind of ghost is in it." },
+        { "t": "say", "who": "maya", "sprite": "suspicious",
+          "ru": "Номер забронирован на шесть месяцев вперёд. Одним именем. Я плачу за него из своей зарплаты. Имя на брони - не Дан.",
+          "en": "The room is booked six months ahead. Under one name. I pay for it out of my own salary. The name on the booking is not Dan." },
+        { "t": "choice", "id": "c_mystery_react", "prompt": { "ru": "Реакция.", "en": "React." },
+          "options": [
+            { "persona": "guarded",
+              "ru": "Чьё имя?",
+              "en": "Whose name?",
+              "effects": { "curiosity": 10, "tension": 4 }, "flags": { "saw_photo": true } },
+            { "persona": "warm",
+              "ru": "Вы его хороните. Каждый месяц.",
+              "en": "You're burying him. Every month.",
+              "effects": { "trust": 10, "curiosity": 5 }, "flags": { "saw_photo": true, "told_truth": true } },
+            { "persona": "direct",
+              "ru": "Отдайте мне ключ.",
+              "en": "Give me the key.",
+              "effects": { "tension": 8, "attraction": 4 }, "flags": { "took_key": true } }
+          ] },
+        { "t": "goto", "next": "s12_office" }
+      ]
+    },
+
+    {
+      "id": "s12_office",
+      "act": 3,
+      "location": "back_office",
+      "bg": "bg_10",
+      "beat": true,
+      "title": { "ru": "Подсобка", "en": "The Back Office" },
+      "nodes": [
+        { "t": "narrate",
+          "ru": "Подсобка за стойкой регистрации. Стена карточек-ключей. Один крючок пуст - и отполирован до блеска, как будто с него снимают ключ каждый день.",
+          "en": "The back room behind reception. A wall of key cards. One hook is empty - and polished to a shine, as if a key is lifted off it every day.",
+          "alt": { "ru": "Подсобка за стойкой регистрации. Стена карточек-ключей. Два крючка пусты. Она говорит «один», и вы решаете не спорить. Спорить не с чем: оба крючка отполированы одинаково.", "en": "The back room behind reception. A wall of key cards. Two hooks are empty. She says «one», and you decide not to argue. There is nothing to argue with: both hooks are polished the same." } },
+        { "t": "say", "who": "maya", "sprite": "neutral",
+          "ru": "Пять минут до смены Нади. Потом я снова менеджер.",
+          "en": "Five minutes until Nadia's shift. Then I'm the manager again." },
+        { "t": "narrate",
+          "ru": "За окном впервые за ночь стало видно цвет - серый превращается в бледно-золотой.",
+          "en": "Outside, for the first time all night, colour returns. Grey turning to pale gold.",
+          "alt": { "ru": "За окном впервые за ночь стало видно цвет - серый превращается в бледно-золотой. В стекле два лица. Одно ваше. Второе вы решили не считать. Утро всё равно наступит, и оно всё равно ничего не исправит.", "en": "Outside, for the first time that night, colour is visible - grey turning pale gold. There are two faces in the glass. One is yours. You have decided not to count the second. Morning will come anyway, and it will fix nothing anyway." } },
+        { "t": "player" },
+        { "t": "choice", "id": "c_final", "prompt": { "ru": "Последнее слово за вами.", "en": "The last word is yours." },
+          "options": [
+            { "persona": "warm",
+              "ru": "Пойдёмте в 402. Вместе.",
+              "en": "Let's go to 402. Together.",
+              "require": { "stat": "trust", "gte": 60 },
+              "effects": { "trust": 10, "attraction": 6, "mood": 6 }, "flags": { "told_truth": true },
+              "unlockHint": { "ru": "Нужно «Доверие» ≥ 60", "en": "Needs Trust ≥ 60" } },
+            { "persona": "direct",
+              "ru": "Мне пора.",
+              "en": "I should go.",
+              "effects": { "mood": -4 } },
+            { "persona": "guarded",
+              "ru": "Скажите правду. Всю.",
+              "en": "Tell me the truth. All of it.",
+              "require": { "stat": "curiosity", "gte": 55 },
+              "effects": { "curiosity": 10 }, "flags": { "secret_found": true },
+              "unlockHint": { "ru": "Нужен «Интерес» ≥ 55", "en": "Needs Curiosity ≥ 55" } }
+          ] },
+        { "t": "ending" }
+      ]
+    },
+
+    {
+      "id": "e_stay",
+      "ending": "STAY",
+      "code": { "ru": "ОСТАТЬСЯ", "en": "STAY" },
+      "premium": true,
+      "cg": "img_18",
+      "sprite": "happy",
+      "title": { "ru": "Остаться", "en": "Stay" },
+      "body": {
+        "ru": "Она не сказала «останься». Она просто не сказала «уходи». Мы поднялись на четвёртый, и она открыла 402 впервые за четыре года - не для него, а чтобы закрыть. На рассвете она стояла у окна спиной ко мне, и впервые за ночь её плечи были опущены, а не подняты. Я не спросил, что дальше. Она не предложила. Ключ она оставила в двери. Снаружи. Это было честнее любого обещания.",
+        "en": "She did not say stay. She just did not say leave. We went up to the fourth floor, and she opened 402 for the first time in four years - not for him, but to close it. At dawn she stood at the window with her back to me, and for the first time that night her shoulders were down instead of up. I did not ask what happens next. She did not offer. She left the key in the door. On the outside. It was more honest than any promise."
+      },
+      "altBody": { "ru": "Она не сказала «останься». Она просто не сказала «уходи». Мы поднялись на четвёртый, и она открыла 402 впервые за четыре года. В номере никого не было. Я проверил дважды, потом третий раз, потом она взяла меня за руку и сказала, что здесь всегда так тихо. На рассвете она стояла у окна спиной ко мне. В стекле я видел её лицо, обращённое ко мне, хотя она стояла спиной. Мы оба решили, что это стекло. Утром я не смог вспомнить, в каком из окон я увидел это первым. Я и сейчас не могу.", "en": "She did not say stay. She just did not say leave. We went up to the fourth floor, and she opened 402 for the first time in four years. There was no one in the room. I checked twice, then a third time, then she took my hand and said it is always this quiet in here. At dawn she stood at the window with her back to me. In the glass I saw her face turned towards me, though her back was turned. We both decided it was the glass. In the morning I could not remember which window I had seen it in first. I still cannot." },
+      "hint": { "ru": "Финал «Выгореть» ждал вас, если бы напряжение превысило 60.", "en": "The Burn ending awaited you if Tension had passed 60." }
+    },
+    {
+      "id": "e_burn",
+      "ending": "BURN",
+      "code": { "ru": "ВЫГОРЕТЬ", "en": "BURN" },
+      "premium": true,
+      "cg": "img_16",
+      "sprite": "angry",
+      "title": { "ru": "Выгореть", "en": "Burn" },
+      "body": {
+        "ru": "Она вышла из подсобки, не попрощавшись, и через минуту на четвёртом этаже зажёгся свет. Я получил ту ночь, за которой пришёл: напряжение, близость, ощущение, что держу что-то хрупкое и живое в руках. Утром Надя спросила, кто я такой. Никто не смог ответить. Через месяц пришёл конверт без обратного адреса. Внутри была фотография и одна спичка. Я не оставил ей ничего, кроме вопроса, на который она будет отвечать годами.",
+        "en": "She walked out of the back office without saying goodbye, and a minute later a light came on on the fourth floor. I got the night I came for: tension, closeness, the feeling of holding something fragile and alive. In the morning Nadya asked who I was. Nobody could answer. A month later an envelope arrived with no return address. Inside were the photograph and a single match. I left her nothing but a question she will be answering for years."
+      },
+      "altBody": { "ru": "Она вышла из подсобки, не попрощавшись, и через минуту на четвёртом этаже зажёгся свет. Я получил ту ночь, за которой пришёл. Утром я попытался вспомнить её лицо и не смог - только отражение в стекле, которое смотрело на меня, пока она стояла спиной. Надя спросила, кто я такой. Я ответил. Она переспросила. Я ответил иначе и понял, что больше не уверен. Я до сих пор не уверен. Я отвечаю по-разному каждый раз, когда меня спрашивают.", "en": "She walked out of the back office without saying goodbye, and a minute later a light came on on the fourth floor. I got the night I came for. In the morning I tried to remember her face and could not - only the reflection in the glass, watching me while her back was turned. Nadya asked who I was. I answered. She asked again. I answered differently and realised I was no longer sure. I am still not sure. I answer differently every time I am asked." },
+      "hint": { "ru": "Доверие выше 65 открыло бы совсем другой финал.", "en": "Trust above 65 would have opened a very different ending." }
+    },
+    {
+      "id": "e_reveal",
+      "ending": "REVEAL",
+      "code": { "ru": "ПРАВДА", "en": "REVEAL" },
+      "premium": false,
+      "cg": "img_17",
+      "sprite": "vulnerable",
+      "title": { "ru": "Правда", "en": "Reveal" },
+      "body": {
+        "ru": "Номер 402 никогда не был номером. Это был человек, которого она не смогла отпустить, и комната, которую она оплачивала как надгробие. Она рассказала всё - не потому что я выпытал, а потому что устала носить. Я не дал ей ответа. Я дал ей свидетеля. Имени на брони я так и не узнал. Она сказала, что я его уже слышал. Иногда свидетель - единственное, что можно дать.",
+        "en": "Room 402 was never a room. It was a man she could not let go of, and a room she paid for like a headstone. She told me everything - not because I dragged it out of her, but because she was tired of carrying it. I did not give her an answer. I gave her a witness. I never learned the name on the booking. She said I had already heard it. Sometimes a witness is the only thing you can give."
+      },
+      "altBody": { "ru": "Номер 402 никогда не был номером. Она рассказала всё - не потому что я выпытал, а потому что устала носить. Я слушал и ждал, когда она дойдёт до спички. Она не дошла. Я знал про спичку раньше, чем увидел снимок, и это единственное, чего я ей не сказал. Я дал ей свидетеля. Свидетель был ненадёжный. Я не знаю, кому из нас двоих она рассказывала. Я не знаю, был ли второй.", "en": "Room 402 was never a room. She told me everything - not because I dragged it out of her, but because she was tired of carrying it. I listened and waited for her to get to the match. She never did. I knew about the match before I ever saw the photograph, and that is the one thing I did not tell her. I gave her a witness. The witness was unreliable. I do not know which of the two of us she was telling. I do not know whether there was a second." },
+      "hint": { "ru": "При большем доверии она позволила бы вам войти внутрь, а не только узнать.", "en": "With more Trust she would have let you inside, not just into the story." }
+    },
+    {
+      "id": "e_empty",
+      "ending": "EMPTY",
+      "code": { "ru": "ПУСТОТА", "en": "EMPTY" },
+      "premium": false,
+      "cg": "bg_11",
+      "sprite": null,
+      "title": { "ru": "Номер 402", "en": "Room 402" },
+      "body": {
+        "ru": "Утром вестибюль снова был вестибюлем. На стойке никого, в баре никого, на четвёртом этаже - тишина. Я уехал, не узнав ни её имени целиком, ни того, что было в 402. Через год я нашёл в кармане пальто карточку-ключ с номером 402. Я не брал её. Иногда я думаю, что был вежлив ровно настолько, чтобы не запомниться. Она, наверное, тоже.",
+        "en": "In the morning the lobby was a lobby again. Nobody at reception, nobody in the bar, silence on the fourth floor. I left without learning her full name or what was in 402. A year later I found a key card for room 402 in the pocket of my coat. I never took it. Sometimes I think I was polite just enough to be forgotten. She probably was too."
+      },
+      "altBody": { "ru": "Утром вестибюль снова был вестибюлем. Я спросил у портье, когда выходит менеджер по мероприятиям. Он посмотрел на меня и сказал, что менеджера по мероприятиям в отеле нет - уже четыре года. Я описал её. Он предложил вызвать врача. Я вышел на улицу, посмотрел на окна и увидел её в шестом слева. Она не помахала. Она просто смотрела, как я ухожу, и это было честнее всего, что случилось за ночь. Я вернулся в отель. Я возвращаюсь каждую ночь. Иногда она уже там.", "en": "In the morning the lobby was a lobby again. I asked the concierge when the events manager came on. He looked at me and said the hotel has no events manager - hasn't had one for four years. I described her. He offered to call a doctor. I walked outside, looked up at the windows, and saw her in the sixth from the left. She did not wave. She just watched me leave, and it was the most honest thing that happened all night. I went back into the hotel. I go back every night. Sometimes she is already there." },
+      "hint": { "ru": "Три других финала существовали. Все они требовали, чтобы вы чего-то захотели.", "en": "Three other endings existed. All of them required you to want something." }
+    }
+  ],
+
+  "locations": {
+    "hotel_lobby":     { "bg": "bg_00", "label": { "ru": "Вестибюль", "en": "Lobby" },    "ambient": "cold" },
+    "bar":             { "bg": "bg_02", "label": { "ru": "Бар",       "en": "Bar" },       "ambient": "warm" },
+    "hallway":         { "bg": "bg_09", "label": { "ru": "Коридор",   "en": "Hallway" },   "ambient": "cold" },
+    "private_lounge":  { "bg": "bg_10", "label": { "ru": "Лаунж",     "en": "Lounge" },    "ambient": "warm" },
+    "rooftop":         { "bg": "bg_11", "label": { "ru": "Крыша",     "en": "Rooftop" },   "ambient": "neutral" },
+    "back_office":     { "bg": "bg_10", "label": { "ru": "Подсобка",  "en": "Back Office" }, "ambient": "cold" }
+  }
+}
