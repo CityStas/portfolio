@@ -303,8 +303,8 @@ window.AH_STRINGS = {
       "en": "Choose an art style"
     },
     "subtitle": {
-      "ru": "Два полных набора изображений. Поменять можно в любой момент в настройках.",
-      "en": "Two complete art sets. You can switch at any time in Settings."
+      "ru": "Поменять можно в любой момент в настройках.",
+      "en": "You can switch at any time in Settings."
     },
     "classic": {
       "ru": "Кинематографичный",

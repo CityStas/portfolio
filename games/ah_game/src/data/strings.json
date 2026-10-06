@@ -82,7 +82,7 @@
 
   "style": {
     "title":       { "ru": "Выберите стиль графики", "en": "Choose an art style" },
-    "subtitle":    { "ru": "Два полных набора изображений. Поменять можно в любой момент в настройках.", "en": "Two complete art sets. You can switch at any time in Settings." },
+    "subtitle":    { "ru": "Поменять можно в любой момент в настройках.", "en": "You can switch at any time in Settings." },
     "classic":     { "ru": "Кинематографичный",      "en": "Cinematic" },
     "classicShort":{ "ru": "Кино",                   "en": "Film" },
     "classicNote": { "ru": "Полуреалистичная живопись, объёмный свет, глубокие тени.", "en": "Semi-realistic painting, volumetric light, deep shadows." },
