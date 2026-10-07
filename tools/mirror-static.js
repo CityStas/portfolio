@@ -13,8 +13,8 @@
 
    Запуск из корня проекта:
      node tools/mirror-static.js                 # всё, что перечислено ниже
-     node tools/mirror-static.js apps/dubbed     # одна сборка
-     node tools/mirror-static.js dubbed          # то же по короткому имени
+     node tools/mirror-static.js games/lilcraft  # одна сборка
+     node tools/mirror-static.js lilcraft        # то же по короткому имени
 
    Старое имя tools/mirror-games.js сохранено как обёртка над этим скриптом.
    ============================================================================ */
@@ -54,10 +54,6 @@ const SOURCES = {
   'games/deddemo': { host: 'deddemo.vercel.app', extra: GODOT },
   'games/bubblepeaks': { host: 'bubblepeaks.vercel.app', extra: GODOT },
   'games/lilcraft': { host: 'lilcraft.vercel.app', extra: LILWORLDS },
-
-  // Лендинг расширения. Статика целиком, включая downloads/*.zip и *.xpi:
-  // смысл переезда в том, чтобы установщики скачивались без VPN.
-  'apps/dubbed': { host: 'dubbedru.vercel.app', extra: [] },
 
   // apps/orfree здесь СОЗНАТЕЛЬНО нет. Его веб-версия — не просто статика:
   // без релея на Vercel (api/relay.js, путь через ?path=) она не может ходить
