@@ -390,7 +390,7 @@ for (const rel of ['assets/css/style.css', 'assets/js/app.js', 'assets/data/proj
                    'assets/img/projects/shrooms.webp', 'assets/img/projects/bubblepeaks.webp',
                    'assets/img/projects/bubblepeaks-splash.webp',
                    'assets/img/projects/lilcraft.webp', 'assets/img/projects/bazaskate.webp',
-                   'assets/img/projects/rustore.webp',
+                   'assets/img/projects/dubbed.webp', 'assets/img/projects/rustore.webp',
                    'assets/img/projects/modellab.webp',
                    'assets/img/projects/modellab-tables.webp']) {
   const ok = fs.existsSync(path.join(root, rel));

@@ -38,6 +38,7 @@ const SITES = [
   { slug: 'lilcraft',    url: 'https://dvodev.space/games/lilcraft/', wait: 12000, keys: [], clicks: [], look: null, walk: 0, scroll: 0 },
 
   { slug: 'bazaskate',   url: 'https://bazaskate.shop/',          wait: 7000,  keys: [], clicks: [], look: null, walk: 0, scroll: 0 },
+  { slug: 'dubbed',      url: 'https://dubbedru.vercel.app/',     wait: 7000,  keys: [], clicks: [], look: null, walk: 0, scroll: 0 },
 
   // ORFree AI в портфолио показывается страницей RuStore, а не веб-версией:
   // именно RuStore — основной канал. Правую колонку RuStore прячем (иначе в кадр

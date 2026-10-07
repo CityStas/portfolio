@@ -11,7 +11,7 @@
      node tools/mirror-games.js deddemo    # только одну
 
    Приложения этой обёрткой не собираются намеренно — только игры.
-   Для приложений: node tools/mirror-static.js apps/<slug>
+   Для приложений: node tools/mirror-static.js apps/dubbed
    ============================================================================ */
 'use strict';
 
