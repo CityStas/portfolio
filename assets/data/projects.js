@@ -142,10 +142,16 @@ window.PROJECTS = [
     // На карточке - кадр генерации: по нему сразу видно, что приложение делает.
     // В просмотре открывается кадр приложения (shotOpen), а полоска снизу идёт
     // от «пустого» экрана через интерфейс к клипу с 3D-моделью.
-    shot: 'assets/img/projects/hcai-main.webp',
+    // 2026-10-09: вторая демонстрация - робот. Превью карточки - кадр его
+    // генерации, новые кадры и клип стоят перед старыми, «пустой» экран
+    // остаётся первым.
+    shot: 'assets/img/projects/hcai-robo-pre.webp',
     shotOpen: 1,
     shots: [
       'assets/img/projects/hcai-splash.webp',
+      'assets/img/projects/hcai-robo.webp',
+      { clip: 'assets/media/hcai-robo.mp4', webm: 'assets/media/hcai-robo.webm',
+        poster: 'assets/img/projects/hcai-robo.webp' },
       'assets/img/projects/hcai-app.webp',
       { clip: 'assets/media/hcai.mp4', webm: 'assets/media/hcai.webm',
         poster: 'assets/img/projects/hcai-app.webp' }
