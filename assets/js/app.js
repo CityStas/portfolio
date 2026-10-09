@@ -155,6 +155,13 @@
   // Источники в порядке предпочтения: webm легче, mp4 играет везде. Браузер берёт
   // первый, который умеет, - отдельная проверка поддержки не нужна.
   function videoSources(v, p) {
+    // Смена <source> у элемента, который уже что-то загрузил, выбор ресурса не
+    // перезапускает: без load() в лайтбоксе продолжал бы играть прежний клип -
+    // у проекта с двумя клипами это видно сразу. У свежего элемента
+    // networkState = NETWORK_EMPTY, там выбор запускается сам, и лишний load()
+    // вреден: он бы дёрнул сеть у карточки с preload="none", а в jsdom его нет
+    // вовсе - смоук-тест счёл бы это ошибкой страницы.
+    var loaded = !!(v.currentSrc || v.networkState);
     v.textContent = '';
     if (p.clipWebm) {
       var w = document.createElement('source');
@@ -167,6 +174,7 @@
     var m = document.createElement('source');
     m.src = p.clip; m.type = srcType(p.clip, 'video/mp4');
     v.appendChild(m);
+    if (loaded) v.load();
   }
 
   // Отпускаем видео целиком: пауза, снятые источники, убранный постер. Одно место

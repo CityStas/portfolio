@@ -25,6 +25,7 @@ const { chromium } = require(PW);
 const ROOT = path.resolve(__dirname, '..');
 const PORT = 8788;
 const CLIP = path.join(ROOT, 'assets', 'media', '__test.webm');
+const CLIP2 = path.join(ROOT, 'assets', 'media', '__test2.webm');
 
 const MIME = {
   '.html': 'text/html', '.js': 'application/javascript', '.css': 'text/css',
@@ -87,6 +88,9 @@ function check(name, got, expected) {
     return btoa(s);
   });
   fs.writeFileSync(CLIP, Buffer.from(b64, 'base64'));
+  // Второй файл - побайтовая копия первого: для проверки подмены источника
+  // важно только разное имя в currentSrc, содержимое роли не играет.
+  fs.copyFileSync(CLIP, CLIP2);
   console.log('тестовый клип: ' + Math.round(fs.statSync(CLIP).size / 1024) + ' KB\n');
 
   // 2. Подсовываем карточку с клипом. В clip намеренно webm: тип источника должен
@@ -95,6 +99,12 @@ function check(name, got, expected) {
     const body = fs.readFileSync(path.join(ROOT, 'assets/data/projects.js'), 'utf8') +
       "\nwindow.PROJECTS.push({title:'TEST CLIP',kind:'Инструмент',desc:'t',year:'2026',status:'live'," +
       "shot:'assets/img/projects/rustore.webp',clip:'assets/media/__test.webm'," +
+      "links:{demo:'https://example.com/'}});" +
+      // Два клипа в одном проекте: подмену источника в лайтбоксе иначе не поймать.
+      "\nwindow.PROJECTS.push({title:'TEST TWO CLIPS',kind:'Инструмент',desc:'t',year:'2026',status:'live'," +
+      "shot:'assets/img/projects/rustore.webp'," +
+      "shots:[{clip:'assets/media/__test.webm',poster:'assets/img/projects/rustore.webp'}," +
+      "{clip:'assets/media/__test2.webm',poster:'assets/img/projects/rustore.webp'}]," +
       "links:{demo:'https://example.com/'}});";
     await route.fulfill({ contentType: 'application/javascript', body });
   });
@@ -193,11 +203,30 @@ function check(name, got, expected) {
   check('у проекта без clip видео не появилось', plain.clip, false);
   check('у проекта без clip кадр на месте', plain.img, true);
 
+  // 8. Два клипа в одном проекте. Смена <source> у уже загруженного <video>
+  //    выбор ресурса не перезапускает: без load() в videoSources второй клип
+  //    продолжал бы играть первый - на сайте это выглядело как «старый клип
+  //    показывает новый».
+  const two = page.locator('.card', { hasText: 'TEST TWO CLIPS' }).locator('.card__shot');
+  await two.scrollIntoViewIfNeeded();
+  await two.click();
+  await page.waitForTimeout(1000);
+  const clipSrc = i => page.evaluate(async i => {
+    document.querySelectorAll('#lbShots .lb__shot')[i].click();
+    await new Promise(r => setTimeout(r, 1500));
+    return document.querySelector('#lbVid').currentSrc.replace(/^https?:\/\/[^/]+\//, '');
+  }, i);
+  check('лайтбокс: клип 1', await clipSrc(0), 'assets/media/__test.webm');
+  check('лайтбокс: клип 2', await clipSrc(1), 'assets/media/__test2.webm');
+  check('лайтбокс: назад к клипу 1', await clipSrc(0), 'assets/media/__test.webm');
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(600);
+
   check('ошибок в консоли нет', errs.length ? errs.join(' | ') : 0, 0);
 
   await browser.close();
   server.close();
-  try { fs.unlinkSync(CLIP); } catch (e) { console.log('(фикстуру удалить не вышло: ' + CLIP + ')'); }
+  try { fs.unlinkSync(CLIP); fs.unlinkSync(CLIP2); } catch (e) { console.log('(фикстуру удалить не вышло: ' + CLIP + ')'); }
   console.log('\nИТОГ: ' + (bad ? 'проблем ' + bad : 'всё зелёное'));
   process.exit(bad ? 1 : 0);
 })();
