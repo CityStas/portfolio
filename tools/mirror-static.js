@@ -83,7 +83,7 @@ const HTML_RE = /(?:src|href)\s*=\s*["']([^"']+)["']/gi;
 const DYN_RE = /`[^`$]*\$\{[^}]*\}[^`]*\.(?:json|glb|gltf|bin|data|png|jpe?g|webp|gif|svg|ogg|mp3|wav|mp4|webm|wasm|pck|css|mjs|js|txt|xml)`/g;
 
 /* ---------------------------------------------------------------------------
-   Снятие требования Secure Context у сборок Godot 4.
+   Сборка Godot 4 под http: снять требование Secure Context и вернуть звук.
 
    Godot 4 не стартует, если страница открыта не по HTTPS: вместо игры
    посетитель видит плашку «The following features required to run Godot
@@ -91,31 +91,50 @@ const DYN_RE = /`[^`$]*\$\{[^}]*\}[^`]*\.(?:json|glb|gltf|bin|data|png|jpe?g|web
    домен по http, пока не выпущен сертификат (и вообще не умеет отдавать
    COOP/COEP), поэтому сборку приходится готовить к слабому контексту.
 
-   Правится ровно две вещи, обе идемпотентно:
+   Вне защищённого контекста браузер не даёт AudioWorklet, но у движка есть
+   ЗАПАСНОЙ аудиодрайвер на ScriptProcessorNode, которому HTTPS не нужен.
+   Мешают ему три ссылки на worklet — их и правим, идемпотентно:
 
      1. index.js   - isSecureContext() начинает возвращать true;
-     2. index.html - вне https движок стартует с `--audio-driver Dummy`
-                     (браузер не даёт AudioWorklet вне защищённого контекста,
-                     и _godot_audio_init иначе роняет запуск).
+     2. index.js   - `ctx.audioWorklet.addModule(...)` вызывается только при
+                     наличии audioWorklet (иначе TypeError в _godot_audio_init);
+     3. index.js   - connectPositionWorklet(): подключение к position-worklet
+                     в try/catch, иначе не вызывается start() и сэмпл молчит;
+     4. index.html - убирает старый костыль `--audio-driver Dummy`, если он
+                     остался от прежней версии патча (он глушил звук).
 
-   Цена: по http игра идёт БЕЗ ЗВУКА. Это ограничение браузера, а не игры, и
-   лечится только HTTPS. По https оба патча ничего не меняют.
+   Цена http (по https всё проходит само): Chrome ругается, что
+   ScriptProcessorNode устарел, и get_playback_position() замирает на смещении
+   старта — позицию считает worklet, которого нет.
 
    Тот же патч лежит в самих проектах игр - tools/web/patch_http.py, его
    прогоняют после каждого экспорта перед выкладкой на Vercel. Здесь он нужен
    потому, что зеркало качает уже собранные файлы: если сборка на Vercel
-   осталась непатченной, сайт получил бы её как есть. Метка «patch_http.py» в
-   тексте файлов общая, поэтому повторный проход ничего не портит.
+   осталась непатченной, сайт получил бы её как есть.
    --------------------------------------------------------------------------- */
-const HTTP_MARK = 'patch_http.py';
-const HTTP_JS_NEEDLE = "isSecureContext: function () {\n\t\treturn window['isSecureContext'] === true;\n\t}";
-const HTTP_JS_REPLACEMENT = "isSecureContext: function () {\n" +
-  "\t\t// патч tools/web/patch_http.py: игра должна запускаться и по http,\n" +
-  "\t\t// пока у домена нет сертификата (иначе вместо игры - плашка с ошибкой)\n" +
-  "\t\treturn true;\n" +
-  "\t}";
-const HTTP_HTML_NEEDLE = 'const GODOT_THREADS_ENABLED = false;';
-const HTTP_HTML_SNIPPET =
+const HTTP_JS_STEPS = [
+  [
+    "isSecureContext: function () {\n\t\treturn window['isSecureContext'] === true;\n\t}",
+    "isSecureContext: function () {\n" +
+    "\t\t// патч tools/web/patch_http.py: игра должна запускаться и по http,\n" +
+    "\t\t// пока у домена нет сертификата (иначе вместо игры - плашка с ошибкой)\n" +
+    "\t\treturn true;\n" +
+    "\t}",
+    'проверка Secure Context снята',
+  ],
+  [
+    'GodotAudio.audioPositionWorkletPromise=ctx.audioWorklet.addModule(path);',
+    'GodotAudio.audioPositionWorkletPromise=ctx.audioWorklet?ctx.audioWorklet.addModule(path):Promise.resolve();',
+    'position-worklet больше не обязателен',
+  ],
+  [
+    'if(this.isCanceled){return}this._source.connect(this.getPositionWorklet());if(start){this.start()}',
+    'if(this.isCanceled){return}try{this._source.connect(this.getPositionWorklet())}catch(e){}if(start){this.start()}',
+    'сэмпл стартует без position-worklet',
+  ],
+];
+
+const HTTP_DUMMY_BLOCK =
   "// патч tools/web/patch_http.py: вне https браузер не даёт AudioWorklet,\n" +
   "// поэтому движок стартует с пустым аудиодрайвером (иначе - падение в\n" +
   "// _godot_audio_init). По https этот блок ничего не делает.\n" +
@@ -127,25 +146,26 @@ function patchGodotHttp(dir) {
   const js = path.join(dir, 'index.js');
   const html = path.join(dir, 'index.html');
   if (fs.existsSync(js)) {
-    const s = fs.readFileSync(js, 'utf8');
-    if (s.includes(HTTP_MARK)) {
-      console.log('    http-патч: index.js уже пропатчен');
-    } else if (!s.includes(HTTP_JS_NEEDLE)) {
-      console.log('    http-патч: index.js - не нашёл isSecureContext, формат движка изменился');
-    } else {
-      fs.writeFileSync(js, s.replace(HTTP_JS_NEEDLE, HTTP_JS_REPLACEMENT), 'utf8');
-      console.log('    http-патч: index.js - проверка Secure Context снята');
+    let s = fs.readFileSync(js, 'utf8');
+    for (const [needle, repl, label] of HTTP_JS_STEPS) {
+      if (s.includes(needle)) {
+        s = s.replace(needle, repl);
+        console.log('    http-патч: index.js - ' + label);
+      } else if (s.includes(repl)) {
+        console.log('    http-патч: index.js - уже применено (' + label + ')');
+      } else {
+        console.log('    http-патч: index.js - НЕ нашёл фрагмент (' + label + '), формат движка изменился');
+      }
     }
+    fs.writeFileSync(js, s, 'utf8');
   }
   if (fs.existsSync(html)) {
     const h = fs.readFileSync(html, 'utf8');
-    if (h.includes(HTTP_MARK)) {
-      console.log('    http-патч: index.html уже пропатчен');
-    } else if (!h.includes(HTTP_HTML_NEEDLE)) {
-      console.log('    http-патч: index.html - не нашёл GODOT_THREADS_ENABLED, оболочка изменилась');
+    if (h.includes(HTTP_DUMMY_BLOCK)) {
+      fs.writeFileSync(html, h.replace(HTTP_DUMMY_BLOCK, ''), 'utf8');
+      console.log('    http-патч: index.html - Dummy-драйвер убран, звук настоящий');
     } else {
-      fs.writeFileSync(html, h.replace(HTTP_HTML_NEEDLE, HTTP_HTML_SNIPPET + HTTP_HTML_NEEDLE), 'utf8');
-      console.log('    http-патч: index.html - вне https звук отключается');
+      console.log('    http-патч: index.html - костыля с Dummy нет, звук настоящий');
     }
   }
 }
