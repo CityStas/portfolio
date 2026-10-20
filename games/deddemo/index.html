@@ -279,9 +279,12 @@ body {
 					+ 'padding:4px 7px;border-radius:4px;pointer-events:none';
 				document.body.appendChild(perf);
 				setInterval(function () {
+					var load = window.__loadMs
+						? ' | загрузка ' + (window.__loadMs / 1000).toFixed(1) + 'с'
+						: '';
 					perf.textContent = 'fps ' + fps.toFixed(0)
 						+ ' | ' + canvas.width + 'x' + canvas.height
-						+ ' | dpr ' + effDpr().toFixed(2);
+						+ ' | dpr ' + effDpr().toFixed(2) + load;
 				}, 500);
 			}
 			window.__perf = function () {
@@ -595,6 +598,8 @@ drawLoader(0, LABEL_LOADING, -1);
 		}).then(() => {
 			finished = true;
 			finishedAt = performance.now();
+			// сколько заняла вся загрузка - видно в ?fps=1 на телефоне
+			window.__loadMs = performance.now() - startedAt;
 			// только теперь имеет смысл мерить fps: движок уже рисует кадры
 			if (window.__perfStart) {
 				window.__perfStart();
