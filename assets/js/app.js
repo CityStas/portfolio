@@ -280,8 +280,7 @@
         // перестаёт что-либо резать: 1891x904 влезает как есть.
         if (p.shotAspect) {
           shot.style.aspectRatio = String(p.shotAspect);
-          img.width = 1891;
-          img.height = Math.round(1891 / p.shotAspect);
+          img.height = Math.round(img.width / p.shotAspect);
         }
         shot.appendChild(img);
       }

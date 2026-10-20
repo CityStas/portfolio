@@ -162,23 +162,17 @@ body {
 			   Плотность пикселей (DPR).
 
 			   Канвас - это кадровый буфер игры: вьюпорт движка равен его
-			   размеру в пикселях. На iPhone X devicePixelRatio = 3, то есть
-			   в ландшафте буфер выходил 2532x1170 = 2.96 Мпикс, а игра рисует
-			   несколько полных слоёв (far_back, mid_layer, геймплей, HUD) -
-			   заливка упирается в GPU и fps падает. 1.5 даёт 1266x585 =
-			   0.74 Мпикс, вчетверо меньше работы при том же виде.
-
-			   Потолок 2 для мыши: на десктопе retina-резкость бесплатна.
-			   ?dpr=1 / ?dpr=2 в URL - ручной обход для проверки на телефоне.
+			   размеру в пикселях. Потолка нет: на iPhone X буфер выходит
+			   2532x1170, но замер на живом телефоне показал, что урезание
+			   до 1.5 fps не поднимает (узкое место не в заливке), а картинку
+			   мылит заметно. Поэтому рисуем в родной плотности экрана.
+			   ?dpr=N в URL - ручной обход, если понадобится проверить гипотезу.
 			   ------------------------------------------------------------ */
-			var TOUCH = (navigator.maxTouchPoints || 0) > 0 || 'ontouchstart' in window;
-			var MAX_DPR = TOUCH ? 1.5 : 2.0;
 			var dprCap = (function () {
 				var m = /[?&]dpr=([\d.]+)/.exec(location.search);
 				var v = m ? parseFloat(m[1]) : NaN;
-				return (v > 0 && v <= 4) ? v : MAX_DPR;
+				return (v > 0 && v <= 4) ? v : 4;   // 4 - выше любого экрана
 			})();
-			var degraded = false;
 			var fps = 0;
 
 			function effDpr() {
@@ -235,11 +229,8 @@ body {
 			}
 
 			/* ------------------------------------------------------------
-			   Автоснижение качества. Старые телефоны (A11 и ниже) 1.5 DPR
-			   тоже не всегда тянут, а понять это можно только по факту.
-			   Меряем частоту requestAnimationFrame (движок рисует в том же
-			   цикле, так что это честный fps) и один раз роняем плотность
-			   до 1.0, если стабильно ниже 45.
+			   Счётчик fps для ?fps=1. Ничего не меняет в рендере - только
+			   цифры: на iPhone нет консоли, иначе нечем мерить.
 			   ------------------------------------------------------------ */
 			function watchFps() {
 				var t0 = performance.now();
@@ -248,15 +239,9 @@ body {
 					n++;
 					var dt = performance.now() - t0;
 					if (dt >= 2500) {
-						fps = n * 1000 / dt;
-						// скрытая вкладка троттлит rAF - это не низкий fps игры
-						if (document.visibilityState === 'visible'
-								&& !degraded && fps < 45 && dprCap > 1.01) {
-							degraded = true;
-							dprCap = 1.0;
-							fitCanvas();
-							console.log('[perf] fps ' + fps.toFixed(0)
-								+ ' -> плотность пикселей снижена до 1.0');
+						// скрытая вкладка троттлит rAF - это не fps игры
+						if (document.visibilityState === 'visible') {
+							fps = n * 1000 / dt;
 						}
 						t0 = performance.now();
 						n = 0;
@@ -295,7 +280,7 @@ body {
 
 		<script src="index.js"></script>
 		<script>
-const GODOT_CONFIG = {"args":[],"canvasResizePolicy":0,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":13962784,"index.wasm":39514754},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
+const GODOT_CONFIG = {"args":[],"canvasResizePolicy":0,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":13842148,"index.wasm":39514754},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
 const GODOT_THREADS_ENABLED = false;
 const engine = new Engine(GODOT_CONFIG);
 
