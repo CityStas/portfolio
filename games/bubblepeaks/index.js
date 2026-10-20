@@ -33,7 +33,9 @@ const Features = {
 	 * @function Engine.isSecureContext
 	 */
 	isSecureContext: function () {
-		return window['isSecureContext'] === true;
+		// патч tools/web/patch_http.py: игра должна запускаться и по http,
+		// пока у домена нет сертификата (иначе вместо игры - плашка с ошибкой)
+		return true;
 	},
 
 	/**

@@ -82,6 +82,74 @@ const HTML_RE = /(?:src|href)\s*=\s*["']([^"']+)["']/gi;
 // сообщаем — молчаливый пропуск здесь дороже лишней строки в выводе.
 const DYN_RE = /`[^`$]*\$\{[^}]*\}[^`]*\.(?:json|glb|gltf|bin|data|png|jpe?g|webp|gif|svg|ogg|mp3|wav|mp4|webm|wasm|pck|css|mjs|js|txt|xml)`/g;
 
+/* ---------------------------------------------------------------------------
+   Снятие требования Secure Context у сборок Godot 4.
+
+   Godot 4 не стартует, если страница открыта не по HTTPS: вместо игры
+   посетитель видит плашку «The following features required to run Godot
+   projects on the Web are missing: Secure Context». GitHub Pages отдаёт этот
+   домен по http, пока не выпущен сертификат (и вообще не умеет отдавать
+   COOP/COEP), поэтому сборку приходится готовить к слабому контексту.
+
+   Правится ровно две вещи, обе идемпотентно:
+
+     1. index.js   - isSecureContext() начинает возвращать true;
+     2. index.html - вне https движок стартует с `--audio-driver Dummy`
+                     (браузер не даёт AudioWorklet вне защищённого контекста,
+                     и _godot_audio_init иначе роняет запуск).
+
+   Цена: по http игра идёт БЕЗ ЗВУКА. Это ограничение браузера, а не игры, и
+   лечится только HTTPS. По https оба патча ничего не меняют.
+
+   Тот же патч лежит в самих проектах игр - tools/web/patch_http.py, его
+   прогоняют после каждого экспорта перед выкладкой на Vercel. Здесь он нужен
+   потому, что зеркало качает уже собранные файлы: если сборка на Vercel
+   осталась непатченной, сайт получил бы её как есть. Метка «patch_http.py» в
+   тексте файлов общая, поэтому повторный проход ничего не портит.
+   --------------------------------------------------------------------------- */
+const HTTP_MARK = 'patch_http.py';
+const HTTP_JS_NEEDLE = "isSecureContext: function () {\n\t\treturn window['isSecureContext'] === true;\n\t}";
+const HTTP_JS_REPLACEMENT = "isSecureContext: function () {\n" +
+  "\t\t// патч tools/web/patch_http.py: игра должна запускаться и по http,\n" +
+  "\t\t// пока у домена нет сертификата (иначе вместо игры - плашка с ошибкой)\n" +
+  "\t\treturn true;\n" +
+  "\t}";
+const HTTP_HTML_NEEDLE = 'const GODOT_THREADS_ENABLED = false;';
+const HTTP_HTML_SNIPPET =
+  "// патч tools/web/patch_http.py: вне https браузер не даёт AudioWorklet,\n" +
+  "// поэтому движок стартует с пустым аудиодрайвером (иначе - падение в\n" +
+  "// _godot_audio_init). По https этот блок ничего не делает.\n" +
+  "if (!window.isSecureContext) {\n" +
+  "\tGODOT_CONFIG.args.push('--audio-driver', 'Dummy');\n" +
+  "}\n";
+
+function patchGodotHttp(dir) {
+  const js = path.join(dir, 'index.js');
+  const html = path.join(dir, 'index.html');
+  if (fs.existsSync(js)) {
+    const s = fs.readFileSync(js, 'utf8');
+    if (s.includes(HTTP_MARK)) {
+      console.log('    http-патч: index.js уже пропатчен');
+    } else if (!s.includes(HTTP_JS_NEEDLE)) {
+      console.log('    http-патч: index.js - не нашёл isSecureContext, формат движка изменился');
+    } else {
+      fs.writeFileSync(js, s.replace(HTTP_JS_NEEDLE, HTTP_JS_REPLACEMENT), 'utf8');
+      console.log('    http-патч: index.js - проверка Secure Context снята');
+    }
+  }
+  if (fs.existsSync(html)) {
+    const h = fs.readFileSync(html, 'utf8');
+    if (h.includes(HTTP_MARK)) {
+      console.log('    http-патч: index.html уже пропатчен');
+    } else if (!h.includes(HTTP_HTML_NEEDLE)) {
+      console.log('    http-патч: index.html - не нашёл GODOT_THREADS_ENABLED, оболочка изменилась');
+    } else {
+      fs.writeFileSync(html, h.replace(HTTP_HTML_NEEDLE, HTTP_HTML_SNIPPET + HTTP_HTML_NEEDLE), 'utf8');
+      console.log('    http-патч: index.html - вне https звук отключается');
+    }
+  }
+}
+
 function dynamicRefs(text) {
   const out = new Set();
   let m;
@@ -217,6 +285,9 @@ async function mirror(key) {
     else console.log('    ' + '---'.padStart(8) + '     ' + f[1] + '  (' + f[2] + ')');
   });
   console.log('    ИТОГО ' + (total / 1048576).toFixed(2) + ' MB, файлов: ' + files.filter(f => f[0] === 'ok').length);
+  // Сборки Godot узнаём по pck в списке extra: у остальных (three.js, лендинги)
+  // такого файла нет и патчить нечего.
+  if (extra.includes('index.pck')) patchGodotHttp(dir);
   if (dynamic.length) {
     console.log('    ! пути собираются в рантайме, обход ссылок их не видит.');
     console.log('      Проверьте, что каждый есть в extra у ' + key + ':');
