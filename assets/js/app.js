@@ -268,11 +268,21 @@
         img.alt = 'Превью проекта ' + p.title;
         img.loading = i < 2 ? 'eager' : 'lazy';   // первые две карточки - сразу, остальные по скроллу
         img.decoding = 'async';
+        // Размеры нужны только для запаса под CLS: сама рамка задана
+        // aspect-ratio, поэтому картинка не дёргает раскладку.
         img.width = 1280;
         img.height = 800;
-        // Карточка 16:10, кадры шире - cover обрезает по бокам. Если важное в кадре
+        // Карточка 16:9, кадры шире - cover обрезает по бокам. Если важное в кадре
         // смещено (враг справа), проект задаёт shotPos, куда сдвинуть окно.
         if (p.shotPos) img.style.objectPosition = p.shotPos;
+        // shotAspect - если кадр надо показать ЦЕЛИКОМ, а не обрезать под 16:9.
+        // Рамка карточки становится той же пропорции, что и файл, и cover
+        // перестаёт что-либо резать: 1891x904 влезает как есть.
+        if (p.shotAspect) {
+          shot.style.aspectRatio = String(p.shotAspect);
+          img.width = 1891;
+          img.height = Math.round(1891 / p.shotAspect);
+        }
         shot.appendChild(img);
       }
 
