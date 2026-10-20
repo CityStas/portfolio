@@ -211,7 +211,7 @@ window.PROJECTS = [
     tags: ['Godot 4', 'GDScript', '2D', 'Web'],
     year: '2026',
     status: 'live',
-    shot: 'assets/img/projects/shrooms.webp',
+    shot: 'assets/img/projects/dedspace.webp',
     links: { demo: '/games/deddemo/', demoLabel: 'Demo', demoEmbed: true, repo: '' }
   },
   {

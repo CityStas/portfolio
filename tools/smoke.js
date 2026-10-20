@@ -387,7 +387,7 @@ q('#navMenu a').forEach(a => {
 for (const rel of ['assets/css/style.css', 'assets/js/app.js', 'assets/data/projects.js',
                    'assets/fonts/handjet.css', 'assets/fonts/handjet-cyrillic.woff2',
                    'assets/img/favicon.svg', 'assets/img/logo.png', 'assets/img/og-v2.jpg',
-                   'assets/img/projects/shrooms.webp', 'assets/img/projects/bubblepeaks.webp',
+                   'assets/img/projects/dedspace.webp', 'assets/img/projects/bubblepeaks.webp',
                    'assets/img/projects/bubblepeaks-splash.webp',
                    'assets/img/projects/lilcraft.webp', 'assets/img/projects/bazaskate.webp',
                    'assets/img/projects/dubbed.webp', 'assets/img/projects/rustore.webp',
