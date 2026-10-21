@@ -212,9 +212,9 @@ window.PROJECTS = [
     year: '2026',
     status: 'live',
     shot: 'assets/img/projects/dedspace.webp',
-    // Кадр 1282x723 (1.773:1) - почти 16:9, но не ровно: рамка превью
+    // Кадр 1274x718 (1.774:1) - почти 16:9, но не ровно: рамка превью
     // повторяет пропорцию файла, поэтому не режется ни пиксель.
-    shotAspect: 1282 / 723,
+    shotAspect: 1274 / 718,
     links: { demo: '/games/deddemo/', demoLabel: 'Demo', demoEmbed: true, repo: '' }
   },
   {
