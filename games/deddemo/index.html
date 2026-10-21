@@ -10,6 +10,11 @@
 		<meta name="mobile-web-app-capable" content="yes">
 		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 		<title>DED DEMO 2D</title>
+		<!-- pck качаем ПАРАЛЛЕЛЬНО с wasm, а не после него. Движок запрашивает
+		     pck только когда wasm уже скомпилирован, и все эти секунды канал
+		     простаивает. 18 МБ пака успевают приехать за время компиляции,
+		     дальше движок берёт его из кеша (max-age=600 у Pages). -->
+		<link rel="preload" as="fetch" href="index.pck" crossorigin="anonymous">
 		<style>
 html, body, #canvas {
 	margin: 0;
@@ -280,7 +285,7 @@ body {
 
 		<script src="index.js"></script>
 		<script>
-const GODOT_CONFIG = {"args":[],"canvasResizePolicy":0,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":18062996,"index.wasm":39514754},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
+const GODOT_CONFIG = {"args":[],"canvasResizePolicy":0,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":14254704,"index.wasm":39514754},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
 const GODOT_THREADS_ENABLED = false;
 const engine = new Engine(GODOT_CONFIG);
 
