@@ -241,6 +241,21 @@ window.PROJECTS = [
     links: { demo: '/games/lilcraft/', demoLabel: 'Demo', demoEmbed: true, repo: '' }
   },
   {
+    title: 'МЕДБЛОК 7',
+    kind: 'Сайт',
+    // Не игра, а промо-страница концепта: сцена на three.js и текст вокруг неё.
+    // Поэтому в фильтре это «Сайты», а не «Игры» - играть тут нечего, но кадр
+    // 3D-сцены на карточке сразу показывает, что внутри не текст.
+    desc: 'Промо-сайт концепта игры на three.js: заброшенный госпиталь, параллакс сцены по прокрутке, свет и туман в реальном времени.',
+    tags: ['three.js', 'WebGL', 'GLSL', 'GitHub Pages'],
+    year: '2026',
+    status: 'live',
+    // Кадр 1600x1000 - ровно 16:10, рамка карточки совпадает с ним без обрезки.
+    shot: 'assets/img/projects/munit7.webp',
+    shotAspect: 1600 / 1000,
+    links: { demo: '/web/munit7/', demoEmbed: true, repo: 'https://github.com/CityStas/munit7' }
+  },
+  {
     title: 'ModelLab',
     kind: 'AI-продукт',
     themes: ['AI-продукт', 'Инструмент'],

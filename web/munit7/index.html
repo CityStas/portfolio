@@ -1,0 +1,3336 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>МЕДБЛОК 7 - карантинная зона</title>
+<meta name="description" content="Медблок 7. Заброшенный госпиталь на северной окраине. Раз в четырнадцать лет здесь сам загорается свет.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%230b0a09'/><rect x='13' y='6' width='6' height='20' fill='%23c96a3a'/><rect x='6' y='13' width='20' height='6' fill='%23c96a3a'/></svg>">
+<style>
+  :root{
+    --bg:#0b0a09;
+    --ink:#e9e1d5;
+    --ink-dim:#9b9389;
+    --ink-faint:#5f594f;
+    --rust:#c96a3a;
+    --rust-dim:#8d4a27;
+    --line:rgba(233,225,213,.14);
+    --font-display:"Bahnschrift","DIN Condensed","Arial Narrow",Impact,sans-serif;
+    --font-text:"Segoe UI","Inter",system-ui,sans-serif;
+    --scene-blur:0px;
+    --scene-op:1;
+    --hero-ui-op:1;
+    --gutter:clamp(20px,4.2vw,72px);
+    /* the rules sit on --gutter; --edge is where content starts, so nothing
+       ever touches a rule. One variable, used by every block on the page */
+    --pad:clamp(12px,1.4vw,24px);
+    --edge:calc(var(--gutter) + var(--pad));
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--font-text);
+    font-size:15px;
+    line-height:1.55;
+    overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:var(--rust);color:#0b0a09}
+
+  /* ---------- preloader ---------- */
+  #preloader{
+    position:fixed;inset:0;z-index:200;
+    background:#0b0a09;
+    display:flex;align-items:center;justify-content:center;
+    transition:opacity .8s ease;
+  }
+  #preloader .pl-inner{display:flex;flex-direction:column;gap:14px;align-items:center}
+  #preloader .pl-mark{font-family:var(--font-display);font-size:12px;letter-spacing:.42em;color:var(--ink-dim);text-transform:uppercase}
+  #preloader .pl-bar{width:200px;height:1px;background:rgba(233,225,213,.16);position:relative;overflow:hidden}
+  #preloader .pl-bar i{position:absolute;inset:0;background:var(--rust);transform-origin:left;transform:scaleX(0);transition:transform .3s ease}
+  #preloader .pl-pct{font-family:var(--font-display);font-size:11px;letter-spacing:.3em;color:var(--ink-faint)}
+
+  /* ---------- scene ---------- */
+  .scene{
+    position:relative;height:100svh;min-height:560px;overflow:hidden;z-index:0;
+    filter:blur(var(--scene-blur));
+    opacity:var(--scene-op);
+    will-change:filter,opacity;
+    background:#0b0a09;
+  }
+  .scene canvas{display:block;position:absolute;top:-1px;left:0;width:100%;height:100%}
+  .scene::after{
+    content:"";position:absolute;inset:0;pointer-events:none;
+    background:
+      /* One elliptical falloff, not a side gradient plus a radial.
+         The side gradient was twelve linear stops - .97 at 0, .8 at 4, .5 at 9,
+         .22 at 16, .07 at 23, 0 at 30 - and a linear gradient changes slope at
+         every stop. On a wet floor, which is one smooth gradient of its own, each
+         of those slope changes is visible as a band lying across the road: that
+         is the "полосы перехода, стыки" at the left and right edges, and no
+         amount of tuning the stops removes it, because the kinks ARE the stops.
+         A radial with stops sampled along a smooth curve has no kink to catch.
+         The ellipse is 48% x 94%, so it reaches the left and right borders: the
+         frame edges go to near-black and the subject - door at 44%, figure at
+         66% - sits inside the clear middle. */
+      /* A very wide ellipse instead of a round one. At 35% x 72% the falloff
+         happened inside the frame and the overlay read as a dark oval sitting
+         on the picture - "прям будто круг из нее". The vertical radius is now
+         twice the box, so the iso-lines are near-vertical and the gradient is
+         effectively horizontal: the sides go dark, the top and bottom do not
+         care, and there is no shape to see. Stops are sampled along a smooth
+         curve with small steps, because a linear side gradient with big jumps
+         is what put bands across the road in the first place. */
+      /* Two edge ellipses, one anchored on each border. Growing the middle
+         ellipse further would have put the falloff on the figure at 66 % - and
+         the figure has to stay readable - so the extra darkness is added where
+         there is nothing to lose: an ellipse centred on each edge. Radius 50 %
+         reaches the door at 44 % with 0.03 left of it and stops 16 % short of
+         the figure. Radial, not a side linear: a linear ramp changes slope at
+         every stop and those slope changes are what drew bands across the wet
+         road. */
+      radial-gradient(ellipse 50% 130% at 0% 50%,
+        rgba(6,5,4,.70) 0%, rgba(6,5,4,.46) 30%, rgba(6,5,4,.22) 58%,
+        rgba(6,5,4,.06) 80%, rgba(6,5,4,0) 100%),
+      radial-gradient(ellipse 50% 130% at 100% 50%,
+        rgba(6,5,4,.70) 0%, rgba(6,5,4,.46) 30%, rgba(6,5,4,.22) 58%,
+        rgba(6,5,4,.06) 80%, rgba(6,5,4,0) 100%),
+      /* 40%, not 52%: the horizontal radius is a share of the box, so at 52%
+         the 100% stop landed exactly on the left and right borders and the
+         edges only just reached 0.88. Pulling it in to 40% moves the whole
+         curve a fifth of the half-width towards the middle - the sides darken
+         sooner and harder, the clear middle (door at 44%, figure at 66%) is
+         untouched. Same stops, same smooth curve: no new kink for the wet
+         floor to catch. */
+      radial-gradient(ellipse 40% 210% at 50% 50%,
+        rgba(6,5,4,0) 0%, rgba(6,5,4,.02) 10%, rgba(6,5,4,.05) 22%,
+        rgba(6,5,4,.11) 35%, rgba(6,5,4,.21) 48%, rgba(6,5,4,.34) 60%,
+        rgba(6,5,4,.52) 72%, rgba(6,5,4,.73) 84%, rgba(6,5,4,.90) 96%,
+        rgba(6,5,4,.96) 100%),
+      /* and a shallow corner falloff, no ring: 0.30 at the border, not 0.96 */
+      radial-gradient(ellipse 62% 90% at 50% 46%,
+        rgba(6,5,4,0) 46%, rgba(6,5,4,.05) 64%, rgba(6,5,4,.13) 80%,
+        rgba(6,5,4,.24) 92%, rgba(6,5,4,.32) 100%),
+      linear-gradient(to bottom,
+        rgba(11,10,9,.34) 0%, rgba(11,10,9,.16) 8%, rgba(11,10,9,.04) 16%,
+        rgba(11,10,9,0) 30%, rgba(11,10,9,0) 58%, rgba(11,10,9,.1) 68%,
+        rgba(11,10,9,.26) 78%, rgba(11,10,9,.48) 88%, rgba(11,10,9,.72) 95%,
+        #0b0a09 100%);
+  }
+
+  /* ---------- editorial frame ---------- */
+  .frame{position:fixed;inset:0;pointer-events:none;z-index:40}
+  .frame::before,.frame::after{
+    content:"";position:absolute;top:0;bottom:0;width:1px;background:var(--line);
+    /* The rule is a frame, not a scratch across the building. At full height it
+       ran a bright hairline straight down the lit column and read as a break in
+       the geometry - the "разрыв" that kept coming back. It now holds where the
+       vignette is (top and bottom) and lets go across the subject. */
+    -webkit-mask-image:linear-gradient(to bottom,
+      #000 0,#000 9%,rgba(0,0,0,.42) 15%,transparent 24%,transparent 76%,
+      rgba(0,0,0,.42) 85%,#000 91%,#000 100%);
+    mask-image:linear-gradient(to bottom,
+      #000 0,#000 9%,rgba(0,0,0,.42) 15%,transparent 24%,transparent 76%,
+      rgba(0,0,0,.42) 85%,#000 91%,#000 100%);
+  }
+  .frame::before{left:var(--gutter)}
+  .frame::after{right:var(--gutter)}
+
+  .grain{
+    position:fixed;inset:-50%;z-index:70;pointer-events:none;opacity:.05;
+    mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.86' numOctaves='3' stitchTiles='stitch'/></filter><rect width='180' height='180' filter='url(%23n)'/></svg>");
+    animation:grainShift 1.1s steps(4) infinite;
+  }
+  @keyframes grainShift{
+    0%{transform:translate(0,0)}25%{transform:translate(-2%,1%)}
+    50%{transform:translate(1%,-2%)}75%{transform:translate(-1%,-1%)}100%{transform:translate(0,0)}
+  }
+
+  /* ---------- hero chrome ---------- */
+  .hero-ui{
+    position:absolute;inset:0;z-index:20;
+    display:flex;flex-direction:column;
+    padding:calc(var(--gutter) * .55) var(--edge) calc(var(--gutter) * .7);
+    pointer-events:none;
+    opacity:var(--hero-ui-op);
+  }
+  .topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;pointer-events:auto}
+  .brand{display:flex;align-items:center;gap:12px}
+  .brand .mark{width:26px;height:26px;flex:0 0 26px;position:relative;border:1px solid var(--rust-dim)}
+  .brand .mark::before,.brand .mark::after{content:"";position:absolute;background:var(--rust)}
+  .brand .mark::before{left:50%;top:4px;bottom:4px;width:4px;transform:translateX(-50%)}
+  .brand .mark::after{top:50%;left:4px;right:4px;height:4px;transform:translateY(-50%)}
+  .brand .name{font-family:var(--font-display);font-size:13px;letter-spacing:.34em;text-transform:uppercase}
+  .brand .sub{font-family:var(--font-display);font-size:9px;letter-spacing:.28em;text-transform:uppercase;color:var(--ink-faint);margin-top:3px}
+  nav{display:flex;gap:clamp(14px,2.2vw,34px)}
+  nav a{
+    font-family:var(--font-display);font-size:11px;letter-spacing:.24em;text-transform:uppercase;
+    color:var(--ink-dim);text-decoration:none;padding-bottom:4px;border-bottom:1px solid transparent;
+    transition:color .3s,border-color .3s;
+  }
+  nav a:hover{color:var(--ink);border-color:var(--rust)}
+
+  .hero-copy{margin-top:auto;max-width:min(560px,42vw);position:relative}
+  .eyebrow{
+    display:inline-flex;align-items:center;gap:10px;
+    font-family:var(--font-display);font-size:10px;letter-spacing:.34em;text-transform:uppercase;
+    color:var(--rust);margin-bottom:20px;
+  }
+  .eyebrow::before{content:"";width:34px;height:1px;background:var(--rust-dim)}
+  h1{
+    font-family:var(--font-display);font-weight:600;
+    font-size:clamp(40px,7.1vw,96px);line-height:.88;letter-spacing:.015em;
+    text-transform:uppercase;margin-left:-.03em;
+    text-shadow:0 14px 50px rgba(0,0,0,.8);
+  }
+  h1 .num{color:var(--rust);display:inline-block;transform:translateY(-.02em)}
+  .lede{margin-top:24px;max-width:420px;color:var(--ink-dim);font-size:clamp(13px,1.05vw,15.5px);line-height:1.68}
+  .lede b{color:var(--ink);font-weight:500}
+
+  .hero-meta{
+    position:absolute;right:var(--edge);bottom:calc(var(--gutter) * .7);
+    display:flex;flex-direction:column;align-items:flex-end;gap:26px;
+    font-family:var(--font-display);font-size:10px;letter-spacing:.26em;
+    text-transform:uppercase;color:var(--ink-faint);
+  }
+  .hero-meta .coords{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+  .hero-meta .coords span{color:var(--ink-dim)}
+  .scroll-hint{display:flex;align-items:center;gap:12px;color:var(--ink-dim)}
+  .scroll-hint .rail{width:1px;height:44px;background:linear-gradient(to bottom,var(--rust),transparent);position:relative;overflow:hidden}
+  .scroll-hint .rail::after{content:"";position:absolute;left:0;width:1px;height:14px;background:var(--ink);animation:railRun 2.2s ease-in-out infinite}
+  @keyframes railRun{0%{top:-14px;opacity:0}30%{opacity:1}100%{top:44px;opacity:0}}
+
+  /* ---------- content ---------- */
+  main{position:relative;z-index:10;background:var(--bg)}
+  .wrap{padding-inline:var(--edge)}
+  .chapter{
+    padding-block:clamp(72px,10vw,150px);border-top:1px solid var(--line);
+    display:grid;grid-template-columns:minmax(140px,22%) 1fr;gap:clamp(24px,5vw,90px);
+  }
+  .chapter .idx{font-family:var(--font-display);font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--rust)}
+  .chapter .idx small{display:block;margin-top:10px;color:var(--ink-faint);letter-spacing:.22em;font-size:9px}
+  .chapter h2{
+    font-family:var(--font-display);font-weight:500;
+    font-size:clamp(24px,3.4vw,46px);line-height:1.06;text-transform:uppercase;letter-spacing:.02em;margin-bottom:28px;
+  }
+  .chapter p{color:var(--ink-dim);max-width:62ch;margin-bottom:18px;font-size:15px}
+  .chapter p b{color:var(--ink);font-weight:500}
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:clamp(20px,4vw,64px);max-width:900px}
+
+  /* .stats is full-bleed, so it needs the inset itself - without it the first
+     number sits on top of the left rule */
+  .stats{border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(4,1fr);padding-inline:var(--edge)}
+  .stat{padding:clamp(26px,4vw,52px) clamp(16px,2.4vw,34px);border-right:1px solid var(--line)}
+  .stat:first-child{padding-left:0}
+  .stat:last-child{border-right:0;padding-right:0}
+  .stat .v{font-family:var(--font-display);font-size:clamp(32px,5vw,64px);line-height:1;letter-spacing:.01em}
+  .stat .v em{font-style:normal;color:var(--rust);font-size:.5em;vertical-align:super;margin-left:2px}
+  .stat .k{margin-top:12px;font-family:var(--font-display);font-size:9.5px;letter-spacing:.26em;text-transform:uppercase;color:var(--ink-faint)}
+
+  .log{list-style:none;max-width:820px}
+  .log li{display:grid;grid-template-columns:120px 1fr;gap:clamp(16px,3vw,40px);padding-block:22px;border-bottom:1px solid var(--line)}
+  .log li:first-child{border-top:1px solid var(--line)}
+  .log time{font-family:var(--font-display);font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--rust);padding-top:3px}
+  .log p{margin:0;color:var(--ink-dim);font-size:14.5px;max-width:60ch}
+  .log p b{color:var(--ink);font-weight:500}
+
+  footer{
+    border-top:1px solid var(--line);padding:clamp(40px,6vw,72px) var(--edge);
+    display:flex;justify-content:space-between;gap:30px;flex-wrap:wrap;
+    font-family:var(--font-display);font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--ink-faint);
+  }
+
+  .rv{opacity:0;transform:translateY(26px);transition:opacity .9s cubic-bezier(.2,.7,.2,1),transform .9s cubic-bezier(.2,.7,.2,1)}
+  .rv.in{opacity:1;transform:none}
+
+  @media (max-width:900px){
+    .chapter{grid-template-columns:1fr;gap:18px}
+    .cols{grid-template-columns:1fr}
+    .stats{grid-template-columns:repeat(2,1fr)}
+    .stat{padding-inline:clamp(14px,4vw,26px)}
+    .stat:nth-child(odd){padding-left:0}
+    .stat:nth-child(even){padding-right:0}
+    .stat:nth-child(2){border-right:0}
+    .stat:nth-child(-n+2){border-bottom:1px solid var(--line)}
+    .hero-copy{max-width:100%}
+    .hero-meta,nav{display:none}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .grain{animation:none}
+    .scroll-hint .rail::after{animation:none}
+    .rv{transition:none;opacity:1;transform:none}
+  }
+</style>
+<style>html{color-scheme:dark}</style>
+</head>
+<body>
+
+<div id="preloader">
+  <div class="pl-inner">
+    <div class="pl-mark">Медблок 7</div>
+    <div class="pl-bar"><i id="pl-bar"></i></div>
+    <div class="pl-pct" id="pl-pct">0 %</div>
+  </div>
+</div>
+
+<header class="scene" id="scene"></header>
+
+<div class="frame"></div>
+<div class="grain"></div>
+
+<div class="hero-ui" id="hero-ui">
+  <div class="topbar">
+    <div class="brand">
+      <div class="mark"></div>
+      <div>
+        <div class="name">Медблок 7</div>
+        <div class="sub">Карантинная зона · сектор 07</div>
+      </div>
+    </div>
+    <nav>
+      <a href="#zone">Зона</a>
+      <a href="#log">Журнал</a>
+      <a href="#rules">Правила</a>
+    </nav>
+  </div>
+
+  <div class="hero-copy">
+    <div class="eyebrow">Вход не согласован · день 5118</div>
+    <h1>Медблок <span class="num">7</span></h1>
+    <p class="lede">
+      Раз в четырнадцать лет в заброшенном корпусе загорается свет. Выжившие идут
+      на него, как мотыльки, - в самое нутро пропитанного смертью здания. Нам нужен
+      лут - <b>сегодня наша очередь</b>.
+    </p>
+  </div>
+
+  <div class="hero-meta">
+    <div class="coords">
+      <span>55°45′14″ N</span>
+      <span>37°37′02″ E</span>
+      <span>ветер 4 м/с · пепел</span>
+    </div>
+    <div class="scroll-hint">
+      <span>Прокрутите</span>
+      <div class="rail"></div>
+    </div>
+  </div>
+</div>
+
+<main>
+  <section class="chapter wrap" id="zone">
+    <div class="idx rv">01 <small>Что осталось</small></div>
+    <div>
+      <h2 class="rv">Здание пережило<br>всё, кроме людей</h2>
+      <div class="cols">
+        <div>
+          <p class="rv">Северный корпус сложен из бетона, который клали в спешке и на совесть.
+            Арматура торчит из перекрытий, как рёбра, - но третий этаж держит вес,
+            которого не выдержал бы ни один проект.</p>
+          <p class="rv">Внутри - коридор длиной в восемьдесят метров, шесть палат,
+            операционная и генератор, который кто-то заправил перед уходом.
+            Раз в четырнадцать лет он запускается сам и держит свет несколько
+            часов. Ровно столько, чтобы внутрь снова пошли.</p>
+        </div>
+        <div>
+          <p class="rv">Снаружи - сорок метров разбитого асфальта, брошенная машина
+            скорой и очередь из носилок, которую так и не успели разобрать.</p>
+          <p class="rv">Каждый, кто заходил на свет, оставлял отметку на стене у входа.
+            Отметок <b>двести сорок одна</b>. Обратно вышли не все.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="stats">
+    <div class="stat rv"><div class="v">14</div><div class="k">лет до вспышки</div></div>
+    <div class="stat rv"><div class="v">240<em>+1</em></div><div class="k">отметок на стене</div></div>
+    <div class="stat rv"><div class="v">3</div><div class="k">этажа в тени</div></div>
+    <div class="stat rv"><div class="v">0</div><div class="k">подтверждённых выходов</div></div>
+  </div>
+
+  <section class="chapter wrap" id="log">
+    <div class="idx rv">02 <small>Журнал наблюдений</small></div>
+    <div>
+      <h2 class="rv">Записи, которые<br>некому подписать</h2>
+      <ul class="log">
+        <li class="rv">
+          <time>День 4990</time>
+          <p>В 03:40 в западном крыле включился свет. <b>Три минуты.</b> Датчик дыма
+             зафиксировал движение воздуха - дверь открывали изнутри.</p>
+        </li>
+        <li class="rv">
+          <time>День 5021</time>
+          <p>Нашли носилки, поставленные ровно. Простыни сложены.
+             Кто-то всё ещё соблюдает порядок.</p>
+        </li>
+        <li class="rv">
+          <time>День 5088</time>
+          <p>Перед входом стоит человек в респираторе. <b>Не двигается четыре часа.</b>
+             На оклик не отвечает. Уходить не собирается.</p>
+        </li>
+        <li class="rv">
+          <time>День 5118</time>
+          <p>Свет в приёмном покое горит без перерыва <b>девяносто шесть часов.</b>
+             Генератор пуст. Мы проверили.</p>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="chapter wrap" id="rules">
+    <div class="idx rv">03 <small>Перед входом</small></div>
+    <div>
+      <h2 class="rv">Три правила,<br>которые спасают</h2>
+      <div class="cols">
+        <div>
+          <p class="rv"><b>Не отвечайте на голос из палаты.</b> Он знает ваше имя
+            раньше, чем вы назовётесь.</p>
+          <p class="rv"><b>Считайте двери.</b> Их шесть. Если седьмая - вы уже не снаружи.</p>
+        </div>
+        <div>
+          <p class="rv"><b>Не выключайте свет.</b> Пока он горит, внутри кто-то есть.
+            Пока кто-то есть - есть шанс.</p>
+          <p class="rv">Если увидите человека в респираторе у входа - не подходите.
+            Он ждёт не вас.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div>Медблок 7 · проект вымышленный</div>
+    <div>three.js r186 · геометрия и текстуры сгенерированы локально</div>
+  </footer>
+</main>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "./vendor/three/three.module.js",
+    "three/addons/": "./vendor/three/addons/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { FXAAPass } from 'three/addons/postprocessing/FXAAPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+import { VignetteShader } from 'three/addons/shaders/VignetteShader.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
+/* ====================================================================== setup */
+
+const host = document.getElementById('scene');
+const root = document.documentElement;
+
+const CAM = {
+  fov: 55,
+  near: 0.1,
+  far: 400,
+  // the look point sits between the doorway and the figure: door at ~44 % of the
+  // width, survivor at ~66 %, so the pair reads as one centred composition
+  look: new THREE.Vector3(1.2, 1.62, -15.6),
+  eyeY: 1.5,
+  side: 1.2,            // lateral offset: turns a flat elevation into a 3/4 view
+  radius: 4.55,         // camera distance from the look point at rest
+  radiusMin: 3.8,       // ... after one screen of scroll
+  orbit: 0.10,          // radians of horizontal orbit at |mouse.x| = 1
+};
+
+const FOG_COLOR = 0x241d18;
+
+const renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: 'high-performance' });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(host.clientWidth, host.clientHeight);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.3;
+renderer.shadowMap.enabled = true;
+// VSM, not PCF. A directional light has no size, so its shadow has no penumbra:
+// the building's shadow landed on the wet road as a straight cut from lit to
+// dark, and PCF's radius can only smear it by a few texels before it turns to
+// mush. VSM blurs the depth moments instead, so the edge gets a real falloff.
+renderer.shadowMap.type = THREE.VSMShadowMap;
+host.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(FOG_COLOR);
+scene.fog = new THREE.Fog(FOG_COLOR, 14, 95);
+
+const camera = new THREE.PerspectiveCamera(CAM.fov, host.clientWidth / host.clientHeight, CAM.near, CAM.far);
+camera.position.set(CAM.look.x, CAM.eyeY, CAM.look.z + CAM.radius);
+camera.lookAt(CAM.look);
+
+/* ============================================================== environment */
+// Without an environment map every MeshStandardMaterial has nothing to reflect,
+// so glazed tile, glass, stainless and wet asphalt all render as flat paint no
+// matter how good the albedo is. A tiny procedural equirect is enough: a dark
+// sky, a warm horizon and the porch glow, prefiltered by PMREM into the mips
+// the roughness model actually samples.
+{
+  const c = document.createElement('canvas');
+  c.width = 512; c.height = 256;
+  const g = c.getContext('2d');
+  const sky = g.createLinearGradient(0, 0, 0, 256);
+  sky.addColorStop(0, '#0e1218');
+  sky.addColorStop(0.40, '#262b33');
+  sky.addColorStop(0.49, '#6a4a33');
+  sky.addColorStop(0.53, '#2a1d14');
+  sky.addColorStop(1, '#080605');
+  g.fillStyle = sky;
+  g.fillRect(0, 0, 512, 256);
+  // the porch: the one warm source, roughly where the canopy sits
+  const glow = g.createRadialGradient(256, 132, 4, 256, 132, 130);
+  glow.addColorStop(0, 'rgba(255,198,142,.9)');
+  glow.addColorStop(0.5, 'rgba(255,178,120,.22)');
+  glow.addColorStop(1, 'rgba(255,178,120,0)');
+  g.fillStyle = glow;
+  g.fillRect(0, 0, 512, 256);
+
+  const eq = new THREE.CanvasTexture(c);
+  eq.mapping = THREE.EquirectangularReflectionMapping;
+  eq.colorSpace = THREE.SRGBColorSpace;
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  scene.environment = pmrem.fromEquirectangular(eq).texture;
+  scene.environmentIntensity = 0.5;
+  pmrem.dispose();
+  eq.dispose();
+}
+
+/* ================================================================== textures */
+
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function valueNoise(gridSize, seed) {
+  const rnd = mulberry32(seed);
+  const g = new Float32Array(gridSize * gridSize);
+  for (let i = 0; i < g.length; i++) g[i] = rnd();
+  return (x, y) => {
+    const fx = x * gridSize, fy = y * gridSize;
+    const ix = Math.floor(fx), iy = Math.floor(fy);
+    const x0 = ((ix % gridSize) + gridSize) % gridSize;
+    const y0 = ((iy % gridSize) + gridSize) % gridSize;
+    const x1 = (x0 + 1) % gridSize, y1 = (y0 + 1) % gridSize;
+    let tx = fx - ix, ty = fy - iy;
+    tx = tx * tx * (3 - 2 * tx); ty = ty * ty * (3 - 2 * ty);
+    const a = g[y0 * gridSize + x0], b = g[y0 * gridSize + x1];
+    const c = g[y1 * gridSize + x0], d = g[y1 * gridSize + x1];
+    return (a * (1 - tx) + b * tx) * (1 - ty) + (c * (1 - tx) + d * tx) * ty;
+  };
+}
+
+// stained, streaked concrete: fbm base + vertical water streaks + rust blooms
+function concreteCanvas(size, seed, { base = 118, spread = 46, streak = 0.55, rust = 0.35 } = {}) {
+  const c = document.createElement('canvas');
+  c.width = c.height = size;
+  const ctx = c.getContext('2d');
+  const img = ctx.createImageData(size, size);
+  const n1 = valueNoise(4, seed);
+  const n2 = valueNoise(16, seed + 7);
+  const n3 = valueNoise(48, seed + 19);
+  const rnd = mulberry32(seed + 91);
+
+  for (let y = 0; y < size; y++) {
+    const v = y / size;
+    for (let x = 0; x < size; x++) {
+      const u = x / size;
+      let f = n1(u, v) * 0.5 + n2(u, v) * 0.32 + n3(u, v) * 0.18;
+      // vertical streaks: noise sampled on a stretched axis
+      const s = n2(u * 9, v * 0.35);
+      f *= 1 - streak * Math.max(0, s - 0.55) * 1.6;
+      let g = base + (f - 0.5) * spread * 2;
+      // rust bloom near the top edge and in patches
+      const rb = n3(u * 3, v * 3);
+      if (rb > 0.68) g += (rb - 0.68) * rust * 210;
+      const px = (y * size + x) * 4;
+      img.data[px] = Math.min(255, g * 1.02);
+      img.data[px + 1] = Math.min(255, g * 0.97);
+      img.data[px + 2] = Math.min(255, g * 0.92);
+      img.data[px + 3] = 255;
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+
+  // grime blotches
+  ctx.globalAlpha = 0.16;
+  for (let i = 0; i < 90; i++) {
+    const r = 4 + rnd() * 34;
+    const x = rnd() * size, y = rnd() * size;
+    const grd = ctx.createRadialGradient(x, y, 0, x, y, r);
+    grd.addColorStop(0, 'rgba(38,32,26,.9)');
+    grd.addColorStop(1, 'rgba(38,32,26,0)');
+    ctx.fillStyle = grd;
+    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+  return c;
+}
+
+function texFromCanvas(canvas, repeatX = 1, repeatY = 1) {
+  const t = new THREE.CanvasTexture(canvas);
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.repeat.set(repeatX, repeatY);
+  t.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+  return t;
+}
+
+// Sobel a height field out of any canvas and hand back a tangent-space normal
+// map. bumpMap derives its normal from screen-space derivatives, which goes to
+// mush at the grazing angles a road is always seen at; a real normal map carries
+// the relief in the texture, so the light rakes across the cracks instead of
+// sliding over them.
+function normalMapFrom(canvas, strength = 2.4, repeatX = 1, repeatY = 1) {
+  const w = canvas.width, h = canvas.height;
+  const src = canvas.getContext('2d').getImageData(0, 0, w, h).data;
+  const out = document.createElement('canvas');
+  out.width = w; out.height = h;
+  const octx = out.getContext('2d');
+  const img = octx.createImageData(w, h);
+  const lum = (x, y) => {
+    const i = ((((y % h) + h) % h) * w + (((x % w) + w) % w)) * 4;
+    return (src[i] * 0.3 + src[i + 1] * 0.59 + src[i + 2] * 0.11) / 255;
+  };
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const dx = (lum(x - 1, y) - lum(x + 1, y)) * strength;
+      const dy = (lum(x, y - 1) - lum(x, y + 1)) * strength;
+      const len = Math.hypot(dx, dy, 1);
+      const px = (y * w + x) * 4;
+      img.data[px] = ((dx / len) * 0.5 + 0.5) * 255;
+      img.data[px + 1] = ((dy / len) * 0.5 + 0.5) * 255;
+      img.data[px + 2] = ((1 / len) * 0.5 + 0.5) * 255;
+      img.data[px + 3] = 255;
+    }
+  }
+  octx.putImageData(img, 0, 0);
+  const t = new THREE.CanvasTexture(out);
+  // a normal map is data, not colour: leaving sRGB on it bends every vector
+  t.colorSpace = THREE.NoColorSpace;
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.repeat.set(repeatX, repeatY);
+  t.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+  return t;
+}
+
+/* ---------------------------------------------------------- surface library */
+// Canvas-drawn maps for everything the concrete shader cannot say: glazed wall
+// tile, terrazzo, boards, rusted steel, burlap. No external assets, so the page
+// stays a single file plus one GLB.
+
+function tileCanvas(size = 512) {
+  const c = document.createElement('canvas');
+  c.width = c.height = size;
+  const g = c.getContext('2d');
+  const n = 8;                       // 8 x 8 tiles per texture = 15 cm each at 1.2 m
+  const cell = size / n;
+  const rnd = mulberry32(6161);
+  g.fillStyle = '#6f6a60';           // grout: pale, or the wall reads as brickwork
+  g.fillRect(0, 0, size, size);
+  for (let y = 0; y < n; y++) {
+    for (let x = 0; x < n; x++) {
+      const v = 176 + rnd() * 42;
+      g.fillStyle = `rgb(${v | 0},${(v * 0.99) | 0},${(v * 0.93) | 0})`;
+      g.fillRect(x * cell + 1.4, y * cell + 1.4, cell - 2.8, cell - 2.8);
+      // a glaze highlight along the top edge of every tile
+      g.fillStyle = 'rgba(255,255,255,.16)';
+      g.fillRect(x * cell + 1.4, y * cell + 1.4, cell - 2.8, 2);
+      // some tiles are chipped or missing
+      if (rnd() > 0.93) {
+        g.fillStyle = 'rgba(70,62,52,.85)';
+        g.beginPath();
+        g.ellipse(x * cell + cell * (0.3 + rnd() * 0.4), y * cell + cell * (0.3 + rnd() * 0.4),
+          cell * 0.18, cell * 0.12, rnd() * 3, 0, 6.3);
+        g.fill();
+      }
+    }
+  }
+  // water stains running down the wall
+  for (let i = 0; i < 26; i++) {
+    const x = rnd() * size, w = 2 + rnd() * 16, h = 60 + rnd() * 300;
+    const grd = g.createLinearGradient(0, 0, 0, h);
+    grd.addColorStop(0, 'rgba(74,62,44,.28)');
+    grd.addColorStop(1, 'rgba(74,62,44,0)');
+    g.fillStyle = grd;
+    g.fillRect(x, rnd() * size * 0.6, w, h);
+  }
+  // the dado of a building nobody has cleaned in years: grime creeping up from
+  // the floor, mould blooms where water sits, soot settling from above
+  const gg = g.createLinearGradient(0, 0, 0, size);
+  gg.addColorStop(0, 'rgba(34,28,22,.42)');
+  gg.addColorStop(0.3, 'rgba(34,28,22,.08)');
+  gg.addColorStop(0.72, 'rgba(46,38,28,.1)');
+  gg.addColorStop(1, 'rgba(24,20,15,.5)');
+  g.fillStyle = gg;
+  g.fillRect(0, 0, size, size);
+  for (let i = 0; i < 46; i++) {
+    const x = rnd() * size, y = size * (0.55 + rnd() * 0.45), r = 5 + rnd() * 26;
+    const mg = g.createRadialGradient(x, y, 0, x, y, r);
+    mg.addColorStop(0, 'rgba(44,46,32,.42)');
+    mg.addColorStop(1, 'rgba(44,46,32,0)');
+    g.fillStyle = mg;
+    g.beginPath(); g.arc(x, y, r, 0, 6.3); g.fill();
+  }
+  return c;
+}
+
+function terrazzoCanvas(size = 512) {
+  const c = document.createElement('canvas');
+  c.width = c.height = size;
+  const g = c.getContext('2d');
+  const rnd = mulberry32(7272);
+  g.fillStyle = '#3d3a34';
+  g.fillRect(0, 0, size, size);
+  // chips: light aggregate in a dark cement matrix
+  for (let i = 0; i < 5200; i++) {
+    const v = rnd();
+    g.fillStyle = v > 0.72
+      ? `rgba(${190 + rnd() * 50 | 0},${185 + rnd() * 45 | 0},${170 + rnd() * 40 | 0},.85)`
+      : `rgba(${70 + rnd() * 40 | 0},${68 + rnd() * 36 | 0},${62 + rnd() * 32 | 0},.9)`;
+    const r = 0.8 + rnd() * 2.6;
+    g.beginPath();
+    g.ellipse(rnd() * size, rnd() * size, r, r * (0.6 + rnd() * 0.6), rnd() * 3, 0, 6.3);
+    g.fill();
+  }
+  // dirt and a couple of long cracks
+  g.strokeStyle = 'rgba(20,17,14,.55)';
+  for (let i = 0; i < 5; i++) {
+    g.lineWidth = 0.8 + rnd() * 1.6;
+    g.beginPath();
+    let x = rnd() * size, y = rnd() * size;
+    g.moveTo(x, y);
+    for (let k = 0; k < 6; k++) {
+      x += (rnd() - 0.5) * 90; y += (rnd() - 0.5) * 90;
+      g.lineTo(x, y);
+    }
+    g.stroke();
+  }
+  return c;
+}
+
+function plankCanvas(size = 256) {
+  const c = document.createElement('canvas');
+  c.width = c.height = size;
+  const g = c.getContext('2d');
+  const rnd = mulberry32(8383);
+  g.fillStyle = '#4a3a28';
+  g.fillRect(0, 0, size, size);
+  const boards = 4;
+  const bw = size / boards;
+  for (let b = 0; b < boards; b++) {
+    const v = 62 + rnd() * 26;
+    g.fillStyle = `rgb(${v * 1.5 | 0},${v * 1.1 | 0},${v * 0.72 | 0})`;
+    g.fillRect(b * bw + 1, 0, bw - 2, size);
+    // grain
+    for (let i = 0; i < 26; i++) {
+      g.strokeStyle = `rgba(${40 + rnd() * 30 | 0},${26 + rnd() * 20 | 0},${14 + rnd() * 14 | 0},${0.1 + rnd() * 0.25})`;
+      g.lineWidth = 0.6 + rnd() * 1.6;
+      g.beginPath();
+      let x = b * bw + 4 + rnd() * (bw - 8);
+      g.moveTo(x, 0);
+      for (let y = 0; y < size; y += 16) {
+        x += (rnd() - 0.5) * 4;
+        g.lineTo(x, y);
+      }
+      g.stroke();
+    }
+    // a knot
+    if (rnd() > 0.6) {
+      g.fillStyle = 'rgba(38,24,12,.75)';
+      g.beginPath();
+      g.ellipse(b * bw + bw * 0.5, rnd() * size, 3 + rnd() * 4, 5 + rnd() * 6, 0, 0, 6.3);
+      g.fill();
+    }
+  }
+  return c;
+}
+
+function rustCanvas(size = 256) {
+  const c = document.createElement('canvas');
+  c.width = c.height = size;
+  const g = c.getContext('2d');
+  const rnd = mulberry32(9494);
+  g.fillStyle = '#4b4a46';
+  g.fillRect(0, 0, size, size);
+  for (let i = 0; i < 900; i++) {
+    const r = 3 + rnd() * 26;
+    const grd = g.createRadialGradient(rnd() * size, rnd() * size, 0, rnd() * size, rnd() * size, r);
+    const t = rnd();
+    grd.addColorStop(0, t > 0.5 ? 'rgba(126,74,38,.55)' : 'rgba(72,64,54,.5)');
+    grd.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = grd;
+    g.fillRect(0, 0, size, size);
+  }
+  return c;
+}
+
+function burlapCanvas(size = 128) {
+  const c = document.createElement('canvas');
+  c.width = c.height = size;
+  const g = c.getContext('2d');
+  g.fillStyle = '#5d5445';
+  g.fillRect(0, 0, size, size);
+  g.strokeStyle = 'rgba(30,26,20,.35)';
+  g.lineWidth = 1;
+  for (let i = 0; i < size; i += 4) {
+    g.beginPath(); g.moveTo(i, 0); g.lineTo(i, size); g.stroke();
+    g.beginPath(); g.moveTo(0, i); g.lineTo(size, i); g.stroke();
+  }
+  const rnd = mulberry32(313);
+  for (let i = 0; i < 220; i++) {
+    g.fillStyle = `rgba(${120 + rnd() * 60 | 0},${108 + rnd() * 50 | 0},${86 + rnd() * 40 | 0},.5)`;
+    g.fillRect(rnd() * size, rnd() * size, 2, 2);
+  }
+  return c;
+}
+
+const concreteCanvasA = concreteCanvas(512, 1337, { base: 176, spread: 40, streak: 0.55, rust: 0.16 });
+const concreteCanvasB = concreteCanvas(512, 4242, { base: 150, spread: 56, streak: 0.7, rust: 0.3 });
+
+const TEX = {
+  concrete: concreteCanvasA,
+  concreteDark: concreteCanvasB,
+  tile: tileCanvas(),
+  terrazzo: terrazzoCanvas(),
+  plank: plankCanvas(),
+  rust: rustCanvas(),
+  burlap: burlapCanvas(),
+};
+
+/* ------------------------------------------------ generated surface maps */
+// Photographic albedo from the local z-image pack (assets/tex/*). The canvas
+// maps stay: photo for what the eye reads, procedural for what the light reads.
+// Mirrored repeat by default - a 768 px tile repeated 90 times shows its seam
+// on every joint otherwise, and mirroring costs nothing but symmetry nobody sees
+// on noise-like surfaces.
+const GEN_URL = {
+  asphalt: 'assets/tex/asphalt.webp',
+  terrazzo: 'assets/tex/terrazzo.webp',
+  tile: 'assets/tex/tile.webp',
+  plank: 'assets/tex/plank.webp',
+  concrete: 'assets/tex/concrete.webp',
+  glass: 'assets/tex/glass.webp',
+  debris: 'assets/tex/debris.webp',
+  grime: 'assets/tex/grime.webp',
+  metal: 'assets/tex/metal.webp',
+  lobby: 'assets/tex/lobby.webp',
+  corridor: 'assets/tex/corridor.webp',
+  ground: 'assets/tex/ground.webp',
+  // portal-scale generation, not a four-storey facade: the canopy spans the whole
+  // frame edge to edge, the door bay is a third of it and the wall above is a
+  // narrow band. That is the actual composition of this entrance, so the crops
+  // below come out at the scale they are used at - 1536 px over 9.4 m of canopy
+  // is 163 px/m, and a 0.62 m pier is 100 px wide in the source, not 44.
+  portal: 'assets/tex/portal-narrow-b.webp',
+  // props, generated at material scale rather than scene scale: a 512 px sheet
+  // of weathered yellow polyethylene and one of split mattress vinyl, both from
+  // the local z-image pack
+  vinyl: 'assets/tex/gurney-vinyl.webp',
+  binPlastic: 'assets/tex/bin-plastic.webp',
+};
+const texLoader = new THREE.TextureLoader();
+function genTex(key, rx = 1, ry = 1, mirror = true) {
+  const t = texLoader.load(GEN_URL[key]);
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.wrapS = t.wrapT = mirror ? THREE.MirroredRepeatWrapping : THREE.RepeatWrapping;
+  t.repeat.set(rx, ry);
+  t.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+  return t;
+}
+
+// A rectangle out of a generated image, as a texture of its own.
+//
+// Why this exists: even a portal-scale render is not a metric elevation - the
+// canopy in portal-narrow-b spans the frame, the door bay is a third of it, and
+// the picture cannot be laid over a correctly proportioned portal without
+// squashing something. What IS at the right scale is the material: the stained
+// slab edge, the pier face, the soffit. So the generated portal is used as an
+// atlas and the geometry keeps its own proportions. Crop from a portal-scale
+// image rather than a four-storey facade, and the crops come out at the size
+// they are used at - that is the difference between a pier face and a smear.
+const cropCache = new Map();
+function cropTex(url, sx, sy, sw, sh, { repeat = [1, 1], mirror = false, gain = 1 } = {}) {
+  const key = `${url}|${sx},${sy},${sw},${sh}`;
+  let t = cropCache.get(key);
+  if (!t) {
+    const c = document.createElement('canvas');
+    c.width = sw; c.height = sh;
+    const x = c.getContext('2d');
+    x.fillStyle = '#6b665c';
+    x.fillRect(0, 0, sw, sh);
+    t = new THREE.CanvasTexture(c);
+    t.colorSpace = THREE.SRGBColorSpace;
+    t.wrapS = t.wrapT = mirror ? THREE.MirroredRepeatWrapping : THREE.RepeatWrapping;
+    t.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+    texLoader.load(url, (tex) => {
+      const img = tex.image;
+      if (!img) return;
+      // A crop is a photograph of a surface, and the photograph already carries
+      // that surface's lighting. Used as an albedo it darkens twice: the soffit
+      // in the source is lit at roughly 0.16, which as a base colour makes a
+      // black hole under a lamp that is very much on. `gain` lifts the picture
+      // back to something a material can be built on, keeping the stains.
+      if (gain !== 1) x.filter = `brightness(${gain})`;
+      x.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
+      x.filter = 'none';
+      t.needsUpdate = true;
+    });
+    cropCache.set(key, t);
+  }
+  t.repeat.set(repeat[0], repeat[1]);
+  return t;
+}
+
+// photo albedo laid over a procedural base. The photo alone tiles: one 768 px
+// image repeated across a 26 m elevation reads as wallpaper, because every
+// streak reappears on a 5 m grid. The canvas underneath is not a tile - it is
+// fbm noise - so overlaying it breaks the repeat without losing the detail.
+function mixedMap(baseCanvas, key, repeat = [1, 1], over = 0.62, mirror = true) {
+  const c = document.createElement('canvas');
+  c.width = baseCanvas.width; c.height = baseCanvas.height;
+  const x = c.getContext('2d');
+  x.drawImage(baseCanvas, 0, 0);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.wrapS = t.wrapT = mirror ? THREE.MirroredRepeatWrapping : THREE.RepeatWrapping;
+  t.repeat.set(repeat[0], repeat[1]);
+  t.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+  texLoader.load(GEN_URL[key], (tex) => {
+    const img = tex.image;
+    if (!img) return;
+    x.globalCompositeOperation = 'overlay';
+    x.globalAlpha = over;
+    x.drawImage(img, 0, 0, c.width, c.height);
+    x.globalAlpha = 1;
+    x.globalCompositeOperation = 'source-over';
+    t.needsUpdate = true;
+  });
+  return t;
+}
+
+function concreteMat({ repeat = [0.22, 0.22], tint = 0x9c958a, rough = 0.94, canvas = TEX.concrete, src = null } = {}) {
+  const map = src ? mixedMap(canvas, src, repeat) : texFromCanvas(canvas, repeat[0], repeat[1]);
+  // the canvas as a height field: at close range a colour map alone reads as
+  // printed paper, the bump is what makes concrete look like concrete
+  const bump = texFromCanvas(canvas, repeat[0] * 1.7, repeat[1] * 1.7);
+  return new THREE.MeshStandardMaterial({
+    map, bumpMap: bump, bumpScale: 0.035,
+    color: tint, roughness: rough, metalness: 0.02,
+  });
+}
+
+/* ================================================================= materials */
+
+const M = {
+  facade: concreteMat({ repeat: [2.2, 1.5], tint: 0xb2aba1, src: 'concrete' }),
+  slab: concreteMat({ repeat: [1.6, 1.6], tint: 0xbfb9ae, canvas: TEX.concreteDark }),
+  column: concreteMat({ repeat: [1.2, 0.9], tint: 0x9d968c, src: 'concrete' }),
+  rubble: (() => {
+    const map = genTex('debris', 1, 1, true);
+    return new THREE.MeshStandardMaterial({
+      map, bumpMap: map, bumpScale: 0.06,
+      color: 0x9d968c, roughness: 0.96, metalness: 0.02,
+    });
+  })(),
+  dark: new THREE.MeshStandardMaterial({ color: 0x14100c, roughness: 0.95, metalness: 0 }),
+  rebar: new THREE.MeshStandardMaterial({ color: 0x5a3a28, roughness: 0.72, metalness: 0.55 }),
+  sandbag: new THREE.MeshStandardMaterial({
+    map: texFromCanvas(TEX.burlap, 2, 2), color: 0xa89c84, roughness: 0.98, metalness: 0,
+  }),
+  wood: (() => {
+    // the boards over the window openings. The photo carries five planks, and a
+    // board box maps 0..1 per face, so sample one band of it, not all five
+    const map = genTex('plank', 1, 0.2, false);
+    return new THREE.MeshStandardMaterial({
+      map, bumpMap: map, bumpScale: 0.05,
+      color: 0xb9a68a, roughness: 0.95, metalness: 0.02,
+    });
+  })(),
+  metal: (() => {
+    const map = genTex('metal', 1.4, 1.4, true);
+    return new THREE.MeshStandardMaterial({
+      map, bumpMap: map, bumpScale: 0.04,
+      color: 0x9b9790, roughness: 0.66, metalness: 0.5,
+    });
+  })(),
+  glow: new THREE.MeshBasicMaterial({ color: 0xffb877 }),
+};
+
+/* =================================================================== helpers */
+
+function box(w, h, d, mat, x = 0, y = 0, z = 0, rot = null) {
+  const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+  m.position.set(x, y, z);
+  if (rot) m.rotation.set(rot[0] || 0, rot[1] || 0, rot[2] || 0);
+  m.castShadow = true;
+  m.receiveShadow = true;
+  return m;
+}
+
+function cylinder(r1, r2, h, mat, seg = 8) {
+  const m = new THREE.Mesh(new THREE.CylinderGeometry(r1, r2, h, seg), mat);
+  m.castShadow = true;
+  m.receiveShadow = true;
+  return m;
+}
+
+/* ==================================================================== ground */
+
+{
+  // ---- the road ------------------------------------------------------------
+  // One 768 px photo across 400 m is a repeating grid, and a road that repeats
+  // reads as CG no matter how good the photo is. Three layers instead: a
+  // mirrored albedo at 5.5 m per tile, a normal map derived from that same
+  // photo so the aggregate really catches the porch light at a grazing angle,
+  // and a low-frequency dampness map. Uniform roughness is what makes a night
+  // road look like felt - real asphalt is patchy, and the damp patches are the
+  // only reason the light ever reflects off it.
+  const damp = (() => {
+    const c = document.createElement('canvas');
+    c.width = c.height = 256;
+    const g = c.getContext('2d');
+    const img = g.createImageData(256, 256);
+    const n1 = valueNoise(4, 3311), n2 = valueNoise(9, 3322), n3 = valueNoise(23, 3333);
+    for (let y = 0; y < 256; y++) {
+      for (let x = 0; x < 256; x++) {
+        const u = x / 256, v = y / 256;
+        const f = n1(u, v) * 0.55 + n2(u, v) * 0.3 + n3(u, v) * 0.15;
+        // 255 = dry, ~90 = holding water. The range is narrow and low on
+        // purpose: the whole apron is wet, so the whole apron carries a sheen,
+        // and the patches only decide where it gets sharper. .28-.68 was still
+        // matte - a wet road reflects at .10-.40 and the reflection is the
+        // surface, not a plate lying on it.
+        // 0.15 let the sun's specular collapse into a hard bright streak lying on
+        // the road, and because the dampness map decides WHERE it goes, the
+        // streak ended on a straight edge - "свет из пола" in the middle of a
+        // dark apron, with nothing above it that could be casting it. A wet road
+        // at night is dark with a soft sheen, not a mirror: the floor of the
+        // range moves up, the sheen stays, the streak does not.
+        const val = Math.round(255 * Math.min(1, 0.32 + f * 0.32));
+        const i = (y * 256 + x) * 4;
+        img.data[i] = img.data[i + 1] = img.data[i + 2] = val;
+        img.data[i + 3] = 255;
+      }
+    }
+    g.putImageData(img, 0, 0);
+    const t = new THREE.CanvasTexture(c);
+    t.colorSpace = THREE.NoColorSpace;      // it is a multiplier, not a colour
+    t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    t.repeat.set(2.5, 2.5);
+    return t;
+  })();
+
+  const mat = new THREE.MeshStandardMaterial({
+    map: genTex('asphalt', 72, 72),
+    // dark aggregate, and the sheen comes from the environment rather than from
+    // the albedo: a wet night road is nearly black with a warm specular on it
+    roughnessMap: damp, roughness: 1, metalness: 0.1,
+    color: 0x6f6759, envMapIntensity: 1.2,
+  });
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(400, 400), mat);
+  ground.rotation.x = -Math.PI / 2;
+  ground.receiveShadow = true;
+  scene.add(ground);
+
+  // the relief: normal map built from the photo once it has decoded
+  texLoader.load(GEN_URL.asphalt, (tex) => {
+    const img = tex.image;
+    if (!img) return;
+    const c = document.createElement('canvas');
+    c.width = c.height = 512;
+    c.getContext('2d').drawImage(img, 0, 0, 512, 512);
+    mat.normalMap = normalMapFrom(c, 2.4, 72, 72);
+    // 1.15 was a mistake on a glossy surface: every stone turned into its own
+    // little facet and the reflection broke into glitter. At .6 the relief is
+    // there, the sheen still runs across it.
+    mat.normalScale.set(0.6, 0.6);
+    mat.needsUpdate = true;
+  });
+
+  // ---- no puddles ---------------------------------------------------------
+  // Five rectangular planes lying 6 mm over the road, each masked by a soft
+  // alpha blob. The mask made the EDGE soft, but the plane is still a rectangle
+  // with a different roughness to the road under it, and at this camera a
+  // rectangle on the ground projects its long side as a near-vertical line.
+  // That is the seam between light and shadow at the left and right of the
+  // frame: not a shadow, a decal edge. The whole apron is already damp - the
+  // roughnessMap does that across the entire 400 x 400 surface - so the puddles
+  // were only a darker, glossier copy of what the ground already does.
+
+  // No dirt decals on top of the road. They were separate quads with an alpha
+  // keyed out of the photo's luminance, and the corners of those quads landed as
+  // pale rectangles lying over dark asphalt - the "layers" you could see on the
+  // ground. The variation lives in the dampness map and the puddles now, which
+  // are part of the surface instead of stacked on it.
+}
+
+/* ============================================================ hospital block */
+// Real geometry: one extruded wall with window holes, interior shell, floor slabs,
+// canopy on two columns, collapsed corner, rebar, rubble, sandbags.
+
+const BLD = { W: 26, H: 10, D: 12, z: -18, floors: 3, bays: 7, doorW: 3.8, doorH: 2.9 };
+// the lit sign and its lamp, so the loop can make the tube misbehave
+const SIGN = { mat: null, light: null };
+const floorH = BLD.H / BLD.floors;
+const bayW = BLD.W / BLD.bays;
+
+function buildFacade() {
+  const g = new THREE.Group();
+
+  // ---- wall with real openings -------------------------------------------
+  // two top-floor bays are gone altogether: a straight parapet across 26 m is
+  // the one line that makes an abandoned block read as a new build
+  const CUT_BAYS = [1, 5];
+  const cutRanges = CUT_BAYS.map((b) => {
+    const c = -BLD.W / 2 + bayW * (b + 0.5);
+    return [c - bayW * 0.46, c + bayW * 0.46];
+  });
+
+  const topEdge = [];
+  {
+    const stepX = 0.5;
+    const N = Math.round(BLD.W / stepX);
+    for (let i = 0; i <= N; i++) {
+      const x = BLD.W / 2 - (BLD.W / N) * i;
+      let drop = 0;                                        // the parapet is level
+      for (const [a, b2] of cutRanges) {
+        if (x < a || x > b2) continue;
+        const t = 1 - Math.abs(x - (a + b2) / 2) / ((b2 - a) / 2);
+        // two clean courses, not a slope: masonry comes off in blocks
+        drop = t > 0.62 ? 2.4 : t > 0.22 ? 1.2 : 0.4;
+      }
+      topEdge.push([x, BLD.H - drop]);
+    }
+  }
+
+  const shape = new THREE.Shape();
+  shape.moveTo(-BLD.W / 2, 0);
+  shape.lineTo(BLD.W / 2, 0);
+  for (const [tx, ty] of topEdge) shape.lineTo(tx, ty);
+  shape.lineTo(-BLD.W / 2, 0);
+  shape.closePath();
+
+  const winW = bayW * 0.62;
+  const winH = floorH * 0.52;
+  const winRects = [];
+
+  // The vestibule is a real room behind the doorway, and the window cards have
+  // to know about it. Hoisted here because the card loop runs long before the
+  // room is built.
+  const VEST_W = BLD.doorW + 0.12;
+  const VEST_D = 4.6;
+
+  // room cards: a plane 1.3 m behind each opening, dark but not empty
+  const roomCanvas = document.createElement('canvas');
+  roomCanvas.width = roomCanvas.height = 64;
+  {
+    const rg = roomCanvas.getContext('2d');
+    const rgr = rg.createRadialGradient(32, 30, 2, 32, 32, 46);
+    // Not black. The boards cover the opening 1-5 planks at a time, so there is
+    // always some sliver of the hole left showing, and at #0a0705 that sliver
+    // was a hole punched clean through the building - the "разрыв наружу" at
+    // the column. A room is dark, not absent.
+    //
+    // ...but these cards are MeshBasicMaterial, so whatever they are painted is
+    // what the window shows, with no light on it at all. At #3a2e24 the centre
+    // was brighter than the wall around it, and every sliver between the boards
+    // read as a lamp switched on inside an abandoned block. Two stops down, the
+    // room is still there and no longer glows.
+    rgr.addColorStop(0, '#221a14');
+    rgr.addColorStop(0.55, '#150f0b');
+    rgr.addColorStop(1, '#0b0806');
+    rg.fillStyle = rgr;
+    rg.fillRect(0, 0, 64, 64);
+  }
+  const roomTex = new THREE.CanvasTexture(roomCanvas);
+  roomTex.colorSpace = THREE.SRGBColorSpace;
+  const roomMat = new THREE.MeshBasicMaterial({ map: roomTex, toneMapped: true });
+
+  for (let f = 0; f < BLD.floors; f++) {
+    for (let b = 0; b < BLD.bays; b++) {
+      const cx = -BLD.W / 2 + bayW * (b + 0.5);
+      const cy = f * floorH + floorH * 0.56;
+      if (f === 0 && b === 3) continue;                  // the doorway bay
+      if (f === BLD.floors - 1 && CUT_BAYS.includes(b)) continue;   // bay is gone
+      winRects.push({ cx, cy });
+      // 2.2x the opening, not 1.5x: at a grazing angle from the far side of the
+      // frame you could see past the edge of the card and into the void behind.
+      //
+      // Two corrections on top of that, both from the same report:
+      //  - The card now sits 0.45 m behind the opening, not 1.3 m. At 1.3 m a ray
+      //    through a ground-floor opening could still pass the card and land on
+      //    interior geometry 23 m inside - the bright square that appeared in the
+      //    left window. Close behind the opening, nothing behind it is reachable.
+      //  - The two bays either side of the door are 3.71 m from its centre and
+      //    2.2x a bay is 5.07 m, so their cards used to reach 0.78 m INTO the
+      //    vestibule. Pushing them behind the vestibule's back wall (the earlier
+      //    fix) also reopened the view into the building. They are clipped to the
+      //    vestibule's edge instead, and stay where they belong.
+      const halfCard = winW * 1.1;
+      const VEST_HALF = VEST_W / 2 + 0.03;
+      let cw = halfCard * 2, ccx = cx;
+      if (f === 0 && Math.abs(cx) - halfCard < VEST_HALF) {
+        const s = Math.sign(cx) || 1;
+        cw = Math.abs(cx) + halfCard - VEST_HALF;
+        ccx = s * (VEST_HALF + cw / 2);
+      }
+      const card = new THREE.Mesh(new THREE.PlaneGeometry(cw, winH * 2.2), roomMat);
+      card.position.set(ccx, cy, BLD.z - 0.45);
+      g.add(card);
+      const hole = new THREE.Path();
+      hole.moveTo(cx - winW / 2, cy - winH / 2);
+      hole.lineTo(cx - winW / 2, cy + winH / 2);
+      hole.lineTo(cx + winW / 2, cy + winH / 2);
+      hole.lineTo(cx + winW / 2, cy - winH / 2);
+      hole.closePath();
+      shape.holes.push(hole);
+    }
+  }
+
+  // doorway
+  const door = new THREE.Path();
+  door.moveTo(-BLD.doorW / 2, 0.02);
+  door.lineTo(-BLD.doorW / 2, BLD.doorH);
+  door.lineTo(BLD.doorW / 2, BLD.doorH);
+  door.lineTo(BLD.doorW / 2, 0.02);
+  door.closePath();
+  shape.holes.push(door);
+
+  const wallGeo = new THREE.ExtrudeGeometry(shape, { depth: 0.55, bevelEnabled: false, curveSegments: 1 });
+  // baked vertical grime: real walls are dark at the base and clean at the parapet,
+  // and without it a flat lit elevation looks like cardboard
+  {
+    const p = wallGeo.attributes.position;
+    const col = new Float32Array(p.count * 3);
+    for (let i = 0; i < p.count; i++) {
+      const k = THREE.MathUtils.clamp(0.24 + 0.76 * Math.pow(p.getY(i) / BLD.H, 0.62), 0, 1);
+      col[i * 3] = k; col[i * 3 + 1] = k * 0.985; col[i * 3 + 2] = k * 0.96;
+    }
+    wallGeo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  }
+  const wallMat = M.facade.clone();
+  wallMat.vertexColors = true;
+  const wall = new THREE.Mesh(wallGeo, wallMat);
+  wall.position.z = BLD.z;
+  wall.castShadow = true;
+  wall.receiveShadow = true;
+  g.add(wall);
+
+  // ---- construction joints + spalled render --------------------------------
+  // The cure for a wallpaper elevation is not a better map, it is geometry that
+  // does not repeat: a cast-in-situ wall has a slab edge at every floor and a
+  // formwork joint every few metres, and both survive any texture repeat.
+  {
+    const jointMat = concreteMat({ repeat: [0.6, 0.6], tint: 0x8b8479, canvas: TEX.concreteDark });
+    // slab edges, split so they run into the door reveal instead of across the sign
+    for (const jy of [3.53, 6.87]) {
+      for (const [x0, x1] of [[-BLD.W / 2, -2.15], [2.15, BLD.W / 2]]) {
+        g.add(box(x1 - x0, 0.15, 0.09, jointMat, (x0 + x1) / 2, jy, BLD.z + 0.575));
+      }
+    }
+    // formwork joints, on the piers between bays where nothing else lives
+    for (const jx of [-9.29, -5.57, 5.57, 9.29]) {
+      g.add(box(0.06, BLD.H, 0.07, jointMat, jx, BLD.H / 2, BLD.z + 0.565));
+    }
+  }
+
+  // Where the render has come off the wall the surface is darker and coarser, but
+  // it has no outline. These used to be ShapeGeometry polygons with a hard edge,
+  // and at the top of the frame one of them sat over a slab joint as a dark
+  // angular sticker on the concrete. A spall is a soft-edged patch: the alpha is
+  // a noise-modulated disc, so the patch thins out into the wall instead of
+  // ending on a line.
+  {
+    const c = document.createElement('canvas');
+    c.width = c.height = 128;
+    const x = c.getContext('2d');
+    const n1 = valueNoise(4, 771), n2 = valueNoise(11, 772);
+    const img = x.createImageData(128, 128);
+    for (let y = 0; y < 128; y++) {
+      for (let xx = 0; xx < 128; xx++) {
+        const u = xx / 128, v = y / 128;
+        const dx = u - 0.5, dy = v - 0.5;
+        const r = Math.sqrt(dx * dx + dy * dy) * 2;
+        const noise = n1(u * 2, v * 2) * 0.6 + n2(u * 4, v * 4) * 0.4;
+        const a = Math.max(0, 1 - r * (1.15 + noise * 0.9));
+        const i = (y * 128 + xx) * 4;
+        img.data[i] = img.data[i + 1] = img.data[i + 2] = 255;
+        img.data[i + 3] = Math.round(255 * Math.min(1, a * 1.5));
+      }
+    }
+    x.putImageData(img, 0, 0);
+    const alphaTex = new THREE.CanvasTexture(c);
+    alphaTex.colorSpace = THREE.NoColorSpace;
+
+    const sr = mulberry32(2468);
+    const spots = [
+      [-11.6, 3.5, 0.62], [-7.6, 3.3, 0.5], [3.0, 3.45, 0.55], [8.4, 3.3, 0.6], [12.0, 3.5, 0.45],
+      [-9.8, 6.9, 0.55], [-3.2, 6.85, 0.45], [6.2, 6.9, 0.5], [11.6, 6.85, 0.4],
+    ];
+    for (const [sx, sy, sz] of spots) {
+      const map = texFromCanvas(TEX.concreteDark, 1.4, 1.4);
+      map.offset.set(sr(), sr());
+      const m = new THREE.Mesh(
+        new THREE.PlaneGeometry(sz * 3.0, sz * 2.4),
+        new THREE.MeshStandardMaterial({
+          map, alphaMap: alphaTex, transparent: true, depthWrite: false,
+          color: 0x8d867a, roughness: 0.97, metalness: 0.02,
+          polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2,
+        })
+      );
+      m.position.set(sx, sy, BLD.z + 0.566);
+      m.rotation.z = sr() * 6.28;
+      g.add(m);
+    }
+  }
+
+  // ---- plinth + drip stains ----------------------------------------------
+  // a bare 26 m elevation stays flat however good the map is; the plinth gives
+  // it a base line and the drips give every sill a history
+  {
+    const plinthMat = concreteMat({ repeat: [0.9, 0.6], tint: 0x6f6a61, canvas: TEX.concreteDark });
+    for (const [x0, x1] of [[-BLD.W / 2, -2.15], [2.15, BLD.W / 2]]) {
+      g.add(box(x1 - x0, 0.95, 0.07, plinthMat, (x0 + x1) / 2, 0.47, BLD.z + 0.59));
+    }
+    const drnd = mulberry32(4242);
+    winRects.forEach((w) => {
+      if (drnd() > 0.75) return;
+      const h = winH * (0.5 + drnd() * 1.4);
+      const d = box(winW * (0.5 + drnd() * 0.5), h, 0.02,
+        new THREE.MeshBasicMaterial({ color: 0x2a2118, transparent: true, opacity: 0.32, depthWrite: false }),
+        w.cx + (drnd() - 0.5) * 0.5, w.cy - winH / 2 - h / 2, BLD.z + 0.575);
+      g.add(d);
+    });
+  }
+
+  // ---- soot plumes above the openings -------------------------------------
+  // fire leaves the building upwards: every burnt window carries a plume.
+  // one instanced quad with a shared canvas gradient, so it costs nothing
+  {
+    const sc = document.createElement('canvas');
+    sc.width = 32; sc.height = 128;
+    const sg = sc.getContext('2d');
+    const grd = sg.createLinearGradient(0, 0, 0, 128);
+    grd.addColorStop(0, 'rgba(9,7,5,0)');
+    grd.addColorStop(0.5, 'rgba(9,7,5,.34)');
+    grd.addColorStop(1, 'rgba(7,5,4,.78)');
+    sg.fillStyle = grd; sg.fillRect(0, 0, 32, 128);
+    // a soft horizontal falloff keeps the quad edges from reading as a rectangle
+    const edge = sg.createLinearGradient(0, 0, 32, 0);
+    edge.addColorStop(0, 'rgba(0,0,0,1)');
+    edge.addColorStop(0.22, 'rgba(0,0,0,0)');
+    edge.addColorStop(0.78, 'rgba(0,0,0,0)');
+    edge.addColorStop(1, 'rgba(0,0,0,1)');
+    sg.globalCompositeOperation = 'destination-out';
+    sg.fillStyle = edge; sg.fillRect(0, 0, 32, 128);
+    // soot runs down in fingers, not as one smooth veil
+    const r2 = mulberry32(4242);
+    for (let i = 0; i < 10; i++) {
+      const fx = r2() * 32;
+      const fw = 1.5 + r2() * 4;
+      const fg = sg.createLinearGradient(0, 0, 0, 128);
+      fg.addColorStop(0, 'rgba(0,0,0,0)');
+      fg.addColorStop(1, `rgba(0,0,0,${(0.25 + r2() * 0.45).toFixed(2)})`);
+      sg.fillStyle = fg;
+      sg.fillRect(fx, 0, fw, 128);
+    }
+
+    const stex = new THREE.CanvasTexture(sc);
+    stex.colorSpace = THREE.SRGBColorSpace;
+    const smat = new THREE.MeshBasicMaterial({
+      map: stex, transparent: true, depthWrite: false, opacity: 0.55, toneMapped: false,
+    });
+    const soot = new THREE.InstancedMesh(new THREE.PlaneGeometry(1, 1), smat, winRects.length);
+    const m4 = new THREE.Matrix4();
+    const q = new THREE.Quaternion();
+    const pos = new THREE.Vector3();
+    const scl = new THREE.Vector3();
+    const srnd = mulberry32(909);
+    winRects.forEach((w, i) => {
+      const top = w.cy + winH / 2;
+      // the plume must stop at the parapet, otherwise it hangs in the sky
+      const hgt = Math.min(winH * (0.35 + srnd() * 0.7), BLD.H - top - 0.06);
+      const wid = winW * (0.72 + srnd() * 0.34);
+      pos.set(w.cx + (srnd() - 0.5) * 0.2, top + hgt / 2, BLD.z + 0.575);
+      scl.set(wid, hgt, 1);
+      soot.setMatrixAt(i, m4.compose(pos, q, scl));
+    });
+    soot.instanceMatrix.needsUpdate = true;
+    soot.renderOrder = 2;
+    g.add(soot);
+  }
+
+  // ---- boarded-up openings ------------------------------------------------
+  // The first thing anyone does to a hospital they want kept shut. Every window
+  // used to get the same two planks on the same grid, which reads as a pattern;
+  // real boarding is whatever the last person had in the van.
+  {
+    // galvanised sheet for the one opening nobody bothered to board properly.
+    // M.metal is the rusty-steel material used for pipes and railings - at window
+    // size, with metalness .5, it read as cling film stretched over the hole
+    const sheetTex = genTex('metal', 1.6, 1.6, true);
+    const sheetMat = new THREE.MeshStandardMaterial({
+      map: sheetTex, bumpMap: sheetTex, bumpScale: 0.018,
+      color: 0x6b6660, roughness: 0.84, metalness: 0.28,
+    });
+
+    // Six planks off the same pile, not one plank repeated. The photo holds five
+    // boards stacked across its height, so a different vertical offset samples a
+    // different board - different grain, different knots, different tone. Without
+    // that every window in the elevation is nailed up with the same two planks at
+    // the same spacing, which is what "boarded the same" actually looks like.
+    const woodMats = [0x9a8a72, 0x83765f, 0xa89680, 0x746a55, 0x8e8168, 0x9c8d75]
+      .map((tint, i) => {
+        const t = genTex('plank', 1, 0.2, false);
+        t.offset.set((i * 0.37) % 1, i / 6);
+        return new THREE.MeshStandardMaterial({
+          map: t, bumpMap: t, bumpScale: 0.05,
+          color: tint, roughness: 0.95, metalness: 0.02,
+        });
+      });
+
+    const brnd = mulberry32(1717);
+    winRects.forEach((w) => {
+      // Every opening gets boards: the old 18 % chance of a bare hole kept landing
+      // on the window at the left edge of the frame, and a black rectangle reads
+      // as missing geometry rather than as an empty window.
+      const n = 1 + Math.floor(brnd() * 4.4);        // 1..5, and not evenly spread
+      const planks = [];
+      for (let i = 0; i < n; i++) {
+        // every board reaches past both jambs, or it looks nailed at one end only
+        const ww = winW * (1.12 + brnd() * 0.4);
+        planks.push({
+          w: ww,
+          h: 0.17 + brnd() * 0.2,
+          // free placement inside the opening, not a fixed ladder of heights
+          y: w.cy + winH * (brnd() - 0.5) * 0.78,
+          x: w.cx + (brnd() - 0.5) * 0.16,
+          rot: (brnd() - 0.5) * 0.14,
+          tilt: brnd() > 0.86 ? (brnd() - 0.5) * 0.1 : 0,   // a few stand proud
+          depth: 0.56 + i * 0.032 + brnd() * 0.05,
+          mat: woodMats[Math.floor(brnd() * woodMats.length)],
+        });
+      }
+      // one opening in six got a steel sheet over the top of the boards
+      if (brnd() > 0.84) {
+        planks.push({
+          w: winW * (1.05 + brnd() * 0.25), h: winH * (0.45 + brnd() * 0.3),
+          y: w.cy + winH * (brnd() - 0.5) * 0.3, x: w.cx,
+          rot: (brnd() - 0.5) * 0.06, depth: 0.62, steel: true,
+        });
+      }
+      planks.forEach((p) => {
+        g.add(box(p.w, p.h, 0.05, p.steel ? sheetMat : p.mat,
+          p.x, p.y, BLD.z + p.depth, [p.tilt, 0, p.rot]));
+      });
+    });
+  }
+
+  // ---- contact occlusion ---------------------------------------------------
+  // Shadow maps say nothing about a wall meeting a road, so the corner stays as
+  // bright as the middle of the street and everything looks pasted on. These
+  // gradient strips are the cheap stand-in for the missing ambient occlusion.
+  {
+    const aoMat = (darkAt) => {
+      const c = document.createElement('canvas');
+      c.width = 4; c.height = 128;
+      const x = c.getContext('2d');
+      const grd = x.createLinearGradient(0, 0, 0, 128);
+      if (darkAt === 'top') {
+        // ground AO fades in and out: the plane is a band on the road, and a band
+        // that starts at .8 alpha has a visible straight edge where it ends
+        grd.addColorStop(0, 'rgba(0,0,0,0)');
+        grd.addColorStop(0.34, 'rgba(0,0,0,.62)');
+        grd.addColorStop(1, 'rgba(0,0,0,0)');
+      } else {
+        grd.addColorStop(0, 'rgba(0,0,0,0)');
+        grd.addColorStop(1, 'rgba(0,0,0,.8)');
+      }
+      x.fillStyle = grd;
+      x.fillRect(0, 0, 4, 128);
+      const t = new THREE.CanvasTexture(c);
+      t.colorSpace = THREE.SRGBColorSpace;
+      return new THREE.MeshBasicMaterial({ map: t, transparent: true, depthWrite: false, toneMapped: false });
+    };
+    const wallAO = aoMat('bottom');
+    const floorAO = aoMat('top');
+    // up the wall, and out across the road, split around the doorway
+    for (const [x0, x1] of [[-BLD.W / 2, -2.15], [2.15, BLD.W / 2]]) {
+      const w = x1 - x0, cx = (x0 + x1) / 2;
+      const v = new THREE.Mesh(new THREE.PlaneGeometry(w, 1.4), wallAO);
+      v.position.set(cx, 0.7, BLD.z + 0.578);
+      g.add(v);
+      const h = new THREE.Mesh(new THREE.PlaneGeometry(w, 1.7), floorAO);
+      h.rotation.x = -Math.PI / 2;
+      h.position.set(cx, 0.018, BLD.z + 1.4);
+      h.renderOrder = 1;
+      g.add(h);
+    }
+  }
+
+  // ---- side returns and roof: without them the facade is a slab in mid-air --
+  for (const sx of [-1, 1]) {
+    g.add(box(0.6, BLD.H, BLD.D, M.facade, sx * (BLD.W / 2 - 0.3), BLD.H / 2, BLD.z - BLD.D / 2));
+  }
+  g.add(box(BLD.W + 0.3, 0.35, BLD.D + 0.3, M.slab, 0, BLD.H + 0.12, BLD.z - BLD.D / 2));
+  // parapet: three continuous runs, broken only where the bays collapsed -
+  // a row of randomly placed teeth reads as loose boxes, not as a wall
+  for (const [x0, x1] of [[-BLD.W / 2, -9.14], [-5.72, 5.72], [9.14, BLD.W / 2]]) {
+    g.add(box(x1 - x0, 0.55, 0.36, M.slab, (x0 + x1) / 2, BLD.H + 0.27, BLD.z + 0.16));
+    g.add(box(x1 - x0, 0.12, 0.44, M.slab, (x0 + x1) / 2, BLD.H + 0.06, BLD.z + 0.16));  // coping
+  }
+
+  // ---- interior shell ------------------------------------------------------
+  const shell = new THREE.Mesh(
+    new THREE.BoxGeometry(BLD.W - 0.4, BLD.H, BLD.D),
+    new THREE.MeshStandardMaterial({ color: 0x1b1611, roughness: 1, metalness: 0, side: THREE.BackSide })
+  );
+  shell.position.set(0, BLD.H / 2, BLD.z - BLD.D / 2);
+  g.add(shell);
+
+  // No interior lights behind the facade.
+  //
+  // There were four: two warm wall-washes and two cold ones, put there so the
+  // gaps between boards would not read as holes punched through the building.
+  // They did that - and they also glowed out of every window, because a
+  // PointLight has no idea the wall is between it and the street. The room cards
+  // now sit 0.45 m behind each opening, so the gaps already show a dark room
+  // instead of nothing; the lamps were only adding the glow the windows were
+  // being reported for. Removed rather than shortened - any range that reaches
+  // the boards glows, and a range that does not reach them does nothing.
+
+  // interior floors, seen through the windows
+  for (let f = 1; f < BLD.floors; f++) {
+    g.add(box(BLD.W - 0.5, 0.3, BLD.D - 0.5, M.dark, 0, f * floorH, BLD.z - BLD.D / 2));
+  }
+
+  // ---- the vestibule: this is the subject of the shot ----------------------
+  // Real volume (floor, soffit, side walls, far wall) instead of one glowing
+  // quad: the doorway is what the eye lands on, so it has to hold up close.
+  const lobbyDepth = VEST_D;
+  const lobbyW = VEST_W;
+  const DADO = 1.42;
+
+  // ---- the wall skin -------------------------------------------------------
+  // One generated photo for the whole wall: small glazed tiles to the dado,
+  // peeling paint above, water running down from the ceiling. Two boxes with two
+  // procedural materials gave a perfect horizontal seam and a tile grid whose
+  // tiles were 65 cm across - the two things that said "made in Blender".
+  //
+  // The photo is 1:1 and the wall is 4.6 x 2.9, so it is assembled in two bands
+  // at the photo's own scale, each one repeated horizontally with mirrored
+  // copies. Vertical scale is never touched, so the tiles stay square; the joint
+  // between the bands is the skirting line the photo already has, and the 3D
+  // dado rail sits on it.
+  const wallSkin = (() => {
+    const W = 704, H = 444;                     // 4.6 m x 2.9 m at ~153 px/m
+    const c = document.createElement('canvas');
+    c.width = W; c.height = H;
+    const x = c.getContext('2d');
+    x.fillStyle = '#6d675c';
+    x.fillRect(0, 0, W, H);
+    const t = new THREE.CanvasTexture(c);
+    t.colorSpace = THREE.SRGBColorSpace;
+    t.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+    // one horizontal strip of the photo, scaled by height only, tiled across
+    const band = (img, sy0, sy1, y0, y1) => {
+      const sy = sy0 * img.height;
+      const sh = (sy1 - sy0) * img.height;
+      const sc = (y1 - y0) / sh;
+      const dw = img.width * sc;
+      x.save();
+      x.beginPath(); x.rect(0, y0, W, y1 - y0); x.clip();
+      let px = 0, flip = false;
+      while (px < W - 0.5) {
+        x.save();
+        if (flip) { x.translate(px + dw, 0); x.scale(-1, 1); }
+        x.drawImage(img, 0, sy, img.width, sh, flip ? 0 : px, y0, dw, y1 - y0);
+        x.restore();
+        px += dw; flip = !flip;
+      }
+      x.restore();
+    };
+    texLoader.load(GEN_URL.lobby, (tex) => {
+      const img = tex.image;
+      if (!img) return;
+      // the photo's own joints: paint ends and the skirting starts at 0.775,
+      // the tiles run from 0.80 to 0.96 of the frame
+      band(img, 0.075, 0.775, 0, H - Math.round(DADO / BLD.doorH * H));
+      band(img, 0.80, 0.96, H - Math.round(DADO / BLD.doorH * H), H);
+      t.needsUpdate = true;
+    });
+    return t;
+  })();
+  const lobbyWallMat = new THREE.MeshStandardMaterial({
+    map: wallSkin, bumpMap: wallSkin, bumpScale: 0.014,
+    color: 0x726c62, roughness: 0.86, metalness: 0.04,
+  });
+
+  // The far wall is a wall, not a painted card. Behind the doorway cut in it
+  // there is a corridor with its own floor, walls and ceiling, and the far end
+  // of that corridor is a generated photo. That is the whole trick: the camera
+  // never gets close enough to the photo for its perspective to lie, and
+  // everything between the door and the photo is real geometry with real
+  // parallax, so the eye reads the whole 8 m as depth.
+  const farZ = BLD.z - lobbyDepth;
+  const openW = 1.5, openH = 2.16;
+  const segW = (lobbyW - openW) / 2;
+  // The far wall gets a vertical slice of the same photo instead of the whole
+  // 4.6 m strip: a box face maps 0..1, so the full skin would be squashed into
+  // 1.2 m and the tiles would come out twice as tall as they are wide. A slice
+  // keeps the tiles square, and the tiles are the only thing that tells you this
+  // is a hospital and not a bunker.
+  const farWallMat = (() => {
+    const wm = segW, hm = BLD.doorH;
+    const cw = 256, ch = Math.round(256 * hm / wm);
+    const c = document.createElement('canvas');
+    c.width = cw; c.height = ch;
+    const x = c.getContext('2d');
+    x.fillStyle = '#6d675c';
+    x.fillRect(0, 0, cw, ch);
+    const t = new THREE.CanvasTexture(c);
+    t.colorSpace = THREE.SRGBColorSpace;
+    t.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+    texLoader.load(GEN_URL.lobby, (tex) => {
+      const img = tex.image;
+      if (!img) return;
+      const sw = img.height * (wm / hm);
+      const sx = (img.width - sw) / 2;
+      x.drawImage(img, sx, img.height * 0.05, sw, img.height * 0.92, 0, 0, cw, ch);
+      t.needsUpdate = true;
+    });
+    return new THREE.MeshStandardMaterial({
+      map: t, bumpMap: t, bumpScale: 0.012,
+      color: 0x8a857a, roughness: 0.82, metalness: 0.03,
+    });
+  })();
+  // The band above the corridor opening is 0.74 m of wall, and it was sharing
+  // farWallMat - which maps the photo's whole 0.05..0.97 slice into that band,
+  // so the glazed tiles that live at the BOTTOM of the photo ended up at the
+  // top of the header. Tiles belong at skirting height and nowhere else, so the
+  // header gets its own crop of the painted zone, scaled to 0.74 m.
+  const headerMat = (() => {
+    const wm = openW, hm = BLD.doorH - openH;
+    const cw = 256, ch = Math.round(256 * hm / wm);
+    const c = document.createElement('canvas');
+    c.width = cw; c.height = ch;
+    const x = c.getContext('2d');
+    x.fillStyle = '#6d675c';
+    x.fillRect(0, 0, cw, ch);
+    const t = new THREE.CanvasTexture(c);
+    t.colorSpace = THREE.SRGBColorSpace;
+    t.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+    texLoader.load(GEN_URL.lobby, (tex) => {
+      const img = tex.image;
+      if (!img) return;
+      // 0.35 of the photo height is ~0.74 m at the wall skin's own scale
+      const sw = img.width * 0.62;
+      const sx = (img.width - sw) / 2;
+      x.drawImage(img, sx, img.height * 0.10, sw, img.height * 0.35, 0, 0, cw, ch);
+      t.needsUpdate = true;
+    });
+    return new THREE.MeshStandardMaterial({
+      map: t, bumpMap: t, bumpScale: 0.01,
+      color: 0x8a857a, roughness: 0.84, metalness: 0.03,
+    });
+  })();
+  for (const sx of [-1, 1]) {
+    g.add(box(segW, BLD.doorH, 0.18, farWallMat, sx * (openW + segW) / 2, BLD.doorH / 2, farZ));
+  }
+  g.add(box(openW, BLD.doorH - openH, 0.18, headerMat, 0, (openH + BLD.doorH) / 2, farZ));
+
+  // ---- the directory board ------------------------------------------------
+  // On the header above the corridor cut, exactly where a hospital puts it: the
+  // first thing you read after the doors. Drawn on a canvas, because generated
+  // art cannot spell, and Cyrillic department names are the whole point of it.
+  {
+    const c = document.createElement('canvas');
+    c.width = 512; c.height = 224;
+    const x = c.getContext('2d');
+    // aged enamel: warm off-white, dirt gathering at the edges
+    const bg = x.createLinearGradient(0, 0, 0, 224);
+    bg.addColorStop(0, '#cfc7b4');
+    bg.addColorStop(0.55, '#bdb4a0');
+    bg.addColorStop(1, '#a89e8a');
+    x.fillStyle = bg;
+    x.fillRect(0, 0, 512, 224);
+    const rn = mulberry32(613);
+    for (let i = 0; i < 220; i++) {
+      x.fillStyle = `rgba(96,88,72,${0.03 + rn() * 0.07})`;
+      x.fillRect(rn() * 512, rn() * 224, 2 + rn() * 26, 1 + rn() * 3);
+    }
+    // frame and a rule under the title
+    x.strokeStyle = '#5d5442';
+    x.lineWidth = 5;
+    x.strokeRect(7, 7, 498, 210);
+    x.fillStyle = '#3b3428';
+    x.font = '600 27px "Arial Narrow", "Bahnschrift", Arial, sans-serif';
+    x.textBaseline = 'middle';
+    x.fillText('УКАЗАТЕЛЬ ОТДЕЛЕНИЙ', 26, 40);
+    x.fillStyle = 'rgba(59,52,40,.55)';
+    x.fillRect(26, 58, 460, 2);
+
+    const rows = [
+      ['ПРИЁМНОЕ', 'ЗДЕСЬ', '→'],
+      ['ТЕРАПИЯ', '2 ЭТАЖ', '↑'],
+      ['ХИРУРГИЯ', '3 ЭТАЖ', '↑'],
+      ['РЕГИСТРАТУРА', '1 ЭТАЖ', '←'],
+      ['АПТЕКА', 'ЦОКОЛЬ', '←'],
+    ];
+    rows.forEach(([name, where, arrow], i) => {
+      const y = 84 + i * 27;
+      x.fillStyle = '#332c22';
+      x.font = '600 21px "Arial Narrow", "Bahnschrift", Arial, sans-serif';
+      x.fillText(name, 26, y);
+      x.fillStyle = 'rgba(51,44,34,.62)';
+      x.font = '500 16px "Arial Narrow", Arial, sans-serif';
+      x.fillText(where, 300, y);
+      x.fillStyle = '#8d3a24';
+      x.font = '700 22px "Arial Narrow", Arial, sans-serif';
+      x.fillText(arrow, 452, y);
+    });
+    const dt = new THREE.CanvasTexture(c);
+    dt.colorSpace = THREE.SRGBColorSpace;
+    dt.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+    const boardW = 1.24, boardH = boardW * 224 / 512;
+    const board = new THREE.Mesh(
+      new THREE.PlaneGeometry(boardW, boardH),
+      new THREE.MeshStandardMaterial({
+        map: dt, color: 0x9c968a, roughness: 0.62, metalness: 0.05,
+        // a touch of self-light so the rows still read at 8 m in a night scene
+        emissive: 0xffffff, emissiveMap: dt, emissiveIntensity: 0.22,
+      })
+    );
+    const by = (openH + BLD.doorH) / 2 + 0.03;
+    board.position.set(0, by, farZ + 0.098);
+    g.add(board);
+    // the frame goes BEHIND the plate: a 0.02 deep box centred in front of it
+    // simply covered the board with its own face
+    g.add(box(boardW + 0.07, boardH + 0.07, 0.02, M.metal, 0, by, farZ + 0.082));
+  }
+  // the reveal: a dark jamb lining, so the opening reads as a cut in a wall and
+  // not as a hole in a plane
+  for (const sx of [-1, 1]) {
+    g.add(box(0.05, openH, 0.2, M.dark, sx * (openW / 2 - 0.025), openH / 2, farZ));
+  }
+  g.add(box(openW, 0.05, 0.2, M.dark, 0, openH - 0.025, farZ));
+
+  // ---- the corridor behind it ---------------------------------------------
+  {
+    const corrDepth = 3.4;
+    const corrW = openW + 0.28;
+    const corrCeil = 2.42;
+    // Glazed tile up to the dado, painted plaster above - the same two finishes
+    // as the vestibule, because it is the same corridor continuing. Flat 0x241d16
+    // read as a black cardboard tube: at the end of a lit hall the eye can tell
+    // an untextured surface immediately, and it was the one thing in the shot
+    // that still looked like a placeholder.
+    const corrTile = genTex('tile', 2.2, 1.6);
+    const corrMat = new THREE.MeshStandardMaterial({
+      map: corrTile, bumpMap: corrTile, bumpScale: 0.01,
+      color: 0x6a625a, roughness: 0.62, metalness: 0.06,
+    });
+    const corrCeilMat = new THREE.MeshStandardMaterial({
+      map: genTex('concrete', 1.4, 1.4), color: 0x4a453e, roughness: 0.94, metalness: 0.02,
+    });
+    const cz = farZ - corrDepth / 2;
+    for (const sx of [-1, 1]) {
+      g.add(box(0.1, corrCeil, corrDepth, corrMat, sx * corrW / 2, corrCeil / 2, cz));
+    }
+    g.add(box(corrW, 0.1, corrDepth, corrCeilMat, 0, corrCeil, cz));
+    const corrFloorMat = new THREE.MeshStandardMaterial({
+      map: genTex('terrazzo', 1.4, 3.4), color: 0x6a635a, roughness: 0.55, metalness: 0.06,
+    });
+    g.add(box(corrW, 0.06, corrDepth, corrFloorMat, 0, 0.03, cz));
+
+    // the end of the corridor: the generated photo, 8 m from the street
+    const endPlane = new THREE.Mesh(
+      new THREE.PlaneGeometry(4.4, 3.3),
+      // warmed towards the vestibule: the generated corridor came back green,
+      // and a green tunnel at the end of a tungsten-lit hall reads as two
+      // different renders spliced together
+      new THREE.MeshBasicMaterial({ map: genTex('corridor', 1, 1, false), color: 0xffd0a2, toneMapped: true })
+    );
+    endPlane.position.set(0, 1.5, farZ - corrDepth + 0.02);
+    g.add(endPlane);
+    // one warm lamp at the far end, blending the real walls into the photo
+    const corrLamp = new THREE.PointLight(0xffb271, 5, 12, 2);
+    corrLamp.position.set(0, 2.05, farZ - corrDepth + 0.6);
+    g.add(corrLamp);
+  }
+
+  // the soffit above is painted plaster, same as the wall above the dado
+  const plasterMat = concreteMat({ repeat: [6, 2.6], tint: 0x9c958b, canvas: TEX.concrete });
+  // terrazzo underfoot: real terrazzo tiles are 30-40 cm, so the photo repeats
+  // ten times across the vestibule. At 1.15 m per tile the floor read as a
+  // printed tablecloth, which is half of why the interior looked like a set.
+  const floorTex = genTex('terrazzo', 10, 11.5);
+  const floorMat = new THREE.MeshStandardMaterial({
+    map: floorTex, bumpMap: floorTex, bumpScale: 0.006,
+    roughness: 0.42, metalness: 0.1, envMapIntensity: 0.9,
+    color: 0x8d867b,
+  });
+
+  for (const sx of [-1, 1]) {
+    const w = new THREE.Mesh(new THREE.PlaneGeometry(lobbyDepth, BLD.doorH), lobbyWallMat);
+    // the normal has to face INTO the room: with the sign the other way round the
+    // left wall was backfacing, got culled, and the whole left half of the
+    // vestibule was a black rectangle you could see the shell through
+    w.rotation.y = -sx * Math.PI / 2;
+    w.position.set(sx * lobbyW / 2, BLD.doorH / 2, BLD.z - lobbyDepth / 2);
+    g.add(w);
+    // the dado rail and a dark skirting: the two lines that give the wall a
+    // scale you can measure against the door
+    g.add(box(0.05, 0.055, lobbyDepth, M.metal, sx * (lobbyW / 2 - 0.022), DADO, BLD.z - lobbyDepth / 2));
+    g.add(box(0.03, 0.13, lobbyDepth, M.dark, sx * (lobbyW / 2 - 0.014), 0.065, BLD.z - lobbyDepth / 2));
+  }
+  g.add(box(lobbyW, 0.08, lobbyDepth, floorMat, 0, 0.04, BLD.z - lobbyDepth / 2));            // floor
+  g.add(box(lobbyW, 0.14, lobbyDepth, plasterMat, 0, BLD.doorH + 0.07, BLD.z - lobbyDepth / 2)); // soffit
+
+  // the skirting darkening: floor meets wall with no shadow map in the vestibule,
+  // and a bright line along that junction is what makes an interior look drawn
+  {
+    const c = document.createElement('canvas');
+    c.width = 4; c.height = 128;
+    const x = c.getContext('2d');
+    const grd = x.createLinearGradient(0, 0, 0, 128);
+    grd.addColorStop(0, 'rgba(0,0,0,0)');
+    grd.addColorStop(1, 'rgba(0,0,0,.72)');
+    x.fillStyle = grd; x.fillRect(0, 0, 4, 128);
+    const t = new THREE.CanvasTexture(c);
+    t.colorSpace = THREE.SRGBColorSpace;
+    const m = new THREE.MeshBasicMaterial({ map: t, transparent: true, depthWrite: false, toneMapped: false });
+    for (const sx of [-1, 1]) {
+      const p = new THREE.Mesh(new THREE.PlaneGeometry(lobbyDepth, 0.75), m);
+      p.rotation.y = -sx * Math.PI / 2;
+      p.position.set(sx * (lobbyW / 2 - 0.01), 0.375, BLD.z - lobbyDepth / 2);
+      g.add(p);
+    }
+    const f = new THREE.Mesh(new THREE.PlaneGeometry(lobbyW, 0.75), m);
+    f.position.set(0, 0.375, BLD.z - lobbyDepth + 0.02);
+    g.add(f);
+  }
+
+  // ceiling luminaires: housing, then the diffuser just under it
+  const stripMat = new THREE.MeshBasicMaterial({ color: 0xffeed8, toneMapped: true });
+  const stripCase = new THREE.MeshStandardMaterial({ color: 0x39352f, roughness: 0.55, metalness: 0.45 });
+  for (const sz of [-1.15, -2.55]) {
+    g.add(box(0.64, 0.06, 0.17, stripCase, 0, BLD.doorH - 0.02, BLD.z + sz));
+    g.add(box(0.56, 0.022, 0.12, stripMat, 0, BLD.doorH - 0.058, BLD.z + sz));
+  }
+  // And one lamp that actually casts. A point light cannot, six shadow maps for
+  // one room is a bad trade, and with no shadow at all the counter and the door
+  // frame float in the middle of an evenly lit box - which is the other half of
+  // why the old interior read as a diorama.
+  const ceilLamp = new THREE.SpotLight(0xffd9b0, 20, 9, 1.42, 0.72, 1.75);
+  ceilLamp.position.set(0, BLD.doorH - 0.14, BLD.z - 2.1);
+  ceilLamp.target.position.set(0, 0, BLD.z - 2.7);
+  ceilLamp.castShadow = true;
+  ceilLamp.shadow.mapSize.set(1024, 1024);
+  ceilLamp.shadow.bias = -0.0018;
+  ceilLamp.shadow.camera.near = 0.4;
+  ceilLamp.shadow.camera.far = 9;
+  g.add(ceilLamp, ceilLamp.target);
+  // The cone above lights the floor and the counter and nothing else: the side
+  // walls of a 3.9 m lobby sit 57 degrees off its axis, well outside a 60 degree
+  // beam, so they stayed at zero. Through the left leaf's empty frame that read
+  // as a black hole with a pane of glass floating in it - the leaf is there, its
+  // frame is there, but neither has a single photon on it. One cheap fill high
+  // in the vestibule puts the tiled walls back.
+  const lobbyFill = new THREE.PointLight(0xffcf9e, 6, 14, 2);
+  lobbyFill.position.set(0, BLD.doorH - 0.35, BLD.z - 1.4);
+  g.add(lobbyFill);
+  // a reception counter in silhouette: it gives the interior a scale and a
+  // reason for the light on the left wall
+  // a reception counter in silhouette: it gives the interior a scale and a
+  // reason for the light on the left wall. It was M.dark - a black box floating
+  // in a lit room, which is exactly what a black box looks like. Now it is what
+  // it is: a steel-clad counter with a kick plate, seen mostly as a silhouette
+  // but with a top edge that catches the ceiling lamp.
+  {
+    const counterTop = new THREE.MeshStandardMaterial({
+      map: genTex('metal', 2.2, 0.8, true), color: 0x9a938a,
+      roughness: 0.34, metalness: 0.6, envMapIntensity: 0.7,
+    });
+    const counterBody = new THREE.MeshStandardMaterial({
+      map: genTex('concrete', 1.6, 1.2, true), color: 0x6d675e,
+      roughness: 0.72, metalness: 0.15,
+    });
+    g.add(box(1.74, 0.09, 0.6, counterTop, -0.85, 0.98, BLD.z - 3.2));
+    g.add(box(1.7, 0.86, 0.55, counterBody, -0.85, 0.5, BLD.z - 3.2));
+    g.add(box(1.7, 0.12, 0.05, M.metal, -0.85, 0.06, BLD.z - 2.93));   // kick plate
+  }
+
+  // threshold: the step you walk over
+  g.add(box(BLD.doorW + 0.6, 0.1, 0.55,
+    concreteMat({ repeat: [2.4, 0.5], tint: 0x7c756a, canvas: TEX.concreteDark }),
+    0, 0.05, BLD.z + 0.66));
+
+  // ---- door: two leaves on real hinges, both panes smashed -----------------
+  // A leaf turned about its own centre reads as a revolving door; the fix is a
+  // pivot group standing on the jamb with the leaf built off to one side of it.
+  // And a vestibule with intact glass next to boarded-up windows is the one
+  // thing nobody believes in a ruin, so the glazing goes.
+  // brushed stainless for the hardware: the only bright metal in frame
+  const steel = new THREE.MeshStandardMaterial({
+    color: 0xc2beb6, roughness: 0.42, metalness: 0.5,
+    map: texFromCanvas(TEX.rust, 0.5, 0.5),
+  });
+  // dark anodised aluminium for the frame and the leaves. The rust canvas is a
+  // brown height field: as an albedo on its own it made the whole entrance read
+  // as varnished wood, so it drives the bump. But an untextured frame is a grey
+  // plastic extrusion - which is what it looked like. The generated metal plate
+  // goes on as the albedo, tinted warm, and the rust canvas keeps the relief.
+  const doorMat = new THREE.MeshStandardMaterial({
+    map: genTex('metal', 1.3, 1.3, true),
+    bumpMap: texFromCanvas(TEX.rust, 2.4, 2.4), bumpScale: 0.012,
+    color: 0x8a7d6e, roughness: 0.54, metalness: 0.5,
+  });
+  const glassMat = new THREE.MeshStandardMaterial({
+    color: 0x4d5854, roughness: 0.08, metalness: 0.15, envMapIntensity: 0.5,
+    transparent: true, opacity: 0.2, side: THREE.DoubleSide, depthWrite: false,
+  });
+
+  const frameW = 0.12;
+  const doorZ = BLD.z + 0.06;
+  for (const sx of [-1, 1]) {
+    g.add(box(frameW, BLD.doorH, 0.26, doorMat, sx * (BLD.doorW / 2 + frameW / 2), BLD.doorH / 2, doorZ));
+    // three hinge plates per jamb: the detail that says the leaf swings
+    for (const hy of [0.36, 1.45, 2.52]) {
+      g.add(box(0.07, 0.19, 0.11, steel, sx * (BLD.doorW / 2 - 0.015), hy, BLD.z + 0.12));
+    }
+  }
+  g.add(box(BLD.doorW + frameW * 2, 0.14, 0.26, doorMat, 0, BLD.doorH + 0.07, doorZ));
+  g.add(box(0.1, BLD.doorH, 0.24, doorMat, 0, BLD.doorH / 2, doorZ));      // centre post
+
+
+  // shards still gripped by the rails: straight top edge, jagged bottom one
+  const hangShard = (rnd, w, h) => {
+    const s = new THREE.Shape();
+    const n = 3 + Math.floor(rnd() * 3);
+    s.moveTo(-w / 2, 0);
+    s.lineTo(w / 2, 0);
+    let px = w / 2;
+    for (let i = 0; i < n; i++) {
+      px -= w / n;
+      s.lineTo(px + (rnd() - 0.5) * (w / n) * 0.5, -h * (0.3 + rnd() * 0.7));
+    }
+    s.closePath();
+    return new THREE.Mesh(new THREE.ShapeGeometry(s), glassMat);
+  };
+
+  // a shard: a jagged polygon lying flat, catching the light spill
+  const shardMesh = (rnd, size) => {
+    const s = new THREE.Shape();
+    const n = 3 + Math.floor(rnd() * 2);
+    const p = [];
+    for (let i = 0; i < n; i++) {
+      const a = (i / n) * Math.PI * 2 + rnd() * 0.7;
+      const r = size * (0.4 + rnd() * 0.8);
+      p.push([Math.cos(a) * r, Math.sin(a) * r * 0.75]);
+    }
+    s.moveTo(p[0][0], p[0][1]);
+    for (let i = 1; i < p.length; i++) s.lineTo(p[i][0], p[i][1]);
+    s.closePath();
+    return new THREE.Mesh(new THREE.ShapeGeometry(s), glassMat);
+  };
+
+  const leafW = (BLD.doorW - 0.1) / 2;
+  const leafH = BLD.doorH - 0.1;
+
+  // ---- broken glazing ------------------------------------------------------
+  // Drawn, not photographed. The generated "shattered glass" stock photo was a
+  // textbook concentric web: a dozen even rings around a white star, which at
+  // door scale reads as line art on a sheet of acetate. Real safety glass breaks
+  // the other way round - a hole, long irregular radials running out to the
+  // frame, and one small cone ring at the impact. Everything else is the film
+  // of dirt the pane has been carrying for years, and the specular on it does
+  // the rest. Alpha carries the shape: 0 = gone, 1 = glass.
+  const shatterCanvas = (w, h, seed, { hole = 0.5, hx = 0.5, hy = 0.42 } = {}) => {
+    const c = document.createElement('canvas');
+    c.width = w; c.height = h;
+    const x = c.getContext('2d');
+    const rnd = mulberry32(seed);
+    const cx = w * hx, cy = h * hy;
+    const R = Math.min(w, h) * hole;
+
+    // the glass still in the frame: a dirty film, not a clean surface. Keep it
+    // thin - at .42 the pane was an opaque sheet and you could not see the
+    // vestibule through the hole that was not there
+    x.fillStyle = 'rgba(150,164,160,.14)';
+    x.fillRect(0, 0, w, h);
+    // years of dust settling on it, heaviest along the bottom rail.
+    // source-atop, or every blob ADDS its own alpha on top of the film: ninety
+    // gradients at .05-.15 stacked the pane up to opaque, and opaque pale glass
+    // is the one thing that looks like paper
+    x.globalCompositeOperation = 'source-atop';
+    for (let i = 0; i < 90; i++) {
+      const px = rnd() * w, py = h * (0.35 + rnd() * 0.65), r = 6 + rnd() * 34;
+      const g = x.createRadialGradient(px, py, 0, px, py, r);
+      g.addColorStop(0, `rgba(150,146,132,${0.05 + rnd() * 0.1})`);
+      g.addColorStop(1, 'rgba(150,146,132,0)');
+      x.fillStyle = g;
+      x.beginPath(); x.arc(px, py, r, 0, 6.3); x.fill();
+    }
+    const grd = x.createLinearGradient(0, h * 0.55, 0, h);
+    grd.addColorStop(0, 'rgba(96,92,80,0)');
+    grd.addColorStop(1, 'rgba(96,92,80,.34)');
+    x.fillStyle = grd;
+    x.fillRect(0, h * 0.55, w, h * 0.45);
+
+    // radials: long, uneven, most of them curved, none of them symmetrical.
+    // Still source-atop. With source-over every stroke carried its own alpha -
+    // .5 on a 2-3 px line against a .14 film - so each fracture became a solid
+    // black strip lying on the pane. Atop keeps the output alpha at the film's
+    // and only tints the texel, which is what a crack in glass actually does:
+    // it darkens what is behind it by a hair and catches a highlight.
+    x.lineCap = 'round';
+    const radials = 8 + Math.floor(rnd() * 4);
+    for (let i = 0; i < radials; i++) {
+      const a = (i / radials) * Math.PI * 2 + (rnd() - 0.5) * 0.5;
+      const len = Math.max(w, h) * (0.55 + rnd() * 0.7);
+      const bend = (rnd() - 0.5) * 0.55;
+      const midx = cx + Math.cos(a + bend) * len * 0.5;
+      const midy = cy + Math.sin(a + bend) * len * 0.5;
+      const ex = cx + Math.cos(a) * len;
+      const ey = cy + Math.sin(a) * len;
+      // a fracture is two edges and a bright core; one flat stroke looks drawn
+      x.strokeStyle = 'rgba(18,20,20,.38)';
+      x.lineWidth = 2.2 + rnd() * 1.2;
+      x.beginPath(); x.moveTo(cx, cy); x.quadraticCurveTo(midx, midy, ex, ey); x.stroke();
+      x.strokeStyle = 'rgba(226,234,230,.42)';
+      x.lineWidth = 0.7 + rnd() * 0.6;
+      x.beginPath(); x.moveTo(cx, cy); x.quadraticCurveTo(midx, midy, ex, ey); x.stroke();
+      // secondary branches, short and forked off the radial
+      if (rnd() > 0.45) {
+        const t2 = 0.35 + rnd() * 0.4;
+        const bx = cx + Math.cos(a + bend) * len * t2;
+        const by = cy + Math.sin(a + bend) * len * t2;
+        const a2 = a + (rnd() - 0.5) * 1.5;
+        x.strokeStyle = 'rgba(26,28,28,.26)';
+        x.lineWidth = 1.1;
+        x.beginPath(); x.moveTo(bx, by);
+        x.lineTo(bx + Math.cos(a2) * len * 0.28, by + Math.sin(a2) * len * 0.28);
+        x.stroke();
+      }
+    }
+    // the cone ring: small, at the impact only, and not a circle
+    x.strokeStyle = 'rgba(226,234,230,.34)';
+    x.lineWidth = 0.9;
+    x.beginPath();
+    for (let i = 0; i <= 26; i++) {
+      const a = (i / 26) * Math.PI * 2;
+      const r = R * 0.42 * (0.86 + rnd() * 0.3);
+      const px = cx + Math.cos(a) * r, py = cy + Math.sin(a) * r * 0.92;
+      i ? x.lineTo(px, py) : x.moveTo(px, py);
+    }
+    x.stroke();
+
+    // The missing part. Not a hole - a tear.
+    //
+    // A pane does not lose a disc out of its middle; it cracks and then a
+    // section falls away, and the boundary between glass and nothing is a few
+    // long straight chords running back to the frame. The previous contour was a
+    // 52-gon on a circle with +-17 % radius jitter, which is a scalloped disc:
+    // at door scale that is exactly "broken round like cheese". Eleven vertices
+    // and a radius range of 0.55-1.5 gives chords that are long enough to read as
+    // fracture lines, and an elongation along one axis so the tear has a
+    // direction instead of a centre.
+    //
+    // The fill has to be opaque: destination-out erases by the fill's own alpha,
+    // so the translucent gradient left over from the dirt pass was only taking
+    // 30 % of the film away - which is why the "hole" was invisible and the pane
+    // still read as an unbroken sheet with a web drawn on it.
+    x.globalCompositeOperation = 'destination-out';
+    x.fillStyle = '#000';
+    const n = 11;
+    const tear = rnd() * Math.PI * 2;
+    const pts = [];
+    for (let i = 0; i < n; i++) {
+      const a = (i / n) * Math.PI * 2;
+      // 0.5 on the axis of the tear, up to 1.4 across it: the hole is a sliver
+      // field, longer one way than the other, not a blob
+      const along = 0.5 + 0.9 * Math.abs(Math.cos(a - tear));
+      const r = R * along * (0.8 + rnd() * 0.7);
+      pts.push([cx + Math.cos(a) * r, cy + Math.sin(a) * r * 0.86]);
+    }
+    x.beginPath();
+    pts.forEach(([px, py], i) => (i ? x.lineTo(px, py) : x.moveTo(px, py)));
+    x.closePath();
+    x.fill();
+    // The edge of a break catches light; it does not get outlined. There was a
+    // 3 px near-black stroke on this contour and it read as a pen line drawn
+    // round the hole, so now it is a single hairline of specular and nothing else.
+    x.globalCompositeOperation = 'source-over';
+    x.strokeStyle = 'rgba(222,232,228,.24)';
+    x.lineWidth = 1;
+    x.stroke();
+    x.globalCompositeOperation = 'destination-out';
+    x.fillStyle = '#000';
+    // Bites out of the corners and the bottom edge: the frame is where the glass
+    // is weakest, so that is what goes first. Angular, not elliptical - five
+    // round bites on top of a round hole is what made the pane look perforated.
+    for (const [bx, by] of [[0, 0], [w, 0], [0, h], [w, h], [w * 0.5, h]]) {
+      const bw = w * (0.1 + rnd() * 0.2), bh = h * (0.07 + rnd() * 0.16);
+      const k = 4 + Math.floor(rnd() * 2);
+      x.beginPath();
+      for (let j = 0; j < k; j++) {
+        const a = (j / k) * Math.PI * 2 + rnd() * 0.6;
+        const rr = 0.62 + rnd() * 0.7;
+        const px = bx + Math.cos(a) * bw * rr, py = by + Math.sin(a) * bh * rr;
+        j ? x.lineTo(px, py) : x.moveTo(px, py);
+      }
+      x.closePath();
+      x.fill();
+    }
+    // eat into the strip that is left along the top rail: a pane almost never
+    // breaks off in one clean band, and a band with regular teeth is what makes
+    // the leftovers read as torn paper
+    for (let i = 0; i < 5; i++) {
+      x.beginPath();
+      x.ellipse(w * (0.1 + rnd() * 0.85), h * (0.02 + rnd() * 0.12),
+        w * (0.1 + rnd() * 0.16), h * (0.05 + rnd() * 0.09), rnd() * 3, 0, 6.3);
+      x.fill();
+    }
+    for (let i = 0; i < 4; i++) {
+      x.beginPath();
+      x.ellipse(w * (rnd() > 0.5 ? 0.95 : 0.05), h * (0.15 + rnd() * 0.7),
+        w * (0.06 + rnd() * 0.1), h * (0.1 + rnd() * 0.16), rnd() * 3, 0, 6.3);
+      x.fill();
+    }
+    // a couple of secondary holes: glass does not leave one neat opening
+    for (let i = 0; i < 3; i++) {
+      const hxx = rnd() > 0.5 ? w * (0.86 + rnd() * 0.2) : w * (rnd() * 0.14 - 0.04);
+      const hyy = h * (0.2 + rnd() * 0.6);
+      x.beginPath();
+      const k = 9, pp = [];
+      for (let j = 0; j < k; j++) {
+        const a = (j / k) * Math.PI * 2;
+        const r = w * (0.05 + rnd() * 0.11);
+        pp.push([hxx + Math.cos(a) * r, hyy + Math.sin(a) * r * 1.3]);
+      }
+      pp.forEach(([ax, ay], j) => (j ? x.lineTo(ax, ay) : x.moveTo(ax, ay)));
+      x.closePath();
+      x.fill();
+    }
+    x.globalCompositeOperation = 'source-over';
+
+    const t = new THREE.CanvasTexture(c);
+    t.colorSpace = THREE.SRGBColorSpace;
+    t.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+    return t;
+  };
+
+  const makePaneMat = (seed, opts) => new THREE.MeshStandardMaterial({
+    map: shatterCanvas(400, 520, seed, opts),
+    // Dark, and almost all specular. At 0xa9bdb8 the leftovers of the pane lit up
+    // as cream-coloured wedges - glass does not scatter that much light, it
+    // reflects it: keep the albedo near black and let roughness .06 against the
+    // env map put the highlights on the edges where they belong
+    color: 0x4b5654, roughness: 0.12, metalness: 0.08, envMapIntensity: 0.4,
+    transparent: true, side: THREE.DoubleSide, depthWrite: false,
+  });
+  // left leaf: most of the pane gone, hole punched low and left of centre.
+  // `hole` is a RADIUS factor of the canvas' short side, so 0.5 meant a hole
+  // 400 px across on a 400 px canvas: the pane was erased edge to edge, and the
+  // slivers that survived the corner bites had nothing left to be held by. That
+  // is the glass "hanging in the air" - not a missing jamb, a hole too big to
+  // leave a rim. 0.30 keeps a hand's width of film all the way round.
+  const paneL = makePaneMat(9182, { hole: 0.3, hx: 0.44, hy: 0.44 });
+  // right leaf: a different break - smaller hole, higher up, different radials
+  const paneR = makePaneMat(4471, { hole: 0.28, hx: 0.6, hy: 0.36 });
+
+  // one leaf, hinged: the pivot sits on the jamb, the leaf hangs off it
+  const doorLeaf = (side, { open = 0, shards = 0, pane = false }) => {
+    const dir = -side;                    // hinge -> centre post
+    const rnd = mulberry32(7700 + side * 13);
+    const pivot = new THREE.Group();
+    pivot.position.set(side * BLD.doorW / 2, BLD.doorH / 2, BLD.z + 0.14);
+    pivot.rotation.y = open;
+
+    // stiles
+    pivot.add(box(0.085, leafH, 0.075, doorMat, dir * 0.0425, 0, 0));
+    pivot.add(box(0.085, leafH, 0.075, doorMat, dir * (leafW - 0.0425), 0, 0));
+    // top rail, and a deep bottom rail carrying the kick plate
+    pivot.add(box(leafW, 0.1, 0.075, doorMat, dir * leafW / 2, leafH / 2 - 0.05, 0));
+    pivot.add(box(leafW, 0.42, 0.075, doorMat, dir * leafW / 2, -leafH / 2 + 0.21, 0));
+    pivot.add(box(leafW - 0.1, 0.3, 0.022, steel, dir * leafW / 2, -leafH / 2 + 0.21, 0.048));
+    // pull handle, bolted to the free stile. It used to hang 15 cm inboard, in
+    // the middle of the pane, with nothing behind it to bolt to - which is
+    // exactly why it read as floating
+    const hx = dir * (leafW - 0.045);
+    for (const hy of [-0.44, 0.44]) {
+      pivot.add(box(0.09, 0.13, 0.014, steel, hx, hy, 0.044));   // escutcheon
+      pivot.add(box(0.05, 0.05, 0.05, steel, hx, hy, 0.072));    // standoff
+    }
+    pivot.add(box(0.042, 1.06, 0.042, steel, hx, 0, 0.096));     // bar
+
+    // what is left of the glazing: teeth of glass still held by the rails.
+    // They have to stay small - a big pale polygon in a doorway reads as a
+    // sheet of paper hanging on a line, not as glass
+    const paneTop = leafH / 2 - 0.1;
+    const paneBot = -leafH / 2 + 0.42;
+    for (let i = 0; i < shards; i++) {
+      const fromTop = i % 2 === 0;
+      const m = hangShard(rnd, 0.08 + rnd() * 0.13, 0.07 + rnd() * 0.13);
+      m.position.set(dir * (0.16 + rnd() * (leafW - 0.4)), fromTop ? paneTop : paneBot, 0.004);
+      if (!fromTop) m.rotation.z = Math.PI;
+      pivot.add(m);
+    }
+    // the glass, if any is left
+    if (pane) {
+      const p = new THREE.Mesh(new THREE.PlaneGeometry(leafW - 0.18, leafH - 0.52), pane);
+      p.position.set(dir * leafW / 2, 0.16, 0);
+      pivot.add(p);
+    }
+    g.add(pivot);
+  };
+
+  doorLeaf(-1, { open: 0, shards: 2, pane: paneL });       // shut, pane punched out
+  doorLeaf(1, { open: -0.34, shards: 3, pane: paneR });    // ajar on its jamb, different break
+
+  // the glass has to go somewhere
+  {
+    const sr = mulberry32(5051);
+    const scatter = (n, x0, x1, z0, z1, y) => {
+      for (let i = 0; i < n; i++) {
+        const m = shardMesh(sr, 0.04 + sr() * 0.07);
+        m.rotation.x = -Math.PI / 2;
+        m.rotation.z = sr() * Math.PI * 2;
+        m.position.set(x0 + sr() * (x1 - x0), y + sr() * 0.014, z0 + sr() * (z1 - z0));
+        m.renderOrder = 2;
+        g.add(m);
+      }
+    };
+    // Only the step and the lobby. Six shards used to lie out on the apron, and at
+    // that distance from the camera a flat polygon catching the porch light reads
+    // as a stray piece of geometry, not as glass - nobody sweeps a doorway for
+    // fifteen years and leaves the glass on the pavement.
+    scatter(12, -1.9, 1.9, BLD.z + 0.36, BLD.z + 0.92, 0.106);   // on the step
+    scatter(8, -1.75, 1.75, BLD.z - 3.4, BLD.z - 0.15, 0.088);   // inside the lobby
+  }
+
+  // ---- the sign above the door -------------------------------------------
+  // real lettering, drawn on a canvas: signage is the one place where generated
+  // art always fails, and a lit sign is what makes an entrance read as one
+  {
+    const sc = document.createElement('canvas');
+    sc.width = 512; sc.height = 128;
+    const sg = sc.getContext('2d');
+    sg.fillStyle = '#2b221a';
+    sg.fillRect(0, 0, 512, 128);
+    sg.fillStyle = '#0d0b09';
+    sg.fillRect(0, 0, 512, 8);
+    sg.fillRect(0, 120, 512, 8);
+    // red cross, then the lettering
+    sg.fillStyle = '#b23a2a';
+    sg.fillRect(30, 44, 12, 40);
+    sg.fillRect(16, 58, 40, 12);
+    sg.fillStyle = '#fbf3e6';
+    sg.font = '600 34px "Arial Narrow", "Bahnschrift", Arial, sans-serif';
+    sg.textBaseline = 'middle';
+    sg.letterSpacing = '3px';
+    sg.fillText('ПРИЁМНОЕ ОТДЕЛЕНИЕ', 74, 62);
+    sg.fillStyle = '#b9ae9d';
+    sg.font = '500 15px "Arial Narrow", Arial, sans-serif';
+    sg.fillText('КРУГЛОСУТОЧНО · КОРПУС 7', 76, 96);
+    const st = new THREE.CanvasTexture(sc);
+    st.colorSpace = THREE.SRGBColorSpace;
+    const sign = new THREE.Mesh(
+      new THREE.PlaneGeometry(3.5, 0.88),
+      new THREE.MeshBasicMaterial({ map: st, toneMapped: true })
+    );
+    sign.position.set(0, BLD.doorH + 0.52, BLD.z + 0.625);
+    g.add(sign);
+    // its housing
+    g.add(box(3.7, 1.04, 0.1, M.metal, 0, BLD.doorH + 0.52, BLD.z + 0.56));
+    const signLight = new THREE.PointLight(0xffd7a8, 3, 6, 2);
+    signLight.position.set(0, BLD.doorH + 0.15, BLD.z + 1.4);
+    g.add(signLight);
+    SIGN.mat = sign.material;
+    SIGN.light = signLight;
+  }
+
+  // light spilling out of the doorway: it is what puts the character and the
+  // canopy underside into the same scene as the lobby
+  const spill = new THREE.PointLight(0xffab68, 14, 13, 2);
+  spill.position.set(0, 2.2, BLD.z + 1.6);
+  g.add(spill);
+
+  const lobbyLight = new THREE.PointLight(0xffdcb4, 9, 18, 2);
+  // 0.4 m under the soffit the inverse-square falloff put a white disc on the
+  // ceiling; drop it to head height and the light spreads instead of burning
+  lobbyLight.position.set(0, 2.32, BLD.z - 1.9);
+  // point-light shadows are six shadow maps per light; one caster in the scene is
+  // enough, and the lobby light has nothing between it and the asphalt anyway
+  lobbyLight.castShadow = false;
+  g.add(lobbyLight);
+
+  // a second pool deeper in, so the corridor keeps going after the doorway
+  // instead of ending in a flat card 4.6 m behind the frame
+  const deep = new THREE.PointLight(0xffb271, 9, 15, 2);
+  deep.position.set(0.9, 1.85, BLD.z - 3.5);
+  g.add(deep);
+
+  // ---- entrance canopy ----------------------------------------------------
+  // a shallow slab: the 5.6 m deep version filled the top of the frame with its
+  // own underside and hid the elevation behind it
+  const CAN = { w: 9.4, d: 3.2, y: 4.05 };
+  // The underside is the largest single surface in the hero frame - the camera
+  // stands under the slab, so a third of the picture is soffit. It was running on
+  // M.slab, whose canvas carries formwork panel lines; lit by two tubes and the
+  // porch spot those lines read as ceramic wall tile, and a tiled canopy is the
+  // one thing that makes an exterior look like a bathroom. The generated portal
+  // has the real thing two hundred pixels below its own slab edge: soot, water
+  // staining, one recessed fitting. That is what goes up there now.
+  const soffit = cropTex(GEN_URL.portal, 200, 352, 1000, 100, { repeat: [1, 1], gain: 2.7 });
+  const soffitMat = new THREE.MeshStandardMaterial({
+    map: soffit, bumpMap: soffit, bumpScale: 0.008,
+    color: 0xb4ac9e, roughness: 0.97, metalness: 0.02,
+  });
+  // The slab itself stays on concrete: a box maps one material to all six faces,
+  // so putting the soffit crop on it also put it on the two end walls, and from
+  // the side the canopy read as a dark wooden crate. The generated underside goes
+  // on a plane of its own, facing down.
+  g.add(box(CAN.w, 0.42, CAN.d, M.slab, 0, CAN.y, BLD.z + CAN.d / 2));
+  {
+    const so = new THREE.Mesh(new THREE.PlaneGeometry(CAN.w, CAN.d), soffitMat);
+    so.rotation.x = Math.PI / 2;
+    so.position.set(0, CAN.y - 0.215, BLD.z + CAN.d / 2);
+    g.add(so);
+  }
+  // The stained slab edge out of the generated portal goes on a fascia plate at
+  // the front, not on the whole slab. On the box it landed on every face at once
+  // - including the soffit, which is 9.4 x 3.2 - and the canopy turned into a
+  // black lid with the texture smeared across its underside.
+  // One continuous band, not a repeated crop. In the portal-scale source the
+  // stained slab edge already runs the full width of the canopy, so it maps 1:1
+  // onto the 9.4 m fascia and the rust streaks stay where the picture put them.
+  const slabEdge = cropTex(GEN_URL.portal, 60, 196, 1360, 114, { repeat: [1, 1] });
+  const canopyMat = new THREE.MeshStandardMaterial({
+    map: slabEdge, bumpMap: slabEdge, bumpScale: 0.02,
+    color: 0x9d968a, roughness: 0.93, metalness: 0.03,
+  });
+  g.add(box(CAN.w, 0.42, 0.05, canopyMat, 0, CAN.y, BLD.z + CAN.d + 0.025));  // fascia
+  g.add(box(CAN.w, 0.16, 0.22, M.slab, 0, CAN.y - 0.23, BLD.z + CAN.d));      // drip edge
+
+  // soffit lighting: two tubes under the slab, the way every hospital porch is
+  // lit. Without them the canopy underside is a dead black plane above the door.
+  {
+    const tube = new THREE.MeshBasicMaterial({ color: 0xfff0d8, toneMapped: true });
+    for (const lx of [-2.4, 2.4]) {
+      g.add(box(1.7, 0.05, 0.11, tube, lx, CAN.y - 0.235, BLD.z + 1.5));
+      g.add(box(1.8, 0.1, 0.16, M.metal, lx, CAN.y - 0.19, BLD.z + 1.5));
+    }
+    const porch = new THREE.PointLight(0xffe0b8, 9, 15, 2);
+    porch.position.set(0, CAN.y - 1.05, BLD.z + 1.6);
+    g.add(porch);
+    // And the one light that paints the apron: a cone from the canopy down and
+    // out towards the street. Without it the asphalt in front of the entrance is
+    // a uniform brown gradient and the survivor stands in nothing - the pool of
+    // light, and his shadow thrown out of it towards the camera, is the whole
+    // reason this frame has a subject.
+    // penumbra .6 left a readable cone edge: a hard diagonal running across the
+    // apron and up the rubble, which is the one thing on this ground that says
+    // "spot light" instead of "street lamp". Nearly all of it is falloff now.
+    //
+    // 1.02 rad still put the rim INSIDE the frame. At a grazing angle the ground
+    // runs almost parallel to the cone wall, so the last 10 % of the falloff -
+    // smooth in angle - compresses into a few centimetres of asphalt and reads as
+    // a cut: the "стык тени" that only shows up once the parallax swings left.
+    // Proven by zeroing the spot alone (edge gone, everything else unchanged) and
+    // by zeroing every point light (edge stays). Widened to 1.24 rad, the rim
+    // falls outside the frame at every camera position the parallax can reach.
+    const porchSpot = new THREE.SpotLight(0xffd7a8, 62, 17, 1.24, 0.92, 1.8);
+    porchSpot.position.set(0.6, CAN.y - 0.3, BLD.z + 2.5);
+    porchSpot.target.position.set(0.6, 0, BLD.z + 4.3);
+    porchSpot.castShadow = true;
+    porchSpot.shadow.mapSize.set(1024, 1024);
+    porchSpot.shadow.bias = -0.0012;
+    porchSpot.shadow.camera.near = 0.6;
+    porchSpot.shadow.camera.far = 18;
+    g.add(porchSpot, porchSpot.target);
+  }
+
+  // ---- entrance sconces ---------------------------------------------------
+  // Two fittings on the piers. Both are dead now.
+  //
+  // The right one used to work: a 9 cd point light at 7.5 m, which put a warm
+  // pool on the asphalt BEHIND the pier - ground the porch spot does not reach,
+  // in a part of the frame that is meant to be night. Reported three times as
+  // "свет справа за колонной" and each time I looked at the wrong lamp. There is
+  // no fitting on that wall to explain the light, so the light goes; what is left
+  // is the smashed diffuser on both sides, which is what an abandoned entrance
+  // should have.
+  for (const sx of [-1, 1]) {
+    const x = sx * 5.3, y = 2.72;
+    g.add(box(0.22, 0.4, 0.16, M.metal, x, y, BLD.z + 0.62));
+    {
+      // smashed diffuser, and no light behind it
+      g.add(box(0.16, 0.3, 0.03, M.dark, x, y, BLD.z + 0.72));
+    }
+  }
+
+  // a downpipe on the pier right of the door: cheap, and it stops the wall from
+  // being one uninterrupted plane
+  {
+    const px = 5.4;
+    const pipe = cylinder(0.07, 0.07, 3.85, M.metal, 8);
+    pipe.position.set(px, 1.93, BLD.z + 0.7);
+    g.add(pipe);
+    for (const by of [0.5, 1.9, 3.4]) {
+      g.add(box(0.2, 0.07, 0.1, M.metal, px - 0.06, by, BLD.z + 0.62));
+    }
+  }
+
+  // columns: plinth, shaft, capital
+  // the shaft carries the pier face out of the generated portal - the same
+  // concrete as the canopy, so the porch reads as one structure instead of a
+  // slab on two cylinders of a different material
+  // The pier face, taken from the lit part of a real pier in the source and not
+  // from a 44 px sliver of the old facade. That sliver was the reason the right
+  // column read as broken at its bottom left: a 44 px strip stretched over 0.62 m
+  // meant a dark edge in the picture became a black band down a third of the
+  // shaft, and it stopped dead at the plinth. 82 px across 0.62 m is 132 px/m,
+  // which is the same order as the fascia, so the porch reads as one pour.
+  const pierCrop = cropTex(GEN_URL.portal, 1196, 500, 82, 236, { repeat: [1, 1.55] });
+  const pierMat = new THREE.MeshStandardMaterial({
+    map: pierCrop,
+    bumpMap: pierCrop,
+    bumpScale: 0.014,
+    color: 0x9a948a, roughness: 0.94, metalness: 0.02,
+  });
+  for (const cx of [-4.3, 4.3]) {
+    g.add(box(0.86, 0.16, 0.86, M.slab, cx, 0.08, BLD.z + 2.9));
+    g.add(box(0.62, 3.62, 0.62, pierMat, cx, 1.97, BLD.z + 2.9));
+    g.add(box(0.78, 0.14, 0.78, M.slab, cx, 3.85, BLD.z + 2.9));
+  }
+
+  // ---- rubble in front of the entrance ------------------------------------
+  const rockGeo = new THREE.IcosahedronGeometry(0.5, 0);
+  {
+    const p = rockGeo.attributes.position;
+    const rr = mulberry32(9);
+    for (let i = 0; i < p.count; i++) {
+      p.setXYZ(i,
+        p.getX(i) * (0.6 + rr() * 0.9),
+        p.getY(i) * (0.45 + rr() * 0.7),
+        p.getZ(i) * (0.6 + rr() * 0.9));
+    }
+    rockGeo.computeVertexNormals();
+  }
+  const rubble = new THREE.InstancedMesh(rockGeo, M.rubble, 360);
+  rubble.castShadow = true;
+  rubble.receiveShadow = true;
+  const dummy = new THREE.Object3D();
+  const rr2 = mulberry32(21);
+  let placed = 0, guard = 0;
+  while (placed < 360 && guard++ < 9000) {
+    const x = (rr2() - 0.5) * 30;
+    // biased towards the wall: debris piles up where the building shed it, not
+    // evenly across the road like a scatter node
+    const z = BLD.z + 2.4 + Math.pow(rr2(), 1.7) * 13;
+    // keep a corridor to the doorway clear - a rubble wall in front of the door
+    // hides the only light source in the frame
+    if (Math.abs(x) < 3.6 && z < BLD.z + 12) continue;
+    // ... and keep the two pier bases clear. The corridor above stops at 3.6 m
+    // and the piers stand at 4.3, so every rock pushed out of the doorway landed
+    // on a column: a heap of pale 0.5 m boulders against a 0.62 m shaft eats its
+    // bottom third, and what is left reads as a column that is broken off - the
+    // "излом фигуры колонны" on the right of the frame.
+    if (Math.abs(Math.abs(x) - 4.3) < 1.05 && z < BLD.z + 6.6) continue;
+    const s = 0.11 + Math.pow(rr2(), 3) * 1.15;
+    dummy.position.set(x, s * 0.34, z);
+    dummy.rotation.set(rr2() * 3, rr2() * 3, rr2() * 3);
+    dummy.scale.setScalar(s);
+    dummy.updateMatrix();
+    const k = 0.55 + rr2() * 0.65;
+    dummy.color = new THREE.Color(k, k * 0.97, k * 0.92);
+    rubble.setColorAt(placed, dummy.color);
+    rubble.setMatrixAt(placed++, dummy.matrix);
+  }
+  rubble.count = placed;
+  g.add(rubble);
+
+  // fine gravel and grit: the layer that makes a debris field look swept rather
+  // than dropped. No shadows - it is all under 10 cm and the cost is real
+  {
+    const grit = new THREE.InstancedMesh(rockGeo, M.rubble, 520);
+    grit.castShadow = false;
+    grit.receiveShadow = true;
+    const gr = mulberry32(88);
+    let n = 0, g2 = 0;
+    while (n < 520 && g2++ < 12000) {
+      const x = (gr() - 0.5) * 34;
+      const z = BLD.z + 1.6 + Math.pow(gr(), 1.3) * 16;
+      if (Math.abs(x) < 2.9 && z < BLD.z + 11) continue;
+      const s = 0.025 + Math.pow(gr(), 2.2) * 0.1;
+      dummy.position.set(x, s * 0.3, z);
+      dummy.rotation.set(gr() * 3, gr() * 3, gr() * 3);
+      dummy.scale.setScalar(s);
+      dummy.updateMatrix();
+      const k = 0.5 + gr() * 0.6;
+      dummy.color = new THREE.Color(k, k * 0.97, k * 0.93);
+      grit.setColorAt(n, dummy.color);
+      grit.setMatrixAt(n++, dummy.matrix);
+    }
+    grit.count = n;
+    g.add(grit);
+  }
+
+  // ---- sandbag wall at the porch ------------------------------------------
+  const bagGeo = new THREE.SphereGeometry(0.5, 8, 6);
+  for (let row = 0; row < 3; row++) {
+    for (let i = 0; i < 5; i++) {
+      for (const side of [-1, 1]) {
+        const b = new THREE.Mesh(bagGeo, M.sandbag);
+        b.scale.set(0.62, 0.24, 0.4);
+        // courses offset by half a bag: a brick bond, not a column of blobs
+        b.position.set(side * 6.3, 0.2 + row * 0.3, BLD.z + 4.4 + i * 0.62 + (row % 2) * 0.31);
+        b.castShadow = true;
+        b.receiveShadow = true;
+        g.add(b);
+      }
+    }
+  }
+
+  // ---- abandoned props: a stretcher on the left, an overturned bin on the
+  // right -------------------------------------------------------------------
+  // Neither gets a light of its own. They stand in the two margins the vignette
+  // already crushes, so what has to carry them is the silhouette plus the one
+  // specular edge each picks up from the sky light - which is how a real object
+  // reads at night. Adding a lamp here would undo every light that was taken out
+  // of this frame.
+  {
+    // A photo texture that never leaves a hole in the frame: flat colour first,
+    // the photo and its overlay painted on top when the file arrives. A 404 then
+    // costs a flat surface instead of a black object, which matters because the
+    // page can load before the generator has finished writing the png.
+    const photoCanvas = (url, w, h, base, paint) => {
+      const c = document.createElement('canvas');
+      c.width = w; c.height = h;
+      const x = c.getContext('2d');
+      x.fillStyle = base; x.fillRect(0, 0, w, h);
+      const t = new THREE.CanvasTexture(c);
+      t.colorSpace = THREE.SRGBColorSpace;
+      t.wrapS = t.wrapT = THREE.RepeatWrapping;
+      t.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+      const done = (img) => {
+        if (img) x.drawImage(img, 0, 0, w, h);
+        if (paint) paint(x);
+        t.needsUpdate = true;
+      };
+      const im = new Image();
+      im.onload = () => done(im);
+      im.onerror = () => done(null);
+      im.src = url;
+      return t;
+    };
+
+    // -- wheeled gurney, standing on the apron in front of the entrance ------
+    // First attempt was a stretcher propped against the wall. It read as a pale
+    // panel sunk between the boards of the boarded-up window - the wrong object
+    // in the wrong place, and half of it behind the headline. This is what was
+    // actually asked for: a каталка left standing on its own wheels, clear of
+    // the wall, in the light spilling out of the door.
+    const vinyl = photoCanvas(GEN_URL.vinyl, 512, 512, '#8d9086', (x) => {
+      // The generated sheet is a crumpled white cover split by a rusty seam.
+      // Stretched over a 1.8 m deck the crumple draws as marble - long bands of
+      // light and shadow down a slab - and that is exactly how the mattress
+      // read: a stone bench. A translucent vinyl colour laid over the albedo
+      // flattens it, while the bump map keeps the creases as relief.
+      x.fillStyle = 'rgba(118,119,108,.74)';
+      x.fillRect(0, 0, 512, 512);
+      // dirt, and a low rust wash
+      x.save();
+      x.globalCompositeOperation = 'multiply';
+      x.globalAlpha = 0.22;
+      x.drawImage(TEX.rust, 0, 0, 512, 512);
+      x.restore();
+      // damp that has crept in from the edges and never dried out
+      const damp = x.createRadialGradient(256, 256, 80, 256, 256, 350);
+      damp.addColorStop(0, 'rgba(52,44,32,0)');
+      damp.addColorStop(1, 'rgba(52,44,32,.55)');
+      x.fillStyle = damp;
+      x.fillRect(0, 0, 512, 512);
+      // the seam down the middle of the pad, with the vinyl lifting off it
+      x.strokeStyle = 'rgba(44,40,32,.5)';
+      x.lineWidth = 3;
+      x.beginPath();
+      x.moveTo(0, 250);
+      x.bezierCurveTo(160, 246, 340, 256, 512, 251);
+      x.stroke();
+      x.strokeStyle = 'rgba(196,192,176,.16)';
+      x.lineWidth = 2;
+      x.beginPath();
+      x.moveTo(0, 254);
+      x.bezierCurveTo(160, 250, 340, 260, 512, 255);
+      x.stroke();
+      // strap across the width - vertical in UV, because u runs down the length
+      x.fillStyle = 'rgba(38,34,28,.55)';
+      x.fillRect(300, 0, 30, 512);
+      x.fillStyle = 'rgba(150,140,120,.2)';
+      x.fillRect(300, 0, 4, 512);
+    });
+    const vinylMat = new THREE.MeshStandardMaterial({
+      map: vinyl, bumpMap: vinyl, bumpScale: 0.012,
+      color: 0xaaa89a, roughness: 0.78, metalness: 0.03,
+    });
+    const rubber = new THREE.MeshStandardMaterial({ color: 0x2b2622, roughness: 0.92, metalness: 0.04 });
+    // Rusted steel, built the same way as the bin. The generated metal sheet is
+    // a clean galvanised surface, so every rail, leg and handle came out looking
+    // like it had just been wheeled off the ward - which is exactly how it read.
+    // Two multiplied passes of the procedural rust canvas at different offsets
+    // plus a run-off gradient, and the frame goes back twenty years.
+    const gurneyTex = photoCanvas(GEN_URL.metal, 512, 512, '#6b675f', (x) => {
+      x.save();
+      x.globalCompositeOperation = 'multiply';
+      x.globalAlpha = 0.38;
+      x.drawImage(TEX.rust, 0, 0, 512, 512);
+      x.globalAlpha = 0.22;
+      x.drawImage(TEX.rust, -120, -160, 700, 700);
+      x.restore();
+      // rust washes down from the joints and pools at the low end of the frame
+      const run = x.createLinearGradient(0, 0, 0, 512);
+      run.addColorStop(0, 'rgba(102,54,26,.32)');
+      run.addColorStop(0.42, 'rgba(102,54,26,0)');
+      run.addColorStop(1, 'rgba(38,25,15,.46)');
+      x.fillStyle = run;
+      x.fillRect(0, 0, 512, 512);
+      // pitting, where the paint has been gone for a decade
+      const rnd = mulberry32(5521);
+      x.save();
+      x.globalCompositeOperation = 'multiply';
+      for (let i = 0; i < 110; i++) {
+        const cx = rnd() * 512, cy = rnd() * 512, r = 3 + rnd() * 15;
+        const pit = x.createRadialGradient(cx, cy, 0, cx, cy, r);
+        pit.addColorStop(0, 'rgba(76,40,20,.6)');
+        pit.addColorStop(1, 'rgba(76,40,20,0)');
+        x.fillStyle = pit;
+        x.fillRect(cx - r, cy - r, r * 2, r * 2);
+      }
+      x.restore();
+    });
+    const gurneySteel = new THREE.MeshStandardMaterial({
+      map: gurneyTex, bumpMap: gurneyTex, bumpScale: 0.03,
+      color: 0xb5a189, roughness: 0.82, metalness: 0.28,
+    });
+    // 0.74, not 0.62: at 0.62 the deck read as a rail rather than as a bed, and
+    // a real каталка deck is a touch over 70 cm across.
+    const GL = 1.95, GW = 0.74;                 // length, width
+    const DECK = 0.56;                          // top of the frame, under the mattress
+    const gurney = new THREE.Group();
+    {
+      const rail = 0.042;
+      // deck frame: two long rails, two end rails, three cross members
+      for (const sz of [-1, 1]) {
+        gurney.add(box(GL, rail, rail, gurneySteel, 0, DECK - rail / 2, sz * (GW / 2 - 0.03)));
+      }
+      for (const sx of [-1, 1]) {
+        gurney.add(box(rail, rail, GW - 0.06, gurneySteel, sx * (GL / 2 - 0.02), DECK - rail / 2, 0));
+      }
+      for (const px of [-0.6, 0, 0.6]) {
+        gurney.add(box(rail * 0.7, rail * 0.7, GW - 0.06, gurneySteel, px, DECK - rail * 0.9, 0));
+      }
+      // mattress, sunk into the frame so it does not float on top of it. 0.09
+      // deep, not 0.12: at 0.12 the visible edge was a slab and the whole thing
+      // read as a bench with a stone top.
+      gurney.add(box(GL - 0.14, 0.09, GW - 0.02, vinylMat, 0, DECK + 0.02, 0));
+      // legs, casters, wheels
+      for (const sx of [-1, 1]) {
+        for (const sz of [-1, 1]) {
+          const lx = sx * (GL / 2 - 0.18), lz = sz * (GW / 2 - 0.07);
+          const leg = cylinder(0.019, 0.019, 0.42, gurneySteel, 6);
+          leg.position.set(lx, 0.34, lz);
+          gurney.add(leg);
+          gurney.add(box(0.052, 0.085, 0.078, gurneySteel, lx, 0.115, lz));  // fork
+          const wheel = cylinder(0.06, 0.06, 0.042, rubber, 12);
+          wheel.rotation.x = Math.PI / 2;
+          wheel.position.set(lx, 0.06, lz);
+          gurney.add(wheel);
+        }
+      }
+      // side rails: a bar on each side on two posts. 0.23 above the deck, not
+      // 0.34 - at 0.34 the bars came up to chest height and the thing read as a
+      // bed with a headboard instead of a каталка.
+      for (const sz of [-1, 1]) {
+        const bar = cylinder(0.017, 0.017, 1.28, gurneySteel, 8);
+        bar.rotation.z = Math.PI / 2;
+        bar.position.set(0, DECK + 0.23, sz * (GW / 2 + 0.015));
+        gurney.add(bar);
+        for (const px of [-0.56, 0.56]) {
+          const post = cylinder(0.016, 0.016, 0.23, gurneySteel, 6);
+          post.position.set(px, DECK + 0.115, sz * (GW / 2 + 0.015));
+          gurney.add(post);
+        }
+      }
+      // push handle at the head end. The uprights run from the deck to the bar:
+      // as a 0.32-long stub centred at 0.88 they started 16 cm above the frame
+      // and the handle hung in the air. 0.31 long, same 1.5x cut as the rails.
+      for (const sz of [-1, 1]) {
+        const up = cylinder(0.017, 0.017, 0.31, gurneySteel, 8);
+        up.position.set(GL / 2 - 0.02, DECK + 0.155, sz * (GW / 2 - 0.03));
+        gurney.add(up);
+      }
+      const cross = cylinder(0.016, 0.016, GW - 0.04, gurneySteel, 8);
+      cross.rotation.x = Math.PI / 2;
+      cross.position.set(GL / 2 - 0.02, DECK + 0.31, 0);
+      gurney.add(cross);
+      // a torn strap hanging off the frame: the detail that says it has been
+      // standing here a while rather than parked
+      const strap = box(0.05, 0.34, 0.012, M.sandbag, -0.45, 0.42, -GW / 2 - 0.01, [0.16, 0, 0.1]);
+      gurney.add(strap);
+    }
+    // In front of the left leaf, angled out towards the street. Against the wall
+    // at x -3 it was behind the headline and behind the boards; here it stands
+    // in the light that comes out of the door, which is where a каталка left by
+    // the last crew to go in would actually be.
+    gurney.position.set(-1.65, 0, -16.35);
+    gurney.rotation.y = 0.95;
+    gurney.name = 'gurney';
+    g.add(gurney);
+
+
+    // -- clinical waste bin, on its side at the foot of the right pier -------
+    // It was a painted cylinder, which is a barrel. A real one has a pressed
+    // body, a foot pedal, a handle bracket and a biohazard mark, and the mark is
+    // what makes it read as clinical rather than as a bucket.
+    //
+    // The trefoil is drawn, not generated: a diffusion model produces something
+    // that is *almost* a biohazard symbol, and almost is worse than nothing on a
+    // clinical bin. Three lobes on a 120-degree lattice is the standard
+    // construction and it still reads at 40 px.
+    const biohazard = (x, cx, cy, R, fill) => {
+      x.save();
+      x.translate(cx, cy);
+      x.fillStyle = fill;
+      x.strokeStyle = fill;
+      for (let i = 0; i < 3; i++) {
+        const a = -Math.PI / 2 + (i * Math.PI * 2) / 3;
+        x.save();
+        x.rotate(a);
+        // lobe: an arc band, open towards the hub
+        x.beginPath();
+        x.arc(0, -R * 0.46, R * 0.5, Math.PI * 0.16, Math.PI * 0.84, true);
+        x.arc(0, -R * 0.46, R * 0.22, Math.PI * 0.84, Math.PI * 0.16, false);
+        x.closePath();
+        x.fill();
+        // stem down to the hub
+        x.beginPath();
+        x.moveTo(-R * 0.075, -R * 0.12);
+        x.lineTo(R * 0.075, -R * 0.12);
+        x.lineTo(R * 0.12, -R * 0.5);
+        x.lineTo(-R * 0.12, -R * 0.5);
+        x.closePath();
+        x.fill();
+        x.restore();
+      }
+      x.beginPath();
+      x.arc(0, 0, R * 0.19, 0, Math.PI * 2);
+      x.fill();
+      x.restore();
+    };
+    const binTex = photoCanvas(GEN_URL.binPlastic, 512, 512, '#6d5a2c', (x) => {
+      // Rust over the paint. The generated sheet is clean-ish yellow plastic;
+      // this bin has been lying in the rain for years, so the procedural rust
+      // canvas is multiplied over it twice at different offsets - one pass
+      // reads as a tiled sheet, two read as corrosion.
+      x.save();
+      x.globalCompositeOperation = 'multiply';
+      x.globalAlpha = 0.34;
+      x.drawImage(TEX.rust, 0, 0, 512, 512);
+      x.globalAlpha = 0.2;
+      x.drawImage(TEX.rust, -150, -95, 660, 660);
+      x.restore();
+      // dirt collects at the bottom edge, where it stood in water
+      const grime = x.createLinearGradient(0, 330, 0, 512);
+      grime.addColorStop(0, 'rgba(28,22,15,0)');
+      grime.addColorStop(1, 'rgba(28,22,15,.55)');
+      x.fillStyle = grime;
+      x.fillRect(0, 330, 512, 182);
+      // 62 px, not 116: at 116 the trefoil covered half the body and, sitting
+      // next to the open end, it read as a logo painted on the bin's bottom.
+      biohazard(x, 256, 250, 62, 'rgba(24,19,13,.78)');
+      // the painted band every one of these carries, and it hides the seam of
+      // the wrap at the same time
+      x.fillStyle = 'rgba(26,21,15,.5)';
+      x.fillRect(0, 452, 512, 26);
+    });
+    const binMat = new THREE.MeshStandardMaterial({
+      map: binTex, bumpMap: binTex, bumpScale: 0.028,
+      color: 0xc4b795, roughness: 0.7, metalness: 0.16,
+    });
+    const BODY_R = 0.29, BODY_H = 0.66;
+    const bin = new THREE.Group();
+    // Open-ended, and the closed end capped separately. CylinderGeometry caps
+    // both ends by default, so the mouth was sealed by a textured disc: at the
+    // near end that disc was the thing with the logo on it, and it read as the
+    // bin's bottom lying on the bin. Nothing was wrong with the logo - the
+    // barrel was simply closed.
+    bin.add(new THREE.Mesh(
+      new THREE.CylinderGeometry(BODY_R, BODY_R * 0.86, BODY_H, 24, 1, true), binMat));
+    {
+      const bottom = new THREE.Mesh(new THREE.CircleGeometry(BODY_R * 0.86, 24), binMat);
+      bottom.rotation.x = Math.PI / 2;
+      bottom.position.y = -BODY_H / 2;
+      bin.add(bottom);
+    }
+    {
+      // mouth lip, and the black inside. An open bin seen from the street is a
+      // hole with a lit lip; a capped cylinder reads as a barrel, which is a
+      // different object entirely.
+      const lip = new THREE.Mesh(new THREE.TorusGeometry(BODY_R, 0.019, 6, 24), binMat);
+      lip.rotation.x = Math.PI / 2;
+      lip.position.y = BODY_H / 2;
+      lip.castShadow = true;
+      bin.add(lip);
+      // The open end is a cavity, not a disc. A flat black circle at the mouth
+      // reads as the bottom of the bin lying on top of the bin - which is
+      // exactly how it was read - so the inside gets a wall and a floor 34 cm
+      // in, and the eye gets depth instead of a black plate.
+      const innerMat = new THREE.MeshStandardMaterial({
+        color: 0x2b241c, roughness: 0.9, metalness: 0, side: THREE.BackSide,
+      });
+      const inner = new THREE.Mesh(
+        new THREE.CylinderGeometry(BODY_R - 0.022, BODY_R - 0.03, 0.36, 24, 1, true), innerMat);
+      inner.position.y = BODY_H / 2 - 0.18;
+      bin.add(inner);
+      const innerFloor = new THREE.Mesh(new THREE.CircleGeometry(BODY_R - 0.03, 24), M.dark);
+      innerFloor.rotation.x = -Math.PI / 2;
+      innerFloor.position.y = BODY_H / 2 - 0.36;
+      bin.add(innerFloor);
+      // ...and it has emptied itself. First pass filled it with a bag, gauze
+      // and syringes, and in the frame that cluster of pale spheres and red
+      // lumps read as small planets floating in a tube - "какой-то космический
+      // объект". Liquid is the right answer: a bin on its side leaks, and a
+      // dark stain with a wet edge says what happened without inventing props.
+      // What is left inside is a residue film on the inner floor.
+      innerFloor.material = new THREE.MeshStandardMaterial({
+        color: 0x3d3428, roughness: 0.1, metalness: 0.34,
+      });
+      // two pressed ribs
+      for (const ry of [-0.16, 0.06]) {
+        const rib = new THREE.Mesh(new THREE.TorusGeometry(BODY_R * 0.985, 0.011, 5, 24), binMat);
+        rib.rotation.x = Math.PI / 2;
+        rib.position.y = ry;
+        bin.add(rib);
+      }
+      // foot pedal, at the closed end
+      bin.add(box(0.15, 0.026, 0.13, M.metal, 0, -BODY_H / 2 + 0.012, BODY_R * 0.86));
+      // handle bracket on the side
+      for (const hx of [-0.075, 0.075]) {
+        bin.add(box(0.02, 0.05, 0.03, M.metal, hx, 0.2, -BODY_R * 0.99));
+      }
+      bin.add(box(0.19, 0.022, 0.022, M.metal, 0, 0.225, -BODY_R * 0.99));
+    }
+    // mouth turned out towards the camera, not into the wall
+    bin.rotation.set(0, 0.62, Math.PI / 2);
+    bin.position.set(3.92, BODY_R - 0.015, -16.05);
+    g.add(bin);
+    {
+      // the lid, off and lying where it rolled: a shallow pan with its own rim
+      const lid = cylinder(BODY_R + 0.015, BODY_R + 0.01, 0.04, binMat, 24);
+      lid.position.set(3.45, 0.028, -15.5);
+      lid.rotation.set(0.05, 0, 0.1);
+      g.add(lid);
+      const lidRim = new THREE.Mesh(new THREE.TorusGeometry(BODY_R + 0.012, 0.014, 5, 24), M.metal);
+      lidRim.rotation.x = Math.PI / 2;
+      lidRim.position.set(3.45, 0.05, -15.5);
+      g.add(lidRim);
+    }
+    {
+      // What came out of it is liquid, and it is still there. The pale packs
+      // and the bottle that used to lie here read as small objects with no
+      // reason to be on the asphalt; a spill reads as a spill.
+      //
+      // The edge is a blurred alpha, not a polygon: a hard-edged decal on a wet
+      // floor catches the light along its own border, which is how the puddle
+      // planes turned into the seam at the frame edges earlier in this build.
+      const blob = document.createElement('canvas');
+      blob.width = blob.height = 256;
+      {
+        const x = blob.getContext('2d');
+        const br = mulberry32(5150);
+        x.beginPath();
+        const n = 30;
+        for (let i = 0; i <= n; i++) {
+          const a = (i / n) * Math.PI * 2;
+          const r = 88 + Math.sin(a * 3.1) * 14 + (br() - 0.5) * 26;
+          const px = 128 + Math.cos(a) * r, py = 128 + Math.sin(a) * r * 0.9;
+          if (i) x.lineTo(px, py); else x.moveTo(px, py);
+        }
+        x.closePath();
+        x.fillStyle = 'rgba(255,255,255,.95)';
+        x.fill();
+        // the run that reached further than the rest
+        x.beginPath();
+        x.ellipse(196, 158, 54, 34, 0.45, 0, Math.PI * 2);
+        x.fill();
+      }
+      const soft = document.createElement('canvas');
+      soft.width = soft.height = 256;
+      const sx = soft.getContext('2d');
+      sx.filter = 'blur(8px)';
+      sx.drawImage(blob, 0, 0);
+      const alpha = new THREE.CanvasTexture(soft);
+      // Lighter than the asphalt, not darker: a dark stain on a dark road is
+      // invisible, and what the eye reads as liquid at night is a surface that
+      // is smoother than the road and catches the lamp because of it.
+      // Matte, not glossy. The first version was metalness .85 / roughness .05
+      // and it threw a hard specular streak off the porch lamp - a puddle of
+      // fresh paint, not something that leaked out of a bin years ago. Dried
+      // fluid is flat: no sheen, no env reflection, just a slightly lighter
+      // patch on the asphalt.
+      const spillMat = new THREE.MeshStandardMaterial({
+        color: 0x6e6550, roughness: 0.86, metalness: 0.02, envMapIntensity: 0.15,
+        alphaMap: alpha, transparent: true, depthWrite: false,
+        polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2,
+      });
+      const spill = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 1.9), spillMat);
+      spill.rotation.x = -Math.PI / 2;
+      spill.rotation.z = 0.5;
+      spill.position.set(3.28, 0.012, -15.72);
+      spill.receiveShadow = true;
+      g.add(spill);
+      // a second, smaller pool where the first ran off the edge of the apron
+      const spill2 = new THREE.Mesh(new THREE.PlaneGeometry(0.95, 0.8), spillMat);
+      spill2.rotation.x = -Math.PI / 2;
+      spill2.rotation.z = -0.8;
+      spill2.position.set(3.72, 0.012, -15.34);
+      g.add(spill2);
+    }
+  }
+
+  // ---- a few windows still lit, one floor at a time -----------------------
+  const litMat = new THREE.MeshBasicMaterial({ color: 0xffa863, transparent: true, opacity: 0.85 });
+  for (const [lx, ly] of [[-8.1, 6.3], [2.9, 10.3], [9.2, 6.3], [-4.9, 10.3]]) {
+    const pane = new THREE.Mesh(new THREE.PlaneGeometry(bayW * 0.58, floorH * 0.48), litMat);
+    pane.position.set(lx, ly, BLD.z - 0.9);
+    g.add(pane);
+  }
+
+  return g;
+}
+
+
+// (Removed: a 12 x 11 m additive "light pool" plane lying on the asphalt.)
+//
+// It was a fake reflection - a radial warm blob added on top of the road - and it
+// did the one thing a fake reflection does: it ignored the geometry. The blob
+// reached z -7.3 and x +-6, so on the right it painted a warm streak along the
+// base of the wall and out past the pier, on ground that the porch spot never
+// reaches. That streak is the "свет справа из-под стены" that read as light
+// leaking through the plinth. There are four real lights on this entrance now
+// (porch spot, porch point, the working sconce, the lobby spill) and they all
+// respect the shadows; the blob only got in their way.
+
+const hospital = buildFacade();
+scene.add(hospital);
+
+{
+  const post = new THREE.Group();
+  const pole = cylinder(0.055, 0.075, 5.4, M.metal, 8);
+  pole.position.y = 2.7;
+  post.add(pole);
+  const arm = cylinder(0.045, 0.045, 1.5, M.metal, 8);
+  arm.rotation.z = Math.PI / 2 - 0.42;
+  arm.position.set(0.65, 5.35, 0);
+  post.add(arm);
+  const shade = new THREE.Mesh(new THREE.ConeGeometry(0.42, 0.3, 12, 1, true), M.metal);
+  shade.position.set(1.28, 5.05, 0);
+  shade.rotation.z = -0.42;
+  post.add(shade);
+  post.position.set(-5.6, 0, -9.4);
+  post.rotation.y = 0.12;
+  scene.add(post);
+}
+
+/* ================================================================== backdrop */
+
+{
+  const tex = new THREE.TextureLoader().load('assets/img/sky_far.webp');
+  tex.colorSpace = THREE.SRGBColorSpace;
+  const mat = new THREE.MeshBasicMaterial({ map: tex, fog: false, toneMapped: true });
+  const plane = new THREE.Mesh(new THREE.PlaneGeometry(240, 100), mat);
+  // the plate is ~106 units away, so its horizon has to sit well above the parapet
+  // (y = 10 at 28 units) or the sun and the skyline end up behind the building and
+  // only the empty haze strip at the top of the image is ever visible
+  plane.position.set(0, 36, -96);
+  scene.add(plane);
+}
+
+/* =================================================================== lights */
+
+scene.add(new THREE.HemisphereLight(0x93a9c4, 0x1c1712, 0.95));
+
+const sun = new THREE.DirectionalLight(0xffe2c8, 1.4);
+sun.position.set(-24, 18, 14);
+sun.castShadow = true;
+sun.shadow.mapSize.set(1536, 1536);
+// VSM: radius is the blur spread in texels, blurSamples how many taps pay for it
+sun.shadow.radius = 14;
+sun.shadow.blurSamples = 20;
+sun.shadow.bias = -0.0004;
+sun.shadow.camera.left = -34;
+sun.shadow.camera.right = 34;
+sun.shadow.camera.top = 30;
+sun.shadow.camera.bottom = -6;
+sun.shadow.camera.near = 1;
+sun.shadow.camera.far = 120;
+scene.add(sun);
+
+// warm backlight from the dying sun behind the building: separates it from the sky
+const back = new THREE.DirectionalLight(0xff8f4e, 1.1);
+back.position.set(12, 10, -60);
+scene.add(back);
+
+// cold rim from the open sky behind the viewer
+const rim = new THREE.DirectionalLight(0x8fb0c8, 0.9);
+rim.position.set(18, 10, 26);
+scene.add(rim);
+
+/* ==================================================================== mist */
+
+// Ground haze was here: 31 sprites, dense at the margins and thin in the middle,
+// softening the light boundaries the apron picks up. Removed on request - it
+// greyed the wall and the boards on both sides, and with the vignette now doing
+// the framing the haze was only costing contrast. If it ever comes back: sprites,
+// never a flat card - a horizontal plane at knee height cuts the figure's legs
+// and z-fights with the asphalt along the waterline.
+
+/* =================================================================== dust */
+
+function dotTexture() {
+  const s = 64;
+  const c = document.createElement('canvas');
+  c.width = c.height = s;
+  const g = c.getContext('2d');
+  const grd = g.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2);
+  grd.addColorStop(0, 'rgba(255,255,255,1)');
+  grd.addColorStop(0.35, 'rgba(255,255,255,.5)');
+  grd.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = grd;
+  g.fillRect(0, 0, s, s);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+const dustTex = dotTexture();
+
+function makeDust(count, { spread, yRange, zRange, size, color, opacity, speed }) {
+  const pos = new Float32Array(count * 3);
+  const seed = new Float32Array(count);
+  for (let i = 0; i < count; i++) {
+    pos[i * 3] = (Math.random() - 0.5) * spread;
+    pos[i * 3 + 1] = yRange[0] + Math.random() * (yRange[1] - yRange[0]);
+    pos[i * 3 + 2] = zRange[0] + Math.random() * (zRange[1] - zRange[0]);
+    seed[i] = Math.random() * 100;
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  const mat = new THREE.PointsMaterial({
+    size, map: dustTex, color, transparent: true, opacity,
+    depthWrite: false, blending: THREE.AdditiveBlending, sizeAttenuation: true, fog: true,
+  });
+  const pts = new THREE.Points(geo, mat);
+  pts.frustumCulled = false;
+  scene.add(pts);
+  return { geo, seed, speed, yRange };
+}
+
+const dust = makeDust(1400, {
+  spread: 46, yRange: [0, 13], zRange: [-30, 8],
+  size: 0.055, color: 0xd8c6ab, opacity: 0.34, speed: 0.2,
+});
+
+const embers = makeDust(120, {
+  spread: 8, yRange: [0, 4], zRange: [-16, -8],
+  size: 0.05, color: 0xff9550, opacity: 0.5, speed: 0.35,
+});
+
+/* ================================================================= character */
+
+const manager = new THREE.LoadingManager();
+const plBar = document.getElementById('pl-bar');
+const plPct = document.getElementById('pl-pct');
+
+manager.onProgress = (_u, loaded, total) => {
+  const p = total ? loaded / total : 0;
+  plBar.style.transform = `scaleX(${p})`;
+  plPct.textContent = `${Math.round(p * 100)} %`;
+};
+
+function hidePreloader() {
+  const el = document.getElementById('preloader');
+  if (!el) return;
+  plBar.style.transform = 'scaleX(1)';
+  plPct.textContent = '100 %';
+  setTimeout(() => {
+    el.style.opacity = '0';
+    setTimeout(() => el.remove(), 800);
+  }, 200);
+}
+
+const CHAR_HEIGHT = 1.85;
+const charAnchor = new THREE.Group();
+charAnchor.position.set(2.5, 0, -14.1);
+// he came back to look inside: facing the doorway, not the camera. A few
+// degrees off dead-centre keeps it a 3/4 back view instead of a flat silhouette.
+// aim him at the middle of the doorway, not at the wall beside it: with a fixed
+// yaw he ends up staring at the brickwork once he is off the door axis
+charAnchor.rotation.y = Math.atan2(
+  -charAnchor.position.x, BLD.z - charAnchor.position.z
+);
+scene.add(charAnchor);
+
+// placeholder so the framing is readable while the mesh streams in
+const placeholder = new THREE.Mesh(
+  new THREE.CapsuleGeometry(0.28, 1.2, 4, 12),
+  new THREE.MeshStandardMaterial({ color: 0x3a332b, roughness: 0.9 })
+);
+placeholder.position.y = 0.95;
+placeholder.castShadow = true;
+charAnchor.add(placeholder);
+
+// ground bounce in front of the figure: without it the survivor is a pure
+// silhouette and the mask - the whole point of the model - is unreadable
+//
+// The range was 4.2 m, and that was the "стык тени" behind the character. A
+// point light's `distance` is a hard sphere, not a falloff: the ground inside
+// the sphere gets light, the ground outside gets none, and the sphere's
+// intersection with a flat plane is a circle. At 4.2 m that circle ran from
+// (-0.7, -13.4) round to (2.9, -17.0) and back out to (6.5, -13.4) - an arc
+// right behind the figure, reading as a seam between lit and unlit asphalt.
+// Raised past anything the camera can see, the same light now ends in inverse
+// square and there is no edge to find; intensity trimmed to keep the figure's
+// fill where it was.
+const bounce = new THREE.PointLight(0xffc49a, 3.2, 13, 2);
+bounce.position.set(2.9, 2.15, -13.4);
+scene.add(bounce);
+
+let character = null;
+
+new GLTFLoader(manager).load(
+  'assets/models/survivor_small.glb',
+  (gltf) => {
+    const model = gltf.scene;
+    model.traverse((o) => {
+      if (!o.isMesh) return;
+      o.castShadow = true;
+      o.receiveShadow = true;
+      const src = o.material;
+      o.material = new THREE.MeshStandardMaterial({
+        map: src.map || null,
+        color: src.color ? src.color.clone() : new THREE.Color(0xffffff),
+        roughness: 0.92,
+        metalness: 0.05,
+      });
+      if (o.material.map) o.material.map.colorSpace = THREE.SRGBColorSpace;
+    });
+
+    // normalise: 1.85 m tall, feet on the ground, centred on the anchor
+    const bb = new THREE.Box3().setFromObject(model);
+    const size = bb.getSize(new THREE.Vector3());
+    const scale = CHAR_HEIGHT / size.y;
+    model.scale.setScalar(scale);
+    const bb2 = new THREE.Box3().setFromObject(model);
+    const c2 = bb2.getCenter(new THREE.Vector3());
+    model.position.set(-c2.x, -bb2.min.y, -c2.z);
+
+    charAnchor.add(model);
+    character = model;
+    charAnchor.remove(placeholder);
+    placeholder.geometry.dispose();
+    hidePreloader();
+  },
+  undefined,
+  (err) => {
+    console.error('character failed to load:', err);
+    hidePreloader();
+  }
+);
+
+/* =================================================================== passes */
+
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+composer.addPass(new FXAAPass());
+const bloom = new UnrealBloomPass(
+  // threshold .85 with a wet road under it: the floor's specular crossed it and
+  // the whole lower-right corner bloomed into a grey haze that read as light
+  // leaking out from under the wall. Only the fittings are supposed to glow.
+  new THREE.Vector2(host.clientWidth, host.clientHeight), 0.3, 0.7, 1.02
+);
+composer.addPass(bloom);
+const vignette = new ShaderPass(VignetteShader);
+vignette.uniforms.offset.value = 1.0;
+vignette.uniforms.darkness.value = 1.12;
+composer.addPass(vignette);
+composer.addPass(new OutputPass());
+
+/* ==================================================================== input */
+
+const mouse = { x: 0, y: 0, tx: 0, ty: 0 };
+window.addEventListener('pointermove', (e) => {
+  mouse.tx = (e.clientX / window.innerWidth) * 2 - 1;
+  mouse.ty = -((e.clientY / window.innerHeight) * 2 - 1);
+}, { passive: true });
+
+let scrollTarget = 0, scrollSmooth = 0;
+window.addEventListener('scroll', () => { scrollTarget = window.scrollY; }, { passive: true });
+
+const heroUi = document.getElementById('hero-ui');
+
+function resize() {
+  const w = host.clientWidth, h = host.clientHeight;
+  // a portrait viewport sees a narrow slice of the same world: pull the camera back
+  // and centre the figure, or the hero is cropped to his knees
+  const narrow = w / h < 1.1;
+  // A portrait viewport has a horizontal field of view of about 28 degrees, so the
+  // 3.7 m sign simply does not fit at the desktop distance - it was cropped on
+  // the left. Back the camera off and centre it on the doorway instead.
+  CAM.radius = narrow ? 8.0 : 4.55;
+  CAM.radiusMin = narrow ? 6.6 : 3.8;
+  CAM.side = narrow ? 0.15 : 1.2;
+  CAM.look.x = narrow ? 0.9 : 1.2;
+  // the vertical fov is the one three.js takes, so a 0.48 aspect viewport sees
+  // 28 degrees across - the doorway needs closer to 34 to fit. Open the lens on
+  // portrait instead of backing the camera off until the figure is gone.
+  camera.fov = narrow ? 66 : CAM.fov;
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+  renderer.setSize(w, h);
+  composer.setSize(w, h);
+  bloom.setSize(w, h);
+}
+window.addEventListener('resize', resize);
+resize();
+
+/* ===================================================================== loop */
+
+// r186 deprecates THREE.Clock in favour of THREE.Timer; a pair of timestamps
+// keeps the loop free of both and works on every revision
+let prevT = performance.now();
+const t0 = prevT;
+const tmp = new THREE.Vector3();
+camera.position.set(CAM.look.x + CAM.side, CAM.eyeY, CAM.look.z + CAM.radius);
+camera.lookAt(CAM.look);
+
+function animate() {
+  requestAnimationFrame(animate);
+  const now = performance.now();
+  const dt = Math.min((now - prevT) / 1000, 0.05);
+  prevT = now;
+  const t = (now - t0) / 1000;
+
+  // ---- the sign's tube is dying --------------------------------------------
+  // A fluorescent on its way out does not blink on a metronome: it holds for a
+  // few seconds, browns out, recovers, then stutters and holds again. Two
+  // clocks - a 9.7 s cycle for when it misbehaves, a 13 Hz hash for what it does
+  // while it misbehaves - is enough to read as a fault rather than an animation.
+  if (SIGN.mat) {
+    const hash = (n) => { const s = Math.sin(n * 127.1) * 43758.5453; return s - Math.floor(s); };
+    const cycle = t % 8.9;
+    let f = 1;
+    if (cycle < 3.1) {
+      const step = Math.floor(t * 8.5);          // ~120 ms a state: slow enough to see
+      const r = hash(step);
+      if (r > 0.82) f = 0.03;                                   // full dropout
+      else if (r > 0.52) f = 0.34 + hash(step + 7) * 0.3;       // brownout
+      else f = 0.9 + hash(step + 3) * 0.1;
+    } else if (cycle > 8.6) {
+      f = 0.55;                                                 // the dip before the fit
+    }
+    // one half of the tube is worse than the other - but only while it is
+    // actually misbehaving. In the steady stretch the sign must not pulse at
+    // all: a slow sine on the colour reads as a breathing lamp, not a fault
+    const left = f < 0.99 ? 0.88 : 1;
+    SIGN.mat.color.setRGB(f * left, f * 0.98, f * 0.95);
+    if (SIGN.light) SIGN.light.intensity = 3 * f * left;
+  }
+
+  mouse.x += (mouse.tx - mouse.x) * 0.06;
+  mouse.y += (mouse.ty - mouse.y) * 0.06;
+
+  scrollSmooth += (scrollTarget - scrollSmooth) * 0.1;
+  const p = Math.min(Math.max(scrollSmooth / window.innerHeight, 0), 1);
+
+  const ang = mouse.x * CAM.orbit;
+  const radius = CAM.radius - (CAM.radius - CAM.radiusMin) * p;
+  // the push-in slides sideways instead of straight ahead: a forward dolly
+  // drives the camera through the figure standing 2 m in front of the door
+  tmp.set(
+    CAM.look.x + CAM.side + p * 1.9 + Math.sin(ang) * radius,
+    CAM.eyeY + mouse.y * 0.28 + p * 0.5,
+    CAM.look.z + Math.cos(ang) * radius
+  );
+  camera.position.lerp(tmp, 0.075);
+  camera.lookAt(CAM.look);
+
+  const out = Math.max(0, (p - 0.3) / 0.7);
+  root.style.setProperty('--scene-blur', `${(out * 7).toFixed(2)}px`);
+  root.style.setProperty('--scene-op', (1 - out * 0.92).toFixed(3));
+  heroUi.style.setProperty('--hero-ui-op', (1 - Math.min(1, p * 1.9)).toFixed(3));
+
+  const arr = dust.geo.attributes.position.array;
+  for (let i = 0; i < arr.length; i += 3) {
+    const s = dust.seed[i / 3];
+    arr[i] += Math.sin(t * 0.2 + s) * 0.003 + dust.speed * dt * 0.14;
+    arr[i + 1] += dust.speed * dt * 0.3;
+    if (arr[i + 1] > dust.yRange[1]) arr[i + 1] = dust.yRange[0];
+    if (arr[i] > 24) arr[i] = -24;
+  }
+  dust.geo.attributes.position.needsUpdate = true;
+
+  const earr = embers.geo.attributes.position.array;
+  for (let i = 0; i < earr.length; i += 3) {
+    const s = embers.seed[i / 3];
+    earr[i] += Math.sin(t * 0.85 + s) * 0.005;
+    earr[i + 1] += embers.speed * dt * 0.5;
+    if (earr[i + 1] > embers.yRange[1]) earr[i + 1] = embers.yRange[0];
+  }
+  embers.geo.attributes.position.needsUpdate = true;
+
+  composer.render();
+}
+animate();
+
+/* =================================================================== reveal */
+
+const io = new IntersectionObserver((entries) => {
+  for (const e of entries) {
+    if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+  }
+}, { threshold: 0.15, rootMargin: '0px 0px -8% 0px' });
+
+document.querySelectorAll('.rv').forEach((el, i) => {
+  el.style.transitionDelay = `${(i % 4) * 70}ms`;
+  io.observe(el);
+});
+
+/* =============================================================== debug hook */
+
+window.__scene = {
+  scene, camera, renderer, composer, THREE, CAM,
+  character: () => character,
+  scroll: () => scrollSmooth,
+};
+window.__signMat = SIGN.mat;
+</script>
+</body>
+</html>
