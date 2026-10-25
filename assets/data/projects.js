@@ -253,7 +253,7 @@ window.PROJECTS = [
     // Кадр 1600x1000 - ровно 16:10, рамка карточки совпадает с ним без обрезки.
     shot: 'assets/img/projects/munit7.webp',
     shotAspect: 1600 / 1000,
-    links: { demo: '/web/munit7/', demoEmbed: true, repo: 'https://github.com/CityStas/munit7' }
+    links: { demo: '/web/munit7/', demoEmbed: true }
   },
   {
     title: 'ModelLab',
