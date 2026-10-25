@@ -440,8 +440,8 @@ const CAM = {
   look: new THREE.Vector3(1.2, 1.62, -15.6),
   eyeY: 1.5,
   side: 1.2,            // lateral offset: turns a flat elevation into a 3/4 view
-  radius: 4.55,         // camera distance from the look point at rest
-  radiusMin: 3.8,       // ... after one screen of scroll
+  radius: 4.2,          // camera distance from the look point at rest
+  radiusMin: 3.5,       // ... after one screen of scroll
   orbit: 0.10,          // radians of horizontal orbit at |mouse.x| = 1
 };
 
@@ -3204,8 +3204,8 @@ function resize() {
   // A portrait viewport has a horizontal field of view of about 28 degrees, so the
   // 3.7 m sign simply does not fit at the desktop distance - it was cropped on
   // the left. Back the camera off and centre it on the doorway instead.
-  CAM.radius = narrow ? 8.0 : 4.55;
-  CAM.radiusMin = narrow ? 6.6 : 3.8;
+  CAM.radius = narrow ? 8.0 : 4.2;
+  CAM.radiusMin = narrow ? 6.6 : 3.5;
   CAM.side = narrow ? 0.15 : 1.2;
   CAM.look.x = narrow ? 0.9 : 1.2;
   // the vertical fov is the one three.js takes, so a 0.48 aspect viewport sees
