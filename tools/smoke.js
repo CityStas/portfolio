@@ -65,19 +65,28 @@ check('пунктов в меню', q('#navMenu a').length, q('main section.sec'
 check('меню закрыто по умолчанию', doc.getElementById('navMenu').hidden, true);
 check('кнопки «Резюме» в шапке нет', q('#hdrCv').length, 0);
 
-// Hero-блок убран целиком: страница начинается с проектов
-check('hero-блока нет', q('.hero').length, 0);
+// Hero вернулся в 7877299 («Новый UI: hero, секции 01/02»): страница снова
+// начинается с него, а не с проектов. Проверяем состав, а не отсутствие.
+check('hero-блок есть', q('.hero').length, 1);
 check('счётчиков нет', q('[data-count]').length, 0);
-check('первая секция — проекты', doc.querySelector('main > section').id, 'projects');
+check('первая секция — hero', doc.querySelector('main > section').classList.contains('hero'), true);
 
 // Дальше всё сверяем с данными (window.SITE / window.PROJECTS), а не с литералами:
 // контент правят часто и параллельно, тест падать от правки текста не должен.
 const S = dom.window.SITE || {};
 const P = dom.window.PROJECTS || [];
 
-// Крупный заголовок над проектами — вместо убранного hero
-const h1 = doc.querySelector('#projects .lead__h');
-check('роль крупным заголовком над проектами', h1 ? h1.textContent : null, S.role);
+// Заголовок hero: <h1> с <br> внутри плюс <p class="hero__role">. В данных это
+// одна строка SITE.role, поэтому склеиваем как читатель: <br> -> пробел, теги
+// долой. Селектор #projects .lead__h остался от разметки до 7877299.
+const h1 = doc.querySelector('.hero__copy h1');
+const heroRole = doc.querySelector('.hero__copy .hero__role');
+const heroText = h1
+  ? [h1.innerHTML.replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, ''),
+     heroRole && heroRole.textContent].filter(Boolean).join(' ')
+      .replace(/\s+/g, ' ').trim()
+  : null;
+check('роль в hero собрана из SITE.role', heroText, S.role);
 check('h1 на странице ровно один', q('h1').length, 1);
 
 const cards = q('#grid .card');
@@ -99,8 +108,10 @@ check('абзацев «О себе»', q('#aboutTxt p:not(.about__links)').leng
 const aboutNotes = (S.about || []).reduce((n, p) => n + String(p)
   .split(/\n\s*\n/).filter(t => t.trim().charAt(0) === '*').length, 0);
 check('сносок «О себе»', q('#aboutTxt .about__note').length, aboutNotes);
-check('имя в шапке', doc.querySelector('.logo span[data-site]').textContent, S.name);
-check('логотип-картинка в шапке', doc.querySelectorAll('.logo img.logo__mark').length, 1);
+// Шапка: .brand вместо .logo, логотип — .brand__mark img (разметка до 7877299).
+const brandName = doc.querySelector('.brand span[data-site]');
+check('имя в шапке', brandName ? brandName.textContent : null, S.name);
+check('логотип-картинка в шапке', doc.querySelectorAll('.brand__mark img').length, 1);
 
 // Фильтры по тематике вернулись 2026-10-01 — уже не как отдельная секция,
 // а чипами справа от заголовка «Проекты». Набор чипов считается из данных:
@@ -277,13 +288,23 @@ P.forEach((galP, gi) => {
   if (!galP.shots || galP.shots.length < 2) return;
   const n = 'галерея «' + galP.title + '»: ';
   const strip = doc.getElementById('lbShots');
+  // Кадр открытия задаёт shotOpen (app.js, openLb), по умолчанию — первый.
+  // Превью карточки при этом может быть отдельным кадром: у HC AI shot —
+  // hcai-robo-pre.webp, в галерее его нет, а shotOpen указывает на соседний.
+  const openIdx = Math.min(Math.max(galP.shotOpen || 0, 0), galP.shots.length - 1);
+  const openShot = galP.shots[openIdx];
   click(cards[gi].querySelector('.card__shot'));
   check(n + 'превью карточки — из shot',
     cards[gi].querySelector('.card__shot img').getAttribute('src'), galP.shot);
   check(n + 'полоска кадров показана', strip.hidden, false);
   check(n + 'кадров в полоске', strip.querySelectorAll('.lb__shot').length, galP.shots.length);
-  check(n + 'открылся первый кадр', doc.getElementById('lbImg').getAttribute('src'), galP.shots[0]);
-  check(n + 'shot есть среди кадров', galP.shots.indexOf(galP.shot) !== -1, true);
+  if (typeof openShot === 'string') {
+    check(n + 'открылся кадр shotOpen', doc.getElementById('lbImg').getAttribute('src'), openShot);
+  } else {
+    check(n + 'открылся клип shotOpen', doc.getElementById('lbVid').hidden, false);
+  }
+  check(n + 'превью карточки не оторвано от галереи: shot в shots или задан shotOpen',
+    galP.shots.indexOf(galP.shot) !== -1 || galP.shotOpen != null, true);
   click(strip.querySelectorAll('.lb__shot')[1]);
   check(n + 'клик по превью меняет кадр', doc.getElementById('lbImg').getAttribute('src'), galP.shots[1]);
   check(n + 'выбранный кадр помечен',

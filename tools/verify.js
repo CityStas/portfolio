@@ -84,20 +84,46 @@ function check(name, got, expected) {
       labels: window.PROJECTS.filter(p => (p.links || {}).demo).map(p => (p.links || {}).demoLabel || null)
     }));
 
-    check('h1 совпадает с SITE.role', await page.locator('h1.lead__h').innerText(), data.role);
+    // Заголовок hero собран из двух узлов: <h1> с переносом строки внутри и
+    // <p class="hero__role">. В данных это одна строка SITE.role, поэтому
+    // склеиваем ровно так же, как её видит читатель: <br> -> пробел, теги долой.
+    // Селектор h1.lead__h остался от разметки до 7877299 и ронял весь прогон
+    // таймаутом ещё до первой проверки.
+    const heroText = await page.evaluate(() => {
+      const h = document.querySelector('.hero__copy h1');
+      const r = document.querySelector('.hero__copy .hero__role');
+      if (!h) return null;
+      const t = h.innerHTML.replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, '');
+      return [t, r && r.textContent].filter(Boolean).join(' ').replace(/\s+/g, ' ').trim();
+    });
+    check('hero: заголовок собран из SITE.role', heroText, data.role);
+    check('h1 на странице ровно один', await page.locator('h1').count(), 1);
     check('карточек', await page.locator('#grid .card').count(), data.count);
     check('превью загрузились',
           await page.evaluate(() => Array.from(document.querySelectorAll('#grid .card__shot img'))
             .every(i => i.complete && i.naturalWidth > 0)), true);
-    // document.fonts.check() врёт: он возвращает true и на пустом наборе шрифтов,
-    // и когда подгруппа в статусе error. Смотрим на сами FontFace.
-    check('шрифт Handjet: обе подгруппы загружены',
-          await page.evaluate(async () => {
-            await document.fonts.ready;
-            const used = Array.from(document.fonts)
-              .filter(f => f.family.replace(/['"]/g, '') === 'Handjet' && f.status !== 'unloaded');
-            return used.filter(f => f.status === 'loaded').length + ' из ' + used.length;
-          }), '2 из 2');
+    // Шрифт Handjet. С 7877299 он стоит только на декоративных номерах секций
+    // и заглушках, а заголовки набраны Inter — поэтому кириллическая подгруппа
+    // не грузится законно, и жёсткое «2 из 2» осталось от старой вёрстки.
+    // Проверяем то, что важно: шрифт объявлен там, где применён, и подгруппа
+    // для реально используемых символов существует (пустой массив от
+    // document.fonts.load() = подмена на системный шрифт).
+    const fontState = await page.evaluate(async () => {
+      const nums = document.querySelector('.section-num');
+      const text = Array.from(document.querySelectorAll('.section-num'))
+        .map(n => n.textContent.trim()).join('') || '01';
+      const faces = await document.fonts.load('12px HandJet', text);
+      const used = Array.from(document.fonts)
+        .filter(f => /^handjet$/i.test(f.family.replace(/['"]/g, '')));
+      return {
+        family: nums ? getComputedStyle(nums).fontFamily : '',
+        faces: faces.length,
+        statuses: used.map(f => f.status).join(',')
+      };
+    });
+    check('Handjet объявлен у номеров секций', /handjet/i.test(fontState.family), true);
+    check('Handjet: подгруппа для символов страницы найдена', fontState.faces > 0, true);
+    console.log('     Handjet: подгруппы ' + (fontState.statuses || 'нет'));
 
     // FOUT: подгруппы шрифта зашиты в CSS, значит отдельного запроса быть не должно.
     // resource timing на file:// подресурсы не пишет, поэтому проверка только по HTTP.
@@ -113,8 +139,11 @@ function check(name, got, expected) {
       console.log('     (file:// не пишет подресурсы в resource timing — проверка запроса только по HTTP)');
     }
 
-    // Подписи главных кнопок: из данных, иначе — «Открыть сайт»
-    const shown = await page.locator('#grid .card__links a.is-primary').allInnerTexts();
+    // Подписи главных кнопок: из данных, иначе — «Открыть сайт».
+    // textContent, а не innerText: у .card__links a стоит text-transform:
+    // uppercase, и innerText отдаёт «DEMO» вместо «Demo» — сравнение с данными
+    // падало на регистре, а не на смысле.
+    const shown = await page.locator('#grid .card__links a.is-primary').allTextContents();
     check('подписи главных кнопок',
           shown.every((s, i) => s.trim() === (data.labels[i] || 'Открыть сайт')), true);
 
@@ -180,28 +209,28 @@ function check(name, got, expected) {
         visible: nb.width > 0 && nb.height > 0,
         inHeader: nb.top >= hb.top - 1 && nb.bottom <= hb.bottom + 1,
         pos: getComputedStyle(nav).position,
-        labels: Array.from(nav.querySelectorAll('a')).map(a => a.textContent.trim()).join(' / ')
+        // Подпись пункта — текст ссылки без декоративного номера в <b>:
+        // в разметке он есть, в тексте для читателя его нет.
+        labels: Array.from(nav.querySelectorAll('a')).map(a => {
+          const c = a.cloneNode(true);
+          c.querySelectorAll('b').forEach(b => b.remove());
+          return c.textContent.trim();
+        }).join(' / ')
       };
     });
     check('меню в шапке видно', navInline.visible, true);
     check('меню умещается в строке шапки', navInline.inHeader, true);
     check('меню в потоке, а не выпадающая панель', navInline.pos, 'static');
     // Литерал: состав меню — решение о продукте. «Контакты» из него убраны
-    // вместе с секцией (ссылки переехали в «О себе»), здесь это осталось
-    // неисправленным и держало гейт красным независимо от правок контента.
+    // вместе с секцией (ссылки переехали в «О себе»).
     check('подписи пунктов меню', navInline.labels, 'Проекты / О себе');
 
-    // Клик по имени на широком экране ведёт к «О себе» — тот же якорь, что у
-    // пункта меню, а не «наверх». Раньше имя уводило к началу страницы, и рядом
-    // с пунктом «О себе» это читалось как две кнопки с одним смыслом.
+    // На широком экране кнопка MENU не нужна: пункты стоят открыто. Раньше
+    // здесь кликали по ней и ждали перехода к «О себе» — но с 7877299 имя в
+    // шапке стало ссылкой .brand на главную, а раздел открывает пункт меню.
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.waitForTimeout(250);
-    await page.click('#logoBtn');
-    await page.waitForTimeout(900);
-    check('клик по имени ведёт к «О себе»', await page.evaluate(() => {
-      const r = document.getElementById('about').getBoundingClientRect();
-      return r.top > -200 && r.top < window.innerHeight / 2;
-    }), true);
+    check('на 1600px кнопка MENU скрыта', await page.locator('#logoBtn').isVisible(), false);
     // Самая хрупкая часть: скрипт ставит hidden, а CSS на широком экране его
     // перебивает. Если порядок правил в style.css поедет, меню исчезнет молча.
     check('hidden выставлен, но CSS его перебивает', await page.evaluate(() => {
@@ -318,23 +347,30 @@ function check(name, got, expected) {
     check('превью не уже 16:10', offRatio.map(x => x.src + ' = ' + x.r.toFixed(3)).join(', '), '');
 
     // Галерея в лайтбоксе: у проекта с shots снизу полоска кадров, превью карточки
-    // при этом берётся из shot, а просмотр открывается на первом кадре галереи.
-    // Идём по всем таким проектам: галерей уже две, вторая иначе осталась бы
-    // без проверки в живом браузере.
+    // при этом берётся из shot, а просмотр открывается на кадре shotOpen
+    // (по умолчанию — первом). Превью карточки может быть отдельным кадром:
+    // у HC AI shot = hcai-robo-pre.webp, в галерее его нет.
     const gals = await page.evaluate(() => window.PROJECTS
-      .map((p, i) => ({ i, title: p.title, shot: p.shot, shots: p.shots }))
+      .map((p, i) => ({ i, title: p.title, shot: p.shot, shots: p.shots, shotOpen: p.shotOpen }))
       .filter(p => p.shots && p.shots.length > 1));
 
     for (const gal of gals) {
       const n = 'галерея «' + gal.title + '»: ';
+      const openIdx = Math.min(Math.max(gal.shotOpen || 0, 0), gal.shots.length - 1);
+      const openShot = gal.shots[openIdx];
       await page.locator('#grid .card').nth(gal.i).locator('.card__shot').click();
       await page.waitForTimeout(400);
       check(n + 'полоска кадров видна', await page.locator('#lbShots').isVisible(), true);
       check(n + 'кадров в полоске',
             await page.locator('#lbShots .lb__shot').count(), gal.shots.length);
-      check(n + 'открылся первый кадр',
-            await page.locator('#lbImg').getAttribute('src'), gal.shots[0]);
-      check(n + 'shot есть среди кадров', gal.shots.indexOf(gal.shot) !== -1, true);
+      if (typeof openShot === 'string') {
+        check(n + 'открылся кадр shotOpen',
+              await page.locator('#lbImg').getAttribute('src'), openShot);
+      } else {
+        check(n + 'открылся клип shotOpen', await page.locator('#lbVid').isVisible(), true);
+      }
+      check(n + 'превью карточки не оторвано от галереи: shot в shots или задан shotOpen',
+            gal.shots.indexOf(gal.shot) !== -1 || gal.shotOpen != null, true);
       await page.locator('#lbShots .lb__shot').nth(1).click();
       await page.waitForTimeout(400);
       check(n + 'клик по превью меняет кадр',
@@ -689,11 +725,15 @@ function check(name, got, expected) {
       offline: false, latency: 400, downloadThroughput: 150 * 1024, uploadThroughput: 150 * 1024
     });
     await page.goto(URL, { waitUntil: 'domcontentloaded', timeout: 90000 });
+    // Подгрупп у Handjet столько, сколько символов реально на странице: с
+    // 7877299 шрифт стоит только на номерах секций, и кириллическая подгруппа
+    // законно не грузится. Ждём «все непустые — loaded», а не «ровно две».
     const slow = await page.evaluate(() => Array.from(document.fonts)
-      .filter(f => f.family.replace(/['"]/g, '') === 'Handjet' && f.status !== 'unloaded')
+      .filter(f => /^handjet$/i.test(f.family.replace(/['"]/g, '')) && f.status !== 'unloaded')
       .map(f => f.status).join(','));
     console.log('     состояние подгрупп на DOMContentLoaded: ' + (slow || 'набора шрифтов ещё нет'));
-    check('медленная сеть: шрифт готов к первой отрисовке', slow, 'loaded,loaded');
+    check('медленная сеть: шрифт готов к первой отрисовке',
+          slow !== '' && slow.split(',').every(s => s === 'loaded'), true);
     await ctx.close();
   }
 
