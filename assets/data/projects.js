@@ -192,7 +192,7 @@ window.PROJECTS = [
     // потому что им действительно пользуются, а не только смотрят.
     kind: 'Engine',
     themes: ['Инструмент'],
-    desc: 'Управление рабочим столом Windows жестами (two-hands) через веб-камеру, без мыши: указательный палец ведёт курсор, вторая рука отвечает за нажатия, перетаскивание и зум.\n\n*Для работы требуется камера.',
+    desc: 'Управление рабочим столом Windows жестами (two-hands) через веб-камеру, без мыши.',
     tags: ['Python', 'MediaPipe', 'OpenCV', 'Computer Vision', 'Real-time', 'WinAPI'],
     year: '2026',
     status: 'live',
@@ -233,7 +233,7 @@ window.PROJECTS = [
   {
     title: 'LILCRAFT 3D',
     kind: 'Игра',
-    desc: 'Воксельная песочница в браузере на three.js: генерация чанков, меш-оптимизация + "пасхалка".',
+    desc: 'Воксельная песочница в браузере на three.js: генерация чанков, меш-оптимизация.',
     tags: ['three.js', 'WebGL', 'Voxel', 'Web'],
     year: '2026',
     status: 'live',
@@ -303,7 +303,7 @@ window.PROJECTS = [
     title: 'БАЗА Скейтборды',
     kind: 'Сайт',
     desc: 'Витрина магазина скейтбордов: переадресация в бизнес-профиль Авито + администрирование пабликов VK/TG под ключ.',
-    tags: ['HTML/CSS', 'JavaScript', 'GitHub Pages', 'Адаптив'],
+    tags: ['HTML/CSS', 'JavaScript', 'GitHub Pages'],
     year: '2019-2026',
     status: 'live',
     shot: 'assets/img/projects/bazaskate.webp',
