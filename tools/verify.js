@@ -266,8 +266,8 @@ function check(name, got, expected) {
           await page.locator('#filters .fchip').first().getAttribute('aria-pressed'), 'false');
 
     // Мультитема: проект из themes[] обязан находиться в каждом своём чипе.
-    // VDIE из мультитемы ушёл (стал чистым «Инструментом»), первый такой
-    // проект теперь — ModelLab.
+    // VDIE из мультитемы ушёл (стал чистым «Инструментом»), ModelLab скрыт
+    // (2026-10-25), поэтому первый такой проект теперь — Dubbed.
     const multi = await page.evaluate(() => {
       const p = window.PROJECTS.filter(x => x.themes && x.themes.length > 1)[0];
       return p ? { title: p.title, themes: p.themes } : null;

@@ -255,21 +255,27 @@ window.PROJECTS = [
     shotAspect: 1600 / 1000,
     links: { demo: '/web/munit7/', demoEmbed: true }
   },
-  {
-    title: 'ModelLab',
-    kind: 'AI-продукт',
-    themes: ['AI-продукт', 'Инструмент'],
-    desc: '"Пульт" для локальных LLM на слабом железе: скорость и память меряются одним прогоном, контекст подбирается под свободную VRAM, конфигурации сравниваются прогонами вперемешку.',
-    tags: ['Python', 'llama.cpp', 'GGUF', 'Benchmark', 'VRAM', 'CUDA'],
-    year: '2026',
-    status: 'live',
-    // На карточке - пульт с приборами: по нему сразу видно, что это за приложение.
-    // В просмотре открывается общий вид страницы с таблицами и логом движка,
-    // то есть кадр, которого на карточке не было.
-    shot: 'assets/img/projects/modellab.webp',
-    shots: ['assets/img/projects/modellab-tables.webp', 'assets/img/projects/modellab.webp'],
-    links: { repo: 'https://github.com/CityStas/wedns_modellab' }
-  },
+  // 2026-10-25: ModelLab скрыт из сетки по просьбе автора. Карточка не удалена -
+  // данные, кадры и файлы превью на месте. Вернуть = раскомментировать блок
+  // целиком (тогда же проверить, что чип «Инструменты» остался осмысленным:
+  // он держится на VDIE, а мультитемная проверка в tools/verify.js переедет
+  // обратно на ModelLab).
+  //
+  // {
+  //   title: 'ModelLab',
+  //   kind: 'AI-продукт',
+  //   themes: ['AI-продукт', 'Инструмент'],
+  //   desc: '"Пульт" для локальных LLM на слабом железе: скорость и память меряются одним прогоном, контекст подбирается под свободную VRAM, конфигурации сравниваются прогонами вперемешку.',
+  //   tags: ['Python', 'llama.cpp', 'GGUF', 'Benchmark', 'VRAM', 'CUDA'],
+  //   year: '2026',
+  //   status: 'live',
+  //   // На карточке - пульт с приборами: по нему сразу видно, что это за приложение.
+  //   // В просмотре открывается общий вид страницы с таблицами и логом движка,
+  //   // то есть кадр, которого на карточке не было.
+  //   shot: 'assets/img/projects/modellab.webp',
+  //   shots: ['assets/img/projects/modellab-tables.webp', 'assets/img/projects/modellab.webp'],
+  //   links: { repo: 'https://github.com/CityStas/wedns_modellab' }
+  // },
 
 
   // ОРФ AI стоит перед БАЗОЙ намеренно: ширину карточки задаёт её номер
