@@ -280,25 +280,6 @@ window.PROJECTS = [
     shotAspect: 1600 / 1000,
     links: { demo: '/web/munit7/', demoEmbed: true }
   },
-  // 2026-10-29: ModelLab возвращён в сетку. Чип «Инструменты» с 2026-10-29
-  // держится уже не на одном VDIE (добавились 3GS_Master и SPLITTER), поэтому
-  // возврат карточки ничего не ломает; мультитемная проверка в tools/verify.js
-  // берёт первый проект с themes.length > 1 и к числу карточек не привязана.
-  {
-    title: 'ModelLab',
-    kind: 'AI-продукт',
-    themes: ['AI-продукт', 'Инструмент'],
-    desc: '"Пульт" для локальных LLM на слабом железе: скорость и память меряются одним прогоном, контекст подбирается под свободную VRAM, конфигурации сравниваются прогонами вперемешку.',
-    tags: ['Python', 'llama.cpp', 'GGUF', 'Benchmark', 'VRAM', 'CUDA'],
-    year: '2026',
-    status: 'live',
-    // На карточке - пульт с приборами: по нему сразу видно, что это за приложение.
-    // В просмотре открывается общий вид страницы с таблицами и логом движка,
-    // то есть кадр, которого на карточке не было.
-    shot: 'assets/img/projects/modellab.webp',
-    shots: ['assets/img/projects/modellab-tables.webp', 'assets/img/projects/modellab.webp'],
-    links: { repo: 'https://github.com/CityStas/modellab' }
-  },
   {
     title: 'VDIE',
     // Подпись карточки - «Engine», а не «Инструмент»: это движок машинного
@@ -317,6 +298,25 @@ window.PROJECTS = [
     clip: 'assets/media/vdie.mp4',
     clipWebm: 'assets/media/vdie.webm',
     links: { repo: 'https://github.com/CityStas/vdie' }
+  },
+  // 2026-10-29: ModelLab возвращён в сетку. Чип «Инструменты» с 2026-10-29
+  // держится уже не на одном VDIE (добавились 3GS_Master и SPLITTER), поэтому
+  // возврат карточки ничего не ломает; мультитемная проверка в tools/verify.js
+  // берёт первый проект с themes.length > 1 и к числу карточек не привязана.
+  {
+    title: 'ModelLab',
+    kind: 'AI-продукт',
+    themes: ['AI-продукт', 'Инструмент'],
+    desc: '"Пульт" для локальных LLM на слабом железе: скорость и память меряются одним прогоном, контекст подбирается под свободную VRAM, конфигурации сравниваются прогонами вперемешку.',
+    tags: ['Python', 'llama.cpp', 'GGUF', 'Benchmark', 'VRAM', 'CUDA'],
+    year: '2026',
+    status: 'live',
+    // На карточке - пульт с приборами: по нему сразу видно, что это за приложение.
+    // В просмотре открывается общий вид страницы с таблицами и логом движка,
+    // то есть кадр, которого на карточке не было.
+    shot: 'assets/img/projects/modellab.webp',
+    shots: ['assets/img/projects/modellab-tables.webp', 'assets/img/projects/modellab.webp'],
+    links: { repo: 'https://github.com/CityStas/modellab' }
   },
 
 
