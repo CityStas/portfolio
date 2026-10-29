@@ -221,8 +221,9 @@ window.PROJECTS = [
   // которым модель разбирают на детали. Первые четыре карточки не двигались:
   // порядок первого ряда задан автором вручную.
   //
-  // Обе карточки без ссылок: публичных репозиториев нет, а ссылка на приватный
-  // репозиторий хуже её отсутствия. Локальные пути в портфолио не годятся.
+  // 2026-10-29: репозитории заведены (CityStas/3gs_master, CityStas/splitter) и
+  // ссылки проставлены. В них только код: модели, бинарники движков и чужие
+  // ассеты исключены через .gitignore, поэтому клон без README не запустится.
   {
     title: '3GS_Master',
     // Подпись - «Инструмент», в «AI-проекты» карточка попадает через themes:
@@ -238,7 +239,7 @@ window.PROJECTS = [
     // подготовленный под риг. Снимок интерфейса здесь хуже: среда состоит из
     // консольных лаунчеров и MCP, показывать в ней нечего, а результат виден.
     shot: 'assets/img/projects/3gs-char.webp',
-    links: {}
+    links: { repo: 'https://github.com/CityStas/3gs_master' }
   },
   {
     title: 'SPLITTER',
@@ -258,7 +259,7 @@ window.PROJECTS = [
       'assets/img/projects/splitter.webp',
       'assets/img/projects/splitter-pivot.webp'
     ],
-    links: {}
+    links: { repo: 'https://github.com/CityStas/splitter' }
   },
   {
     title: 'Bubble Peaks 3D',
