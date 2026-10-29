@@ -185,41 +185,10 @@ window.PROJECTS = [
     // repo - репозиторий расширения на GitHub (там же лендинг и сборки).
     links: { demo: '/apps/dubbed/', repo: 'https://github.com/CityStas/dubbed' }
   },
-  {
-    title: 'VDIE',
-    // Подпись карточки - «Engine», а не «Инструмент»: это движок машинного
-    // зрения, а не утилита. В фильтр «Инструменты» он попадает через themes,
-    // потому что им действительно пользуются, а не только смотрят.
-    kind: 'Engine',
-    themes: ['Инструмент'],
-    desc: 'Управление рабочим столом Windows жестами (two-hands) через веб-камеру, без мыши.',
-    tags: ['Python', 'MediaPipe', 'OpenCV', 'Computer Vision', 'Real-time', 'WinAPI'],
-    year: '2026',
-    status: 'live',
-    // На карточке играет клип: жест видно только в движении, кадр его не передаёт.
-    // Просмотр открывает тот же клип с управлением - галерею кадров ставить
-    // нельзя, при clip лайтбокс показывает видео, а полоска осталась бы мёртвой.
-    shot: 'assets/img/projects/vdie.webp',
-    clip: 'assets/media/vdie.mp4',
-    clipWebm: 'assets/media/vdie.webm',
-    links: { repo: 'https://github.com/CityStas/vdie' }
-  },
-  {
-    title: 'DedSpace 2D',
-    kind: 'Игра',
-    desc: '2D-платформер на Godot 4: игрок, подбор предметов, враги, уровни. Оптимизирован под работу в браузере.',
-    tags: ['Godot 4', 'GDScript', '2D', 'Web'],
-    year: '2026',
-    status: 'live',
-    shot: 'assets/img/projects/dedspace.webp',
-    // Кадр 1920x1080 - ровно 16:9, рамка карточки совпадает с ним без остатка.
-    shotAspect: 1920 / 1080,
-    links: { demo: '/games/deddemo/', demoLabel: 'Demo', demoEmbed: true, repo: '' }
-  },
-  // 2026-10-29: 3GS_Master и SPLITTER добавлены после DedSpace 2D - это пара
-  // «инструменты вокруг 3D»: среда, в которой агент делает игру, и редактор,
-  // которым модель разбирают на детали. Первые четыре карточки не двигались:
-  // порядок первого ряда задан автором вручную.
+  // 2026-10-29: 3GS_Master и SPLITTER - пара «инструменты вокруг 3D»: среда,
+  // в которой агент делает игру, и редактор, которым модель разбирают на детали.
+  // 3GS_Master стоит третьим, на месте VDIE: это флагманский инструмент, и место
+  // в верхних рядах он занимает по делу. VDIE уехал вниз, перед ОРФ AI.
   //
   // 2026-10-29: репозитории заведены (CityStas/3gs_master, CityStas/splitter) и
   // ссылки проставлены. В них только код: модели, бинарники движков и чужие
@@ -240,6 +209,18 @@ window.PROJECTS = [
     // здесь хуже: среда состоит из консольных лаунчеров и MCP, смотреть нечего.
     shot: 'assets/img/projects/3gs-lineup.webp',
     links: { repo: 'https://github.com/CityStas/3gs_master' }
+  },
+  {
+    title: 'DedSpace 2D',
+    kind: 'Игра',
+    desc: '2D-платформер на Godot 4: игрок, подбор предметов, враги, уровни. Оптимизирован под работу в браузере.',
+    tags: ['Godot 4', 'GDScript', '2D', 'Web'],
+    year: '2026',
+    status: 'live',
+    shot: 'assets/img/projects/dedspace.webp',
+    // Кадр 1920x1080 - ровно 16:9, рамка карточки совпадает с ним без остатка.
+    shotAspect: 1920 / 1080,
+    links: { demo: '/games/deddemo/', demoLabel: 'Demo', demoEmbed: true, repo: '' }
   },
   {
     title: 'SPLITTER',
@@ -318,6 +299,25 @@ window.PROJECTS = [
     shots: ['assets/img/projects/modellab-tables.webp', 'assets/img/projects/modellab.webp'],
     links: { repo: 'https://github.com/CityStas/modellab' }
   },
+  {
+    title: 'VDIE',
+    // Подпись карточки - «Engine», а не «Инструмент»: это движок машинного
+    // зрения, а не утилита. В фильтр «Инструменты» он попадает через themes,
+    // потому что им действительно пользуются, а не только смотрят.
+    kind: 'Engine',
+    themes: ['Инструмент'],
+    desc: 'Управление рабочим столом Windows жестами (two-hands) через веб-камеру, без мыши.',
+    tags: ['Python', 'MediaPipe', 'OpenCV', 'Computer Vision', 'Real-time', 'WinAPI'],
+    year: '2026',
+    status: 'live',
+    // На карточке играет клип: жест видно только в движении, кадр его не передаёт.
+    // Просмотр открывает тот же клип с управлением - галерею кадров ставить
+    // нельзя, при clip лайтбокс показывает видео, а полоска осталась бы мёртвой.
+    shot: 'assets/img/projects/vdie.webp',
+    clip: 'assets/media/vdie.mp4',
+    clipWebm: 'assets/media/vdie.webm',
+    links: { repo: 'https://github.com/CityStas/vdie' }
+  },
 
 
   // ОРФ AI стоит перед БАЗОЙ намеренно: ширину карточки задаёт её номер
@@ -351,5 +351,4 @@ window.PROJECTS = [
     shot: 'assets/img/projects/bazaskate.webp',
     shotPos: '50% 0%',
     links: { demo: 'https://bazaskate.shop/', vk: 'https://vk.ru/bazaskateboarding', repo: '' }
-  }
-];
+  },];
