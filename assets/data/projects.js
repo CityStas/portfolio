@@ -316,7 +316,7 @@ window.PROJECTS = [
     // то есть кадр, которого на карточке не было.
     shot: 'assets/img/projects/modellab.webp',
     shots: ['assets/img/projects/modellab-tables.webp', 'assets/img/projects/modellab.webp'],
-    links: { repo: 'https://github.com/CityStas/wedns_modellab' }
+    links: { repo: 'https://github.com/CityStas/modellab' }
   },
 
 
