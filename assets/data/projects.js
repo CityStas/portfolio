@@ -256,8 +256,7 @@ window.PROJECTS = [
     shotAspect: 1600 / 950,
     shots: [
       'assets/img/projects/splitter-contour.webp',
-      'assets/img/projects/splitter.webp',
-      'assets/img/projects/splitter-pivot.webp'
+      'assets/img/projects/splitter.webp'
     ],
     links: { repo: 'https://github.com/CityStas/splitter' }
   },
