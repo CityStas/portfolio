@@ -296,7 +296,8 @@ function check(name, got, expected) {
 
     // Мультитема: проект из themes[] обязан находиться в каждом своём чипе.
     // VDIE из мультитемы ушёл (стал чистым «Инструментом»), ModelLab скрыт
-    // (2026-10-25), поэтому первый такой проект теперь — Dubbed.
+    // (2026-10-25), поэтому первый такой проект теперь — 3GS Master
+    // (2026-10-31: Dubbed уехал вниз, за LILCRAFT 3D).
     const multi = await page.evaluate(() => {
       const p = window.PROJECTS.filter(x => x.themes && x.themes.length > 1)[0];
       return p ? { title: p.title, themes: p.themes } : null;
