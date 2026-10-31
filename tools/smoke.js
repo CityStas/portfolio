@@ -127,6 +127,27 @@ check('первый чип — «Все»', chips[0] && chips[0].textContent, '�
 check('«Все» включён по умолчанию', chips[0] && chips[0].classList.contains('is-on'), true);
 check('по умолчанию видны все карточки', q('#grid .card').filter(c => !c.hidden).length, P.length);
 
+// Сетка — 12 колонок, ширину карточки (data-span) расставляет applyFilter по
+// номеру среди видимых: пары (6,6) и (5,7) чередуются. Проверяем сумму ряда, а
+// не литеральные спаны: раскладка производна от числа карточек, и после
+// перестановки проекта тест не должен падать из-за самой перестановки.
+// Флаг wide половины пары меняет местами, но не сумму — поэтому отдельно
+// смотрим, что помеченная карточка не уже своей соседки.
+const visCards = q('#grid .card').filter(c => !c.hidden);
+const spanOf = c => +c.getAttribute('data-span');
+const rowSums = [];
+let run = 0;
+visCards.forEach(c => { run += spanOf(c); if (run >= 12) { rowSums.push(run); run = 0; } });
+check('ряды сетки набраны по 12 колонок', rowSums.every(r => r === 12), true);
+const wideBad = [];
+for (let i = 0; i + 1 < visCards.length; i += 2) {
+  const a = P[i], b = P[i + 1];
+  if (a && a.wide && !(b && b.wide) && spanOf(visCards[i]) < spanOf(visCards[i + 1])) {
+    wideBad.push(a.title);
+  }
+}
+check('флаг wide: помеченная карточка не уже соседки', wideBad.join(', ') || 'ок', 'ок');
+
 // Клик по чипу прячет карточки чужих тем. Берём первую тему из данных, чтобы
 // тест не зависел от порядка проектов, но чип ищем ПО ПОДПИСИ: порядок чипов
 // задаёт THEME_ORDER, и он не обязан совпадать с порядком тем в данных.

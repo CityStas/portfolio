@@ -462,21 +462,34 @@
   // Раскладка ряда: пары (6,6) и (5,7) чередуются - в каждом ряду ровно 12 колонок,
   // правый край сетки ровный. Нечётное число карточек - последняя остаётся одна
   // и занимает 7 колонок (как БАЗА Скейтборды в полной сетке).
+  //
+  // В паре (5,7) половины разные, и по умолчанию широкая достаётся правой
+  // карточке. Флаг wide в данных переносит акцент на выбранную: она берёт 7,
+  // соседняя - 5 (DedSpace 2D против SPLITTER, 2026-10-31). Сумма пары от этого
+  // не меняется, поэтому ряд не может развалиться ни на одном фильтре; в паре
+  // (6,6) флаг ничего не делает - половины там равные. Если флаг стоит у обеих
+  // карточек пары, работает поведение по умолчанию.
   function applyFilter() {
     var cards = $$('#grid .card');
-    var total = 0;
-    cards.forEach(function (c, i) { if (matches(P[i])) total++; });
+    // Порядок видимых: индексы проектов, а не элементы - по ним видно всю пару.
+    var visIdx = [];
+    cards.forEach(function (c, i) { if (matches(P[i])) visIdx.push(i); });
+    var total = visIdx.length;
     // Сколько карточек стоит в полных рядах: при нечётном total последняя - одиночка.
     var paired = total % 2 ? total - 1 : total;
-    var vis = 0;
-    cards.forEach(function (c, i) {
-      if (!matches(P[i])) { c.hidden = true; return; }
-      c.hidden = false;
+    cards.forEach(function (c) { c.hidden = true; });
+    visIdx.forEach(function (pi, vis) {
       var span = 6;
-      if (vis >= paired) span = 7;
-      else if (Math.floor(vis / 2) % 2) span = (vis % 2 === 0) ? 5 : 7;
-      c.setAttribute('data-span', String(span));
-      vis++;
+      if (vis >= paired) span = 7;                 // одиночка в последнем ряду
+      else if (Math.floor(vis / 2) % 2) {          // пара (5,7): половины разные
+        var first = P[visIdx[vis - vis % 2]] || {};
+        var second = P[visIdx[vis - vis % 2 + 1]] || {};
+        // wideFirst - акцент на левой карточке пары. Флаг у обеих не в счёт.
+        var wideFirst = !!first.wide && !second.wide;
+        span = ((vis % 2 === 0) === wideFirst) ? 7 : 5;
+      }
+      cards[pi].hidden = false;
+      cards[pi].setAttribute('data-span', String(span));
     });
   }
 
