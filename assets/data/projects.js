@@ -144,9 +144,9 @@ window.PROJECTS = [
   // HC AI и 3GS Master, под ними DedSpace 2D и SPLITTER. Dubbed уехал вниз,
   // сразу за LILCRAFT 3D (был вторым до 2026-10-31).
   {
-       title: 'HC AI',
+    title: 'HC AI',
     kind: 'AI-продукт',
-    desc: 'Локальный мультимодальный ИИ-агент для Windows: чат, генерация изображений, vision, upscale, 3D. Оптимизировано под 8GB VRAM.\n\n*В репозитории только код: модели (text-image-vision ~13 ГБ) качаются скриптами по README.\nБонус: версия с интеграцией 3D Generation (репо по запросу, 3D ~40 ГБ).',
+    desc: 'Локальный мультимодальный ИИ-агент для Windows: чат, генерация изображений, vision, upscale, 3D. Оптимизировано под 8GB VRAM.\n\n*В репозитории только код: модели (text-image-vision ~13 ГБ, 3D ~40 ГБ) качаются скриптами по README.',
     tags: ['Electron', 'React', 'GGUF', 'Vulkan', 'stable-diffusion.cpp', 'Vision'],
     year: '2026',
     status: 'live',
@@ -167,7 +167,7 @@ window.PROJECTS = [
       { clip: 'assets/media/hcai.mp4', webm: 'assets/media/hcai.webm',
         poster: 'assets/img/projects/hcai-app.webp' }
     ],
-    links: { repo: 'https://github.com/CityStas/hc_local_ai_image' }
+    links: { repo: 'https://github.com/CityStas/hc_local_ai_image_3D' }
     
   },
   // 2026-10-29: 3GS_Master и SPLITTER - пара «инструменты вокруг 3D»: среда,
