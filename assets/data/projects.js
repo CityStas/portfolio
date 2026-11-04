@@ -362,4 +362,31 @@ window.PROJECTS = [
     shot: 'assets/img/projects/bazaskate.webp',
     shotPos: '50% 0%',
     links: { demo: 'https://bazaskate.shop/', vk: 'https://vk.ru/bazaskateboarding', repo: '' }
-  },];
+  },
+
+  // 2026-11-05: Amalia - чат с бухгалтером-консультантом САЛЬДО. Живая веб-версия
+  // задеплоена на Vercel (amaliachat.vercel.app), ключ OpenRouter живёт только на
+  // сервере; локальное зеркало в apps/amalia/ открывает тот же чат через iframe.
+  // Основной кадр карточки - Original, в галерее ещё New (новый скин).
+  {
+    title: 'Amalia',
+    kind: 'AI-продукт',
+    desc: 'AI-чат с бухгалтером-консультантом САЛЬДО: ответ стримится по мере генерации, его можно остановить, история держится в сессии. Роль задаётся системным промптом на сервере, ключ OpenRouter не покидает сервер.\n\n*Веб-версия: React + Express на Vercel. OpenRouter доступен только с сервера, поэтому из РФ нужен VPN/прокси.',
+    tags: ['React', 'TypeScript', 'Express', 'OpenRouter', 'SSE', 'Vercel'],
+    year: '2026',
+    status: 'live',
+    // Основной кадр - Original: исходный дизайн с ответом и карточкой услуги.
+    // Оба кадра 1440x900 - ровно 16:10, рамка карточки совпадает без обрезки.
+    shot: 'assets/img/projects/amalia-original.webp',
+    shotAspect: 1440 / 900,
+    shots: [
+      'assets/img/projects/amalia-original.webp',
+      'assets/img/projects/amalia-new.webp'
+    ],
+    links: {
+      demo: 'https://dvodev.space/apps/amalia',
+      demoLabel: 'Открыть сайт',
+      repo: 'https://github.com/CityStas/saldo_demo'
+    }
+  },
+];

@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="ru" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Amalia — AI-консультант САЛЬДО</title>
+<meta name="description" content="Чат с Амалией — AI-бухгалтером-консультантом сервиса САЛЬДО: ответ стримится по мере генерации, историю можно остановить, ключ OpenRouter остаётся на сервере.">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#0a0a0a">
+<link rel="icon" href="data:,">
+<style>
+  html, body { height: 100%; margin: 0; background: #0a0a0a; overflow: hidden; }
+  body { font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; color: #e7e7e7; }
+  .frame { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; background: #0a0a0a; }
+  .fallback { position: fixed; inset: 0; display: grid; place-items: center; text-align: center; padding: 24px; gap: 14px; background: #0a0a0a; }
+  .fallback p { margin: 0; max-width: 34em; color: #9a9a9a; }
+  .fallback a { color: #c9a86a; text-decoration: none; border-bottom: 1px solid currentColor; padding-bottom: 1px; }
+</style>
+</head>
+<body>
+  <iframe class="frame" id="app" src="https://amaliachat.vercel.app/" title="Чат с Амалией" loading="eager" allow="clipboard-write" referrerpolicy="no-referrer"></iframe>
+  <noscript>
+    <div class="fallback">
+      <p>Чат с Амалией работает с включённым JavaScript.</p>
+      <p><a href="https://amaliachat.vercel.app/" target="_blank" rel="noopener">Открыть в новой вкладке</a></p>
+    </div>
+  </noscript>
+  <script>
+    // Запасной путь: если iframe так и не загрузился (сеть, блокировка),
+    // через 12 секунд показываем прямую ссылку вместо пустого экрана.
+    (function () {
+      var frame = document.getElementById('app');
+      var loaded = false;
+      frame.addEventListener('load', function () { loaded = true; });
+      setTimeout(function () {
+        if (loaded) return;
+        var box = document.createElement('div');
+        box.className = 'fallback';
+        box.innerHTML = '<p>Чат не загрузился в этом окне. Откройте его в новой вкладке.</p>' +
+          '<p><a href="https://amaliachat.vercel.app/" target="_blank" rel="noopener">amaliachat.vercel.app</a></p>';
+        document.body.appendChild(box);
+      }, 12000);
+    })();
+  </script>
+</body>
+</html>
