@@ -264,7 +264,7 @@ window.PROJECTS = [
   {
     title: 'Amalia',
     kind: 'AI-продукт',
-    desc: 'AI-чат с бухгалтером-консультантом САЛЬДО: ответ стримится по мере генерации, его можно остановить, история держится в сессии. Роль задаётся системным промптом на сервере, ключ OpenRouter не покидает сервер.\n\n*Веб-версия: React + Express на Vercel. OpenRouter доступен только с сервера, поэтому из РФ нужен VPN/прокси.',
+    desc: 'AI-чат с бухгалтером-консультантом для компании САЛЬДО. Роль задаётся системным промптом на сервере. Предусмотрены бесплатный и расширенный (платный) варианты генерации ответов.\n\n*Веб-версия: React + Express на Vercel. Для стабильной работы из РФ нужен VPN/прокси.',
     tags: ['React', 'TypeScript', 'Express', 'OpenRouter', 'SSE', 'Vercel'],
     year: '2026',
     status: 'live',
@@ -278,8 +278,7 @@ window.PROJECTS = [
     ],
     links: {
       demo: 'https://dvodev.space/apps/amalia',
-      demoLabel: 'Открыть сайт',
-      repo: 'https://github.com/CityStas/saldo_demo'
+      demoLabel: 'Открыть сайт'
     }
   },
 
@@ -298,6 +297,9 @@ window.PROJECTS = [
     year: '2026',
     status: 'live',
     shot: 'assets/img/projects/dubbed.webp',
+    // Та же пропорция 16:10, что у соседней Amalia: исходный кадр тоже 16:10,
+    // иначе на узких экранах (одна колонка) блок Dubbed выглядит ниже.
+    shotAspect: 1440 / 900,
     // Лендинг зеркалится в apps/dubbed/ вместе с установщиками: с dubbed.dvodev.space
     // без VPN отдавалась примерно половина запросов, и .zip/.xpi могли не скачаться.
     // repo - репозиторий расширения на GitHub (там же лендинг и сборки).
