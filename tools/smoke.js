@@ -177,8 +177,8 @@ check('порядок чипов', chips.map(c => c.textContent).join(' / '),
 
 // Мультитема: проект из themes[] обязан находиться в каждом своём чипе.
 // VDIE из мультитемы ушёл (стал чистым «Инструментом»), ModelLab скрыт
-// (2026-10-25), поэтому первый такой проект теперь — 3GS Master
-// (2026-10-31: Dubbed уехал вниз, за LILCRAFT 3D).
+// (2026-11-05, скрыт повторно), поэтому первый такой проект — 3GS Master
+// (2026-11-05: Dubbed стоит сразу за Amalia).
 const multi = P.filter(p => p.themes && p.themes.length > 1)[0];
 if (multi) {
   multi.themes.forEach(t => {

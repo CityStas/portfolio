@@ -95,7 +95,8 @@ function check(name, got, expected) {
 
   // 2. Подсовываем карточку с клипом. В clip намеренно webm: тип источника должен
   //    выводиться из расширения, а не из имени поля, иначе декодер молча откажет.
-  await page.route('**/projects.js', async route => {
+  // * на конце ловит и cache-bust (?v=...) в src у index.html.
+  await page.route('**/projects.js*', async route => {
     const body = fs.readFileSync(path.join(ROOT, 'assets/data/projects.js'), 'utf8') +
       "\nwindow.PROJECTS.push({title:'TEST CLIP',kind:'Инструмент',desc:'t',year:'2026',status:'live'," +
       "shot:'assets/img/projects/rustore.webp',clip:'assets/media/__test.webm'," +
