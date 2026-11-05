@@ -389,7 +389,6 @@ export const LEXICON = {
   folder: ["папк", "документ", "архив", "проект", "организац", "структур", "файл", "каталог", "порядок", "folder", "document", "archive", "project", "organize", "files", "structure", "storage"],
   headphones: ["наушник", "музык", "звук", "отдых", "поддержк", "помощ", "фокус", "концентрац", "headphones", "music", "sound", "audio", "relax", "support", "help", "listen", "focus"],
   abstract: ["абстракц", "концепц", "фон", "паттерн", "стиль", "abstract", "concept", "background", "pattern"],
-  spark: ["искр", "акцент", "детал", "звезд", "spark", "accent", "detail", "star"],
 };
 
 export const META = {
@@ -403,7 +402,6 @@ export const META = {
   folder: { title: "Документы и порядок", tags: ["структура", "b2b"] },
   headphones: { title: "Фокус и поддержка", tags: ["сервис", "музыка"] },
   abstract: { title: "Абстрактная форма", tags: ["фон", "декор"] },
-  spark: { title: "Акцентная искра", tags: ["декор"] },
 };
 
 function normalize(text) {
