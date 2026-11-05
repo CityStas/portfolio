@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Illustration Composer — плагин для Figma</title>
+<meta name="color-scheme" content="dark" />
+<style>
+  :root {
+    --bg: #0e0f13; --panel: #14161c; --line: #262a35; --text: #e7e9ee;
+    --muted: #8d93a3; --accent: #aa9bf0;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 15px/1.6 Inter, "Segoe UI", system-ui, sans-serif;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 40px 22px 80px; }
+  a { color: var(--accent); }
+  h1 { font-size: 26px; margin: 0 0 6px; letter-spacing: -.02em; }
+  .sub { color: var(--muted); margin: 0 0 28px; }
+  h2 { font-size: 15px; text-transform: uppercase; letter-spacing: .08em; color: #aab0c0; margin: 32px 0 10px; }
+  p, li { color: #c9cedb; }
+  code {
+    background: #1b1e26; border: 1px solid var(--line); border-radius: 5px;
+    padding: 1px 5px; font-size: 13px; color: #ded6ff;
+  }
+  ol { padding-left: 20px; }
+  .files { display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+  .file {
+    display: block; padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px;
+    background: var(--panel); text-decoration: none; color: var(--text);
+  }
+  .file:hover { border-color: var(--accent); }
+  .file b { display: block; font-size: 13px; }
+  .file span { color: var(--muted); font-size: 12px; }
+  .back { display: inline-block; margin-bottom: 18px; color: var(--muted); text-decoration: none; }
+  .back:hover { color: var(--text); }
+  .box { border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; background: var(--panel); }
+  .box p:last-child { margin-bottom: 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="../">← к приложению</a>
+  <h1>Illustration Composer · плагин для Figma</h1>
+  <p class="sub">Собирает композиции внутри Figma из готовых образцов библиотеки: без новых объектов, с перекраской по палитре и подменой состояний (главный / фоновый) и размера (L / S).</p>
+
+  <h2>Установка (2 минуты)</h2>
+  <div class="box">
+    <ol>
+      <li>Скачайте три файла ниже в одну папку: <code>manifest.json</code>, <code>code.js</code>, <code>ui.html</code>.</li>
+      <li>Откройте Figma → меню <b>Plugins → Development → Import plugin from manifest…</b></li>
+      <li>Выберите скачанный <code>manifest.json</code>.</li>
+      <li>Откройте файл с библиотекой и запустите <b>Plugins → Development → Illustration Composer</b>.</li>
+    </ol>
+  </div>
+
+  <h2>Файлы</h2>
+  <div class="files">
+    <a class="file" href="manifest.json" download><b>manifest.json</b><span>описание плагина</span></a>
+    <a class="file" href="code.js" download><b>code.js</b><span>логика: индексы, клонирование, перекраска</span></a>
+    <a class="file" href="ui.html" download><b>ui.html</b><span>интерфейс плагина</span></a>
+  </div>
+
+  <h2>Что умеет</h2>
+  <ul>
+    <li><b>Сборка по метафоре</b> — выбирает один из 18 готовых образцов страницы «Примеры композиций» и вставляет его копию как есть (компоновка, масштаб и порядок слоёв не меняются).</li>
+    <li><b>Перекраска</b> — заменяет только цвета слотов палитры (фоновые / объектные), формы и структура векторов не затрагиваются. Работает и на выделенном фрейме.</li>
+    <li><b>Фоновые объекты</b> — подменяет каждый объект композиции на его монохромный вариант из библиотеки, сохраняя позицию и размер.</li>
+    <li><b>Размер L / S</b> — подставляет вариант нужной детализации с равномерным масштабированием.</li>
+    <li><b>Своя палитра</b> — загрузка JSON вида <code>{"bg":["#…"],"obj":["#…"]}</code>.</li>
+  </ul>
+
+  <h2>Как это работает</h2>
+  <p>Плагин не рисует новые объекты. Он строит индекс узлов библиотеки: секции «Размер L» и «Размер S», в них — объекты и фоны; монохромный вариант отличается от главного по составу заливок (в монохроме нет объектных цветов палитры). Дальше — <code>node.clone()</code> нужного узла, <code>insertChild</code> на место исходного и <code>rescale</code> под прежний размер. Цвета меняются только в SOLID-заливках и обводках по таблице ролей.</p>
+
+  <p style="color:var(--muted);font-size:13px">Веб-версия того же движка: <a href="../">dvodev.space/apps/illcomfig</a>.</p>
+</div>
+</body>
+</html>
