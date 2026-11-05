@@ -488,6 +488,9 @@
         var wideFirst = !!first.wide && !second.wide;
         span = ((vis % 2 === 0) === wideFirst) ? 7 : 5;
       }
+      // Явный span в данных сильнее авторасчёта: нужен, когда пара должна быть
+      // равной (6/6), а не 5/7 - например Amalia и Dubbed.
+      if (P[pi] && P[pi].span) span = P[pi].span;
       cards[pi].hidden = false;
       cards[pi].setAttribute('data-span', String(span));
     });

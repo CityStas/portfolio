@@ -268,6 +268,8 @@ window.PROJECTS = [
     tags: ['React', 'TypeScript', 'Express', 'OpenRouter', 'SSE', 'Vercel'],
     year: '2026',
     status: 'live',
+    // Пара Amalia + Dubbed - равные половины (6/6), а не 5/7: блоки одного размера.
+    span: 6,
     // Превью карточки - светлая тема, стартовая страница без ответа.
     shot: 'assets/img/projects/amalia-light.webp',
     shotAspect: 1440 / 900,
@@ -296,6 +298,8 @@ window.PROJECTS = [
     tags: ['JavaScript', 'MV3', 'Chrome', 'Firefox', 'TTS'],
     year: '2026',
     status: 'live',
+    // Равная пара с Amalia (6/6), чтобы блоки были одного размера.
+    span: 6,
     shot: 'assets/img/projects/dubbed.webp',
     // Та же пропорция 16:10, что у соседней Amalia: исходный кадр тоже 16:10,
     // иначе на узких экранах (одна колонка) блок Dubbed выглядит ниже.
