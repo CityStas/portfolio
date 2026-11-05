@@ -241,6 +241,7 @@ function swapState(container, toMono) {
   const missing = [];
   for (const child of container.children.slice()) {
     if (!isObjectNode(child)) continue;
+    if (isMono(child) === toMono) continue; // уже в нужном состоянии
     const rec = state.byName.get(child.name);
     const target = rec && (rec[state.sizeKey] || rec.L || {})[toMono ? 'mono' : 'main'];
     if (!target) {
@@ -264,6 +265,8 @@ function swapSize(container, sizeKey) {
       missing.push(child.name);
       continue;
     }
+    // размер уже совпадает — геометрию образца не трогаем
+    if (Math.abs(child.width - target.width) < target.width * 0.02) continue;
     replaceWith(child, target);
     swapped++;
   }
@@ -290,10 +293,10 @@ async function insertComposition(compId, opts) {
     recolored = recolorTree(clone, opts.scheme);
   }
   let sizeReport = { swapped: 0, missing: [] };
-  if (opts.sizeKey && opts.sizeKey !== state.sizeKey) {
+  if (opts.sizeKey) {
     state.sizeKey = opts.sizeKey;
     sizeReport = swapSize(clone, opts.sizeKey);
-    recolored += recolorTree(clone, state.scheme);
+    if (sizeReport.swapped) recolored += recolorTree(clone, state.scheme);
   }
   let stateReport = { swapped: 0, missing: [] };
   if (opts.bgObjects) {
