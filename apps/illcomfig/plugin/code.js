@@ -183,7 +183,16 @@ async function buildIndex() {
   const sections = lib.children.filter((n) => n.type === 'SECTION' && /Размер/i.test(n.name));
   for (const sec of sections) {
     const sizeKey = /Размер\s*S/i.test(sec.name) ? 'S' : 'L';
+    // объекты лежат прямо в секции; если внутри есть вложенные контейнеры —
+    // заглядываем и в них, чтобы не потерять часть библиотеки
+    const candidates = [];
     for (const node of sec.children) {
+      candidates.push(node);
+      if (node.type === 'SECTION' || (node.type === 'FRAME' && !/Фон/i.test(node.name) && 'children' in node)) {
+        for (const inner of node.children) candidates.push(inner);
+      }
+    }
+    for (const node of candidates) {
       if (!isObjectNode(node)) continue;
       const rec = state.byName.get(node.name) || { L: {}, S: {} };
       rec[sizeKey][isMono(node) ? 'mono' : 'main'] = node;

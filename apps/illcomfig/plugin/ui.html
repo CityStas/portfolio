@@ -63,7 +63,12 @@
   .sw { display: flex; gap: 2px; }
   .sw i { width: 10px; height: 10px; border-radius: 2px; display: block; }
   .comps { display: flex; flex-direction: column; gap: 3px; max-height: 168px; overflow-y: auto; }
-  .comp {
+  .objs { display: flex; flex-wrap: wrap; gap: 4px; max-height: 126px; overflow-y: auto; }
+  .obj {
+    border: 1px solid var(--line); background: #232323; border-radius: 999px;
+    padding: 4px 9px; font-size: 10px; cursor: pointer; color: var(--text);
+  }
+  .obj:hover { border-color: var(--accent); background: #2b2545; }  .comp {
     display: flex; gap: 6px; align-items: center; padding: 5px 6px;
     border: 1px solid var(--line); border-radius: 6px; cursor: pointer; background: #232323;
   }
@@ -113,6 +118,13 @@
   </section>
 
   <section>
+    <h3>Объекты библиотеки <span id="objCount" class="note"></span></h3>
+    <input type="text" id="objSearch" placeholder="поиск: ручка, книга, лампа…" />
+    <div class="objs" id="objs"></div>
+    <p class="note">Клик вставляет объект в центр вьюпорта в выбранном размере и состоянии.</p>
+  </section>
+
+  <section>
     <h3>Сборка по метафоре</h3>
     <div class="row">
       <input type="text" id="metaphor" placeholder="«финансовый рост», «идея и знания»" />
@@ -144,6 +156,7 @@
   const $ = (s) => document.querySelector(s);
   let palettes = [];
   let comps = [];
+  let objects = [];
   let custom = null;
   let schemeId = 'lilac';
   let sizeKey = 'L';
@@ -198,6 +211,32 @@
       el.addEventListener('click', () => insert(el.dataset.id));
     });
   }
+
+  function renderObjects() {
+    const q = ($('#objSearch').value || '').toLowerCase().trim();
+    const list = objects.filter((n) => !q || n.toLowerCase().includes(q));
+    $('#objCount').textContent = list.length + ' шт.';
+    $('#objs').innerHTML = list
+      .map((n) => `<button class="obj" data-name="${n.replace(/"/g, '&quot;')}">${n}</button>`)
+      .join('');
+    $('#objs').querySelectorAll('.obj').forEach((el) => {
+      el.addEventListener('click', () => {
+        parent.postMessage(
+          {
+            pluginMessage: {
+              type: 'insertObject',
+              name: el.dataset.name,
+              sizeKey,
+              state: $('#bgObjects').checked ? 'background' : 'main',
+            },
+          },
+          '*'
+        );
+      });
+    });
+  }
+
+  $('#objSearch').addEventListener('input', renderObjects);
 
   function insert(compId) {
     const comp = comps.find((c) => c.id === compId);
@@ -286,6 +325,8 @@
     if (msg.type === 'init') {
       palettes = msg.palettes;
       comps = msg.comps;
+      objects = msg.objects || [];
+      renderObjects();
       $('#file').textContent = `${msg.file} · ${comps.length} образцов · v${msg.version}`;
       const formats = [...new Set(comps.map((c) => c.format))];
       $('#format').innerHTML = formats.map((f) => `<option value="${f}">${f.replace('x', ' × ')}</option>`).join('');

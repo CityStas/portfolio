@@ -32,7 +32,11 @@ export async function loadData(base = "data/") {
     fetch(base + "palettes.json").then((r) => r.json()),
   ]);
   DATA.library = library;
-  DATA.templates = templates.templates;
+  // стартовая композиция всегда первая в списке образцов
+  const preferred = "24:8127";
+  DATA.templates = templates.templates
+    .slice()
+    .sort((a, b) => (a.id === preferred ? -1 : b.id === preferred ? 1 : 0));
   DATA.palettes = palettes.palettes;
   DATA.roles = palettes.roles;
   state.palette = cloneScheme(DATA.palettes[0]);

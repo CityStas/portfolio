@@ -8,6 +8,8 @@ const wrap = $("#canvas-wrap");
 const toastEl = $("#toast");
 
 const FORMATS = ["1000x1000", "1200x630", "800x1200"];
+// стартовая композиция: «Абстракция + Наушники» (1200×630), она же первая в списке
+const START_TEMPLATE_ID = "24:8127";
 
 let overlay = null;
 let drag = null;
@@ -793,7 +795,11 @@ async function boot() {
   $("#status").textContent = `${DATA.templates.length} шаблонов · ${DATA.library.objects.length} объектов · ${DATA.palettes.length} схемы`;
   state.palette = C.cloneScheme(DATA.palettes[0]);
   state.bg.color = DATA.palettes[0].bg[0];
-  state.canvas = { w: 1000, h: 1000 };
+
+  // стартовая композиция: «Абстракция + Наушники» — она же первая в списке образцов
+  const startTemplate = DATA.templates.find((t) => t.id === START_TEMPLATE_ID) || DATA.templates[0];
+  state.format = startTemplate.format;
+  state.canvas = { w: startTemplate.width, h: startTemplate.height };
 
   // ссылка на страницу плагина есть только в задеплоенной версии
   if (/\/apps\/illcomfig/.test(location.pathname)) {
@@ -809,9 +815,7 @@ async function boot() {
   renderTemplates();
   renderDemos();
 
-  // стартовая демонстрация: готовая композиция 24:2437
-  const demo = DATA.templates.find((t) => t.id === "24:2437") || DATA.templates[0];
-  C.applyTemplate(demo);
+  C.applyTemplate(startTemplate);
   renderCanvas();
   renderLayers();
   renderInspector();
