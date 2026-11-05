@@ -26,10 +26,12 @@ const nextUid = () => "el" + ++uidSeq;
 /* ------------------------------------------------------------------ */
 
 export async function loadData(base = "data/") {
+  // версия данных в query - чтобы браузер не показывал старый кэш после обновления библиотеки
+  const v = "?v=20261105";
   const [library, templates, palettes] = await Promise.all([
-    fetch(base + "library.json").then((r) => r.json()),
-    fetch(base + "templates.json").then((r) => r.json()),
-    fetch(base + "palettes.json").then((r) => r.json()),
+    fetch(base + "library.json" + v).then((r) => r.json()),
+    fetch(base + "templates.json" + v).then((r) => r.json()),
+    fetch(base + "palettes.json" + v).then((r) => r.json()),
   ]);
   DATA.library = library;
   // стартовая композиция всегда первая в списке образцов
