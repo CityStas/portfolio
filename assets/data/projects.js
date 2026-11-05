@@ -141,10 +141,11 @@ window.PROJECTS = [
   // Флагманский проект идёт первым: сайт открывается утверждением «AI-Native
   // Developer», значит первая карточка должна это утверждение подтверждать.
   // 2026-10-31: порядок верхних рядов задан автором вручную - в первом ряду
-  // HC AI и 3GS Master, под ними Amalia и DedSpace 2D, дальше SPLITTER и
+  // HC AI и 3GS Master, под ними Amalia и SPLITTER, дальше DedSpace 2D и
   // Bubble Peaks 3D. Dubbed уехал вниз, сразу за LILCRAFT 3D (был вторым
   // до 2026-10-31). 2026-11-05: Amalia поднята из-под LILCRAFT 3D на вторую
-  // строку, к 3GS Master - по прямой просьбе автора.
+  // строку, к 3GS Master, а SPLITTER и DedSpace 2D поменялись местами - по
+  // прямой просьбе автора.
   {
     title: 'HC AI',
     kind: 'AI-продукт',
@@ -205,7 +206,7 @@ window.PROJECTS = [
   // Основной кадр - светлая стартовая страница (без ответа); в галерее ещё
   // Original и New. Все кадры 1440x900 - ровно 16:10, рамка совпадает без обрезки.
   // 2026-11-05: блок стоит сразу за 3GS Master - второй ряд открывает Amalia,
-  // справа от неё DedSpace 2D. Пару держит флаг wide у Amalia: левая карточка
+  // справа от неё SPLITTER. Пару держит флаг wide у Amalia: левая карточка
   // берёт 7 колонок, сосед получает 5 по авторасчёту (applyFilter в app.js).
   {
     title: 'Amalia',
@@ -214,8 +215,8 @@ window.PROJECTS = [
     tags: ['React', 'TypeScript', 'Express', 'OpenRouter', 'SSE', 'Vercel'],
     year: '2026',
     status: 'live',
-    // Пара Amalia + DedSpace 2D: wide переносит акцент на левую карточку, поэтому
-    // Amalia берёт 7/12, DedSpace - 5/12. Авторасчёт даёт ровно то же самое, но
+    // Пара Amalia + SPLITTER: wide переносит акцент на левую карточку, поэтому
+    // Amalia берёт 7/12, SPLITTER - 5/12. Авторасчёт даёт ровно то же самое, но
     // флаг честнее явного span: он же работает в теме «AI-продукты» (Amalia + Dubbed).
     wide: true,
     // Превью карточки - светлая тема, стартовая страница без ответа.
@@ -232,26 +233,11 @@ window.PROJECTS = [
     }
   },
   {
-    title: 'DedSpace 2D',
-    kind: 'Игра',
-    // 2026-10-31: карточка брала широкую половину пары, а не SPLITTER справа:
-    // игра должна читаться крупнее соседнего инструмента. Сумма пары та же (5+7),
-    // поэтому сетка не меняется - см. applyFilter в app.js.
-    // 2026-11-05: пара теперь Amalia (7) + DedSpace 2D (5). Флаг wide снят: два
-    // wide в одной паре не в счёт, акцент уехал бы вправо и ряд стал бы 14 колонок.
-    // В теме «Игры» карточка идёт первой в паре (6/6), там wide всё равно не влиял.
-    desc: '2D-платформер на Godot 4: игрок, подбор предметов, враги, уровни. Оптимизирован под работу в браузере.',
-    tags: ['Godot 4', 'GDScript', '2D', 'Web'],
-    year: '2026',
-    status: 'live',
-    shot: 'assets/img/projects/dedspace.webp',
-    // Кадр 1920x1080 - ровно 16:9, рамка карточки совпадает с ним без остатка.
-    shotAspect: 1920 / 1080,
-    links: { demo: '/games/deddemo/', demoLabel: 'Demo', demoEmbed: true, repo: '' }
-  },
-  {
     title: 'SPLITTER',
     kind: 'Инструмент',
+    // 2026-11-05: карточка поднята выше DedSpace 2D и стоит правой в паре с Amalia
+    // (у Amalia wide -> 7/12, здесь авторасчёт даёт 5/12). В теме «Инструменты»
+    // пара другая - 3GS Master + SPLITTER (6/6), сумма ряда та же.
     desc: 'Разбор 3D-модели на детали прямо в браузере: выделение по лицу, области, связному острову, гладкой панели и контуру, пивоты, экспорт GLB + parts.json.',
     tags: ['three.js', 'JavaScript', '3D', 'GLB', 'Geometry'],
     year: '2026',
@@ -267,6 +253,23 @@ window.PROJECTS = [
       'assets/img/projects/splitter.webp'
     ],
     links: { repo: 'https://github.com/CityStas/splitter' }
+  },
+  {
+    title: 'DedSpace 2D',
+    kind: 'Игра',
+    // 2026-10-31: карточка держала широкую половину пары, а не SPLITTER рядом:
+    // игра должна читаться крупнее соседнего инструмента.
+    // 2026-11-05: SPLITTER и DedSpace 2D поменялись местами, пара DedSpace теперь
+    // Bubble Peaks 3D (6/6), где wide не работает. Флаг снят и потому, что в паре
+    // с Amalia (wide у неё) он дал бы 7+7 = 14 колонок.
+    desc: '2D-платформер на Godot 4: игрок, подбор предметов, враги, уровни. Оптимизирован под работу в браузере.',
+    tags: ['Godot 4', 'GDScript', '2D', 'Web'],
+    year: '2026',
+    status: 'live',
+    shot: 'assets/img/projects/dedspace.webp',
+    // Кадр 1920x1080 - ровно 16:9, рамка карточки совпадает с ним без остатка.
+    shotAspect: 1920 / 1080,
+    links: { demo: '/games/deddemo/', demoLabel: 'Demo', demoEmbed: true, repo: '' }
   },
   {
     title: 'Bubble Peaks 3D',
