@@ -389,7 +389,7 @@ window.PROJECTS = [
   {
     title: 'ОРФ AI',
     kind: 'AI-продукт',
-    desc: 'AI-чат-ассистент для Android - динамический выбор LLM через OpenRouter* по запросу, доступности и latency. Capacitor, RuStore.\n\n*Важно: из-за геоблокировки со стороны OpenRouter для корректной работы моделей на территории РФ нужен прокси/VPN.',
+    desc: 'AI-чат-ассистент для Android - инференс LLM целиком на устройстве: llama.cpp + JNI, GGUF Q4_K_M. Работает офлайн, без API-ключей. Capacitor, RuStore.\n\n*ВАЖНО: модель поставляется внутри APK (~530 МБ) и при старте загружается в память - до статуса «Чат готов» ввод заблокирован. Скорость генерации зависит от устройства',
     tags: ['LLM', 'OpenRouter', 'Capacitor', 'Android', 'RuStore'],
     year: '2025-2026',
     status: 'live',
