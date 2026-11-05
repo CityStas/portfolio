@@ -1,4 +1,4 @@
-/* core.js — data model, palette recoloring, semantic matching, SVG export.
+/* core.js - data model, palette recoloring, semantic matching, SVG export.
    No dependencies, runs in the browser. */
 
 const NS = "http://www.w3.org/2000/svg";
@@ -7,7 +7,7 @@ export const state = {
   size: "L",
   format: "1000x1000",
   scheme: "lilac",
-  palette: null, // {bg:[3], obj:[3]} — active scheme, may be user-loaded
+  palette: null, // {bg:[3], obj:[3]} - active scheme, may be user-loaded
   withBackgroundObjects: false,
   bg: { type: "color", color: "#D7CDF5", frame: null },
   elements: [],
@@ -317,7 +317,7 @@ export function applyTemplate(template, { slots = {} } = {}) {
       const box = measure(part.inner, template.width, template.height);
       const slug = slots[part.slug] || part.slug;
       const variant = getVariant(slug, sizeKey, "main");
-      // Образцы собраны из набора L. Пока размер совпадает — берём геометрию
+      // Образцы собраны из набора L. Пока размер совпадает - берём геометрию
       // прямо из образца (1:1 с Figma). При смене размера подставляем вариант
       // нужной детализации, вписывая его в тот же бокс.
       const lVariant = getVariant(part.slug, "L", "main");
@@ -489,7 +489,7 @@ export function composeFromNames(text, { size = state.size } = {}) {
   const W = state.canvas.w;
   const H = state.canvas.h;
 
-  // objects already on the canvas — new ones should not land on top of them
+  // objects already on the canvas - new ones should not land on top of them
   const taken = state.elements
     .filter((e) => e.kind === 'object')
     .map((e) => ({ x: e.bx + e.dx, y: e.by + e.dy, w: e.bw, h: e.bh }));

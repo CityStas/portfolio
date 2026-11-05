@@ -1,4 +1,4 @@
-// Illustration Composer — Figma plugin (main thread)
+// Illustration Composer - Figma plugin (main thread)
 // Собирает композиции ТОЛЬКО из готовых образцов и элементов библиотеки файла.
 // Ничего не рисует: клонирует узлы, перекрашивает по палитре, меняет состояние
 // (главный/фоновый) и размер (L/S) на соответствующие варианты из библиотеки.
@@ -59,7 +59,7 @@ const LEXICON = {
 };
 
 /* Библиотека по id узлов: в файле часть объектов называется «Group 21361363xx»,
-   поэтому имена ненадёжны — берём известные id (те же, что в веб-версии).
+   поэтому имена ненадёжны - берём известные id (те же, что в веб-версии).
    L/S × главный/фоновый. */
 const LIB = {
   'Книга': { L: { main: '21:29965', mono: '24:6273' }, S: { main: '24:3810', mono: '24:6934' } },
@@ -206,7 +206,7 @@ async function buildIndex() {
 
   state.byName.clear();
   state.alias.clear();
-  // 1) по известным id узлов — не зависит от того, как названы слои
+  // 1) по известным id узлов - не зависит от того, как названы слои
   for (const label of Object.keys(LIB)) {
     for (const sizeKey of ['L', 'S']) {
       for (const slot of ['main', 'mono']) {
@@ -237,7 +237,7 @@ async function buildIndex() {
   }
   for (const sec of sections) {
     const sizeKey = /Размер\s*S/i.test(sec.name) ? 'S' : 'L';
-    // объекты лежат прямо в секции; если внутри есть вложенные контейнеры —
+    // объекты лежат прямо в секции; если внутри есть вложенные контейнеры -
     // заглядываем и в них, чтобы не потерять часть библиотеки
     const candidates = [];
     for (const node of sec.children) {
@@ -249,7 +249,7 @@ async function buildIndex() {
     for (const node of candidates) {
       if (!isObjectNode(node)) continue;
       if (/^Group 2136/i.test(node.name) && !state.alias.has(node.name)) continue; // эти уже разобраны по id
-      // если у слоя есть псевдоним — сливаем в запись объекта, а не создаём дубль
+      // если у слоя есть псевдоним - сливаем в запись объекта, а не создаём дубль
       const label = state.alias.get(node.name) || node.name;
       const rec = state.byName.get(label) || { L: {}, S: {} };
       const slot = isMono(node) ? 'mono' : 'main';
@@ -259,7 +259,7 @@ async function buildIndex() {
   }
 
   // запасной путь: если секции «Размер L/S» не нашлись (другая копия файла,
-  // переименованные секции), собираем объекты по именам — сначала по странице
+  // переименованные секции), собираем объекты по именам - сначала по странице
   // библиотеки, потом по всему файлу
   if (!state.byName.size) {
     const groups = new Map();
@@ -306,10 +306,10 @@ async function buildIndex() {
     if ('children' in n) for (const c of n.children) walk(c);
   };
   if (compsPage && compsPage !== lib) for (const child of compsPage.children) walk(child);
-  // стартовый образец «Абстракция + Наушники» (1000×1000) — первым в списке
+  // стартовый образец «Абстракция + Наушники» (1000×1000) - первым в списке
   state.comps.sort((a, b) => (a.id === PREFERRED_COMP ? -1 : b.id === PREFERRED_COMP ? 1 : 0));
-  if (!state.comps.length) warnings.push('Не найдены образцы композиций — доступна только вставка объектов');
-  if (!state.byName.size) warnings.push('Не найдены объекты библиотеки — проверьте, что открыт файл с библиотекой');
+  if (!state.comps.length) warnings.push('Не найдены образцы композиций - доступна только вставка объектов');
+  if (!state.byName.size) warnings.push('Не найдены объекты библиотеки - проверьте, что открыт файл с библиотекой');
 
   return {
     objects: [...state.byName.keys()].filter((n) => !/^Group 2136/.test(n)).sort((a, b) => a.localeCompare(b, 'ru')),
@@ -393,7 +393,7 @@ function swapSize(container, sizeKey) {
       missing.push(child.name);
       continue;
     }
-    // размер уже совпадает — геометрию образца не трогаем
+    // размер уже совпадает - геометрию образца не трогаем
     if (Math.abs(child.width - target.width) < target.width * 0.02) continue;
     replaceWith(child, target);
     swapped++;
@@ -469,7 +469,7 @@ function analyze(text) {
 function pickComp(ranked, format) {
   const pool = state.comps.filter((c) => !format || c.format === format);
   if (!pool.length) return null;
-  // имена в библиотеке могут быть с «ё», а в лексиконе без — сравниваем нормализованно
+  // имена в библиотеке могут быть с «ё», а в лексиконе без - сравниваем нормализованно
   const norm = (s) => String(s || '').toLowerCase().replace(/ё/g, 'е');
   const scoreOf = (name) => {
     const r = ranked.find((x) => norm(x[0]) === norm(name));
@@ -561,7 +561,7 @@ figma.ui.onmessage = async (msg) => {
     if (msg.type === 'insertObject') {
       const rec = recFor(msg.name);
       const slot = msg.state === 'background' ? 'mono' : 'main';
-      // ищем нужный вариант, а если его нет — берём любой доступный
+      // ищем нужный вариант, а если его нет - берём любой доступный
       const node =
         (rec && rec[msg.sizeKey] && rec[msg.sizeKey][slot]) ||
         (rec && rec[msg.sizeKey] && rec[msg.sizeKey].main) ||

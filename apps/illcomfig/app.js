@@ -645,8 +645,8 @@ function composeByMetaphor() {
   const missing = res.missing.map(label);
   const head = `Образец ${res.template.id} (${res.template.format})`;
   if (!res.ranked.length) toast(`${head}: ключевые слова не распознаны, композиция взята как есть`);
-  else if (missing.length) toast(`${head}: есть ${matched.join(", ")}; нет в образце — ${missing.join(", ")}`);
-  else toast(`${head}: ${matched.join(", ")} — компоновка из Figma сохранена`);
+  else if (missing.length) toast(`${head}: есть ${matched.join(", ")}; нет в образце - ${missing.join(", ")}`);
+  else toast(`${head}: ${matched.join(", ")} - компоновка из Figma сохранена`);
 }
 
 $("#btn-add").addEventListener("click", addByName);
@@ -681,7 +681,7 @@ $("#btn-clear").addEventListener("click", () => {
 
 $("#btn-export").addEventListener("click", () => {
   if (!state.elements.length) {
-    toast("Холст пуст — нечего экспортировать");
+    toast("Холст пуст - нечего экспортировать");
     return;
   }
   C.downloadSVG(`composition-${state.format}-${scheme().id}.svg`);
@@ -788,7 +788,7 @@ async function boot() {
     await C.loadData("data/");
   } catch (err) {
     $("#status").textContent = "ошибка загрузки данных";
-    toast("Не удалось загрузить data/*.json — запустите `node bridge/server.mjs`");
+    toast("Не удалось загрузить data/*.json - запустите `node bridge/server.mjs`");
     console.error(err);
     return;
   }
@@ -796,7 +796,7 @@ async function boot() {
   state.palette = C.cloneScheme(DATA.palettes[0]);
   state.bg.color = DATA.palettes[0].bg[0];
 
-  // стартовая композиция: «Абстракция + Наушники» — она же первая в списке образцов
+  // стартовая композиция: «Абстракция + Наушники» - она же первая в списке образцов
   const startTemplate = DATA.templates.find((t) => t.id === START_TEMPLATE_ID) || DATA.templates[0];
   state.format = startTemplate.format;
   state.canvas = { w: startTemplate.width, h: startTemplate.height };

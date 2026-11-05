@@ -372,7 +372,7 @@
       }
       if (!msg.objects.length) {
         log(
-          'Объекты не найдены. Проверьте: открыт файл с библиотекой, страницы называются «Библиотека компонентов» и «Примеры композиций», секции — «Размер L» / «Размер S».'
+          'Объекты не найдены. Проверьте: открыт файл с библиотекой, страницы называются «Библиотека компонентов» и «Примеры композиций», секции - «Размер L» / «Размер S».'
         );
       }
       return;
@@ -385,7 +385,7 @@
         if (r.sizeSwapped) line += ` · заменено на размер ${sizeKey}: ${r.sizeSwapped}`;
         if (r.stateSwapped) line += ` · переведено в фоновые: ${r.stateSwapped}`;
         if (msg.action === 'compose' && msg.matched) {
-          line += `\nСовпало: ${msg.matched.join(', ') || '—'}`;
+          line += `\nСовпало: ${msg.matched.join(', ') || '-'}`;
           if (msg.missing && msg.missing.length) line += ` · нет в образце: ${msg.missing.join(', ')}`;
         }
         if (r.missing && r.missing.length) line += `\nНет варианта в библиотеке: ${[...new Set(r.missing)].join(', ')}`;
