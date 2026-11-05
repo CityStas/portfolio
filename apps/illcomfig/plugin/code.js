@@ -5,7 +5,7 @@
 
 figma.showUI(__html__, { width: 380, height: 700, themeColors: true });
 
-const VERSION = '1.0.0';
+const VERSION = '1.1.0';
 
 /* ------------------------------------------------------------------ */
 /* палитры и роли цветов (те же, что в веб-версии)                     */
@@ -49,13 +49,28 @@ const LEXICON = {
   'Телефон': ['телефон', 'связ', 'коммуникац', 'звон', 'поддержк', 'клиент', 'сервис', 'приложен', 'мобильн', 'phone', 'call', 'support', 'communication', 'app', 'mobile', 'contact', 'chat'],
   'Пазлы': ['пазл', 'решен', 'задач', 'интеграц', 'сложн', 'собрат', 'стратег', 'логик', 'puzzle', 'solution', 'integration', 'problem', 'strategy'],
   'Лампа': ['иде', 'свет', 'вдохновен', 'мысл', 'ламп', 'креатив', 'инсайт', 'инновац', 'idea', 'light', 'inspiration', 'brainstorm', 'creative', 'insight'],
-  'Кошелек': ['кошел', 'финанс', 'деньг', 'бюджет', 'платеж', 'покупк', 'оплат', 'wallet', 'finance', 'money', 'budget', 'payment', 'purchase', 'cash'],
+  'Кошелёк': ['кошел', 'финанс', 'деньг', 'бюджет', 'платеж', 'покупк', 'оплат', 'wallet', 'finance', 'money', 'budget', 'payment', 'purchase', 'cash'],
   'Монета': ['монет', 'деньг', 'инвестиц', 'доход', 'прибыл', 'рост', 'цен', 'накоплен', 'экономик', 'coin', 'invest', 'income', 'profit', 'growth', 'price', 'savings'],
   'Ручка': ['ручк', 'письм', 'текст', 'контент', 'редактор', 'дизайн', 'творч', 'документ', 'стать', 'pen', 'write', 'text', 'content', 'edit', 'design', 'draft'],
   'Папка': ['папк', 'документ', 'архив', 'проект', 'организац', 'структур', 'файл', 'каталог', 'folder', 'document', 'archive', 'project', 'organize', 'files', 'structure'],
   'Наушники': ['наушник', 'музык', 'звук', 'отдых', 'помощ', 'фокус', 'концентрац', 'headphones', 'music', 'sound', 'audio', 'relax', 'help', 'listen', 'focus'],
-  'Group 2136136344': ['абстракц', 'концепц', 'паттерн', 'abstract', 'concept', 'pattern'],
-  'Group 2136136345': ['абстракц', 'концепц', 'паттерн', 'abstract', 'concept', 'pattern'],
+  'Абстракция': ['абстракц', 'концепц', 'паттерн', 'abstract', 'concept', 'pattern'],
+};
+
+/* Библиотека по id узлов: в файле часть объектов называется «Group 21361363xx»,
+   поэтому имена ненадёжны — берём известные id (те же, что в веб-версии).
+   L/S × главный/фоновый. */
+const LIB = {
+  'Книга': { L: { main: '21:29965', mono: '24:6273' }, S: { main: '24:3810', mono: '24:6934' } },
+  'Телефон': { L: { main: '21:25472', mono: '24:6327' }, S: { main: '24:4746', mono: '24:6990' } },
+  'Пазлы': { L: { main: '21:417', mono: '24:6214' }, S: { main: '24:4903', mono: '24:7147' } },
+  'Лампа': { L: { main: '23:121', mono: '24:6569' }, S: { main: '24:5485', mono: '24:7429' } },
+  'Кошелёк': { L: { main: '23:211', mono: '24:6660' }, S: { main: '24:4594', mono: '24:7568' } },
+  'Монета': { L: { main: '24:2207', mono: '24:6795' }, S: { main: '24:5345', mono: '24:7205' } },
+  'Ручка': { L: { main: '24:1734', mono: '24:6747' }, S: { main: '24:4287', mono: '24:7543' } },
+  'Папка': { L: { main: '24:1899', mono: '24:6772' }, S: { main: '24:4430', mono: '24:7520' } },
+  'Наушники': { L: { main: '23:122', mono: '24:6484' }, S: { main: '24:5089', mono: '24:7344' } },
+  'Абстракция': { L: { main: '28:11628', mono: '30:11902' }, S: { main: '28:11629', mono: '28:11766' } },
 };
 
 /* ------------------------------------------------------------------ */
@@ -134,6 +149,7 @@ const state = {
   comps: [],
   byName: new Map(), // name -> { L: {main, mono}, S: {main, mono} }
   byId: new Map(),
+  alias: new Map(), // имя слоя («Group 2136136335») -> подпись объекта («Книга»)
   scheme: PALETTES[0],
   sizeKey: 'L',
   bgObjects: false,
@@ -160,6 +176,12 @@ function isMono(node) {
   return true;
 }
 
+// запись библиотеки по имени слоя: сначала прямо по имени, потом по псевдониму
+// («Group 2136136335» -> «Книга»), чтобы копии внутри композиций тоже находились
+function recFor(name) {
+  return state.byName.get(name) || state.byName.get(state.alias.get(name)) || null;
+}
+
 function isObjectNode(n) {
   if (!n || !('children' in n)) return false;
   if (n.type === 'SECTION' || n.type === 'TEXT') return false;
@@ -172,15 +194,46 @@ function isObjectNode(n) {
 async function buildIndex() {
   await figma.loadAllPagesAsync();
   const pages = figma.root.children;
-  const lib = pages.find((p) => p.name === 'Библиотека компонентов') || pages.find((p) => p.id === '0:1');
-  const compsPage = pages.find((p) => p.name === 'Примеры композиций') || pages.find((p) => p.id === '21:2');
-  if (!lib) throw new Error('Не найдена страница «Библиотека компонентов»');
-  if (!compsPage) throw new Error('Не найдена страница «Примеры композиций»');
+  const warnings = [];
+  // страницы ищем мягко: сначала по имени, потом по id, потом берём первую/последнюю,
+  // чтобы плагин работал и в копии файла с переименованными страницами
+  const lib = pages.find((p) => /библиотек/i.test(p.name)) || pages.find((p) => p.id === '0:1') || pages[0];
+  const compsPage =
+    pages.find((p) => /пример/i.test(p.name)) || pages.find((p) => p.id === '21:2') || pages[pages.length - 1];
   state.lib = lib;
   state.compsPage = compsPage;
 
   state.byName.clear();
-  const sections = lib.children.filter((n) => n.type === 'SECTION' && /Размер/i.test(n.name));
+  state.alias.clear();
+  // 1) по известным id узлов — не зависит от того, как названы слои
+  for (const label of Object.keys(LIB)) {
+    for (const sizeKey of ['L', 'S']) {
+      for (const slot of ['main', 'mono']) {
+        const id = LIB[label][sizeKey] && LIB[label][sizeKey][slot];
+        if (!id) continue;
+        let node = null;
+        try {
+          // при documentAccess: "dynamic-page" синхронный getNodeById недоступен
+          node = figma.getNodeByIdAsync ? await figma.getNodeByIdAsync(id) : figma.getNodeById(id);
+        } catch (e) {
+          node = null;
+        }
+        if (!node || !('children' in node)) continue;
+        const rec = state.byName.get(label) || { L: {}, S: {} };
+        rec[sizeKey][slot] = node;
+        state.byName.set(label, rec);
+        state.alias.set(node.name, label);
+      }
+    }
+  }
+  let sections = lib.children.filter((n) => n.type === 'SECTION' && /размер/i.test(n.name));
+  if (!sections.length) {
+    try {
+      sections = lib.findAll((n) => n.type === 'SECTION' && /размер/i.test(n.name));
+    } catch (e) {
+      sections = [];
+    }
+  }
   for (const sec of sections) {
     const sizeKey = /Размер\s*S/i.test(sec.name) ? 'S' : 'L';
     // объекты лежат прямо в секции; если внутри есть вложенные контейнеры —
@@ -194,16 +247,51 @@ async function buildIndex() {
     }
     for (const node of candidates) {
       if (!isObjectNode(node)) continue;
-      const rec = state.byName.get(node.name) || { L: {}, S: {} };
-      rec[sizeKey][isMono(node) ? 'mono' : 'main'] = node;
-      state.byName.set(node.name, rec);
+      if (/^Group 2136/i.test(node.name) && !state.alias.has(node.name)) continue; // эти уже разобраны по id
+      // если у слоя есть псевдоним — сливаем в запись объекта, а не создаём дубль
+      const label = state.alias.get(node.name) || node.name;
+      const rec = state.byName.get(label) || { L: {}, S: {} };
+      const slot = isMono(node) ? 'mono' : 'main';
+      if (!rec[sizeKey][slot]) rec[sizeKey][slot] = node;
+      state.byName.set(label, rec);
     }
+  }
+
+  // запасной путь: если секции «Размер L/S» не нашлись (другая копия файла,
+  // переименованные секции), собираем объекты по именам — сначала по странице
+  // библиотеки, потом по всему файлу
+  if (!state.byName.size) {
+    const groups = new Map();
+    const pages = [lib, ...figma.root.children.filter((p) => p !== lib)];
+    for (const page of pages) {
+      let found = [];
+      try {
+        found = page.findAll((n) => 'children' in n && isObjectNode(n));
+      } catch (e) {
+        found = [];
+      }
+      for (const node of found) {
+        const slot = isMono(node) ? 'mono' : 'main';
+        const key = node.name + '::' + slot;
+        if (!groups.has(key)) groups.set(key, { name: node.name, slot, list: [] });
+        groups.get(key).list.push(node);
+      }
+      if (groups.size) break;
+    }
+    for (const g of groups.values()) {
+      g.list.sort((a, b) => b.width - a.width);
+      const rec = state.byName.get(g.name) || { L: {}, S: {} };
+      rec.L[g.slot] = g.list[0];
+      rec.S[g.slot] = g.list[g.list.length - 1];
+      state.byName.set(g.name, rec);
+    }
+    console.log('Библиотека собрана по именам: ' + state.byName.size + ' объектов');
   }
 
   state.comps = [];
   const walk = (n) => {
     if (n.type === 'FRAME' && n.width > 200 && n.height > 200) {
-      const objects = n.children.filter(isObjectNode).map((c) => c.name);
+      const objects = n.children.filter(isObjectNode).map((c) => state.alias.get(c.name) || c.name);
       state.comps.push({
         id: n.id,
         name: n.name,
@@ -216,11 +304,14 @@ async function buildIndex() {
     }
     if ('children' in n) for (const c of n.children) walk(c);
   };
-  for (const child of compsPage.children) walk(child);
+  if (compsPage && compsPage !== lib) for (const child of compsPage.children) walk(child);
+  if (!state.comps.length) warnings.push('Не найдены образцы композиций — доступна только вставка объектов');
+  if (!state.byName.size) warnings.push('Не найдены объекты библиотеки — проверьте, что открыт файл с библиотекой');
 
   return {
-    objects: [...state.byName.keys()].filter((n) => !/^Group 2136/.test(n)),
+    objects: [...state.byName.keys()].filter((n) => !/^Group 2136/.test(n)).sort((a, b) => a.localeCompare(b, 'ru')),
     comps: state.comps,
+    warnings,
   };
 }
 
@@ -251,7 +342,7 @@ function swapState(container, toMono) {
   for (const child of container.children.slice()) {
     if (!isObjectNode(child)) continue;
     if (isMono(child) === toMono) continue; // уже в нужном состоянии
-    const rec = state.byName.get(child.name);
+    const rec = recFor(child.name);
     const target = rec && (rec[state.sizeKey] || rec.L || {})[toMono ? 'mono' : 'main'];
     if (!target) {
       missing.push(child.name);
@@ -268,7 +359,7 @@ function swapSize(container, sizeKey) {
   const missing = [];
   for (const child of container.children.slice()) {
     if (!isObjectNode(child)) continue;
-    const rec = state.byName.get(child.name);
+    const rec = recFor(child.name);
     const target = rec && rec[sizeKey] && rec[sizeKey].main;
     if (!target) {
       missing.push(child.name);
@@ -350,7 +441,12 @@ function analyze(text) {
 function pickComp(ranked, format) {
   const pool = state.comps.filter((c) => !format || c.format === format);
   if (!pool.length) return null;
-  const scoreOf = (name) => (ranked.find((r) => r[0] === name) || [null, 0])[1];
+  // имена в библиотеке могут быть с «ё», а в лексиконе без — сравниваем нормализованно
+  const norm = (s) => String(s || '').toLowerCase().replace(/ё/g, 'е');
+  const scoreOf = (name) => {
+    const r = ranked.find((x) => norm(x[0]) === norm(name));
+    return r ? r[1] : 0;
+  };
   let best = null;
   for (const c of pool) {
     let score = 0;
@@ -358,7 +454,7 @@ function pickComp(ranked, format) {
       const s = scoreOf(name);
       if (s > 0) score += 12 + s;
     }
-    if (ranked[0] && c.objects.includes(ranked[0][0])) score += 8;
+    if (ranked[0] && c.objects.some((o) => norm(o) === norm(ranked[0][0]))) score += 8;
     if (!best || score > best.score) best = { comp: c, score };
   }
   return best ? best.comp : pool[0];
@@ -377,6 +473,7 @@ figma.ui.onmessage = async (msg) => {
         palettes: PALETTES,
         objects: idx.objects,
         comps: idx.comps,
+        warnings: idx.warnings,
         file: figma.root.name,
       });
       return;
@@ -433,8 +530,17 @@ figma.ui.onmessage = async (msg) => {
     }
 
     if (msg.type === 'insertObject') {
-      const rec = state.byName.get(msg.name);
-      const node = rec && (rec[msg.sizeKey] || rec.L || {})[msg.state === 'background' ? 'mono' : 'main'];
+      const rec = recFor(msg.name);
+      const slot = msg.state === 'background' ? 'mono' : 'main';
+      // ищем нужный вариант, а если его нет — берём любой доступный
+      const node =
+        (rec && rec[msg.sizeKey] && rec[msg.sizeKey][slot]) ||
+        (rec && rec[msg.sizeKey] && rec[msg.sizeKey].main) ||
+        (rec && rec[msg.sizeKey] && rec[msg.sizeKey].mono) ||
+        (rec && rec.L && rec.L[slot]) ||
+        (rec && rec.L && rec.L.main) ||
+        (rec && rec.S && rec.S[slot]) ||
+        (rec && rec.S && rec.S.main);
       if (!node) {
         post('error', { message: 'Объект не найден в библиотеке: ' + msg.name });
         return;
@@ -444,7 +550,10 @@ figma.ui.onmessage = async (msg) => {
       const c = figma.viewport.center;
       clone.x = Math.round(c.x - clone.width / 2);
       clone.y = Math.round(c.y - clone.height / 2);
-      const changed = recolorTree(clone, state.scheme);
+      // красим в схему, выбранную в UI (а не в последнюю вставленную)
+      const scheme = PALETTES.find((p) => p.id === msg.schemeId) || msg.customPalette || state.scheme || PALETTES[0];
+      state.scheme = scheme;
+      const changed = recolorTree(clone, scheme);
       figma.currentPage.selection = [clone];
       figma.viewport.scrollAndZoomIntoView([clone]);
       post('done', { action: 'insertObject', result: { name: clone.name, recolored: changed } });
@@ -472,7 +581,14 @@ figma.ui.onmessage = async (msg) => {
 
     if (msg.type === 'rescan') {
       const idx = await buildIndex();
-      post('init', { version: VERSION, palettes: PALETTES, objects: idx.objects, comps: idx.comps, file: figma.root.name });
+      post('init', {
+        version: VERSION,
+        palettes: PALETTES,
+        objects: idx.objects,
+        comps: idx.comps,
+        warnings: idx.warnings,
+        file: figma.root.name,
+      });
       return;
     }
   } catch (err) {

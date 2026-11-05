@@ -77,6 +77,7 @@
   .comp .ob { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 10px; }
   .comp .fm { color: var(--muted); font-size: 9px; }
   .note { color: var(--muted); font-size: 10px; margin: 0; }
+  .warn { color: #f0b86e; }
   .log {
     border-top: 1px solid var(--line); background: var(--panel);
     padding: 7px 12px; font-size: 10px; color: var(--muted);
@@ -227,6 +228,8 @@
               type: 'insertObject',
               name: el.dataset.name,
               sizeKey,
+              schemeId,
+              customPalette: custom,
               state: $('#bgObjects').checked ? 'background' : 'main',
             },
           },
@@ -334,6 +337,9 @@
       renderSchemes();
       renderComps();
       log(`Готово: <b>${comps.length}</b> образцов, объектов в индексе: ${msg.objects.length}`);
+      if (msg.warnings && msg.warnings.length) {
+        msg.warnings.forEach((w) => log('<span class="warn">' + w + '</span>'));
+      }
       if (!msg.objects.length) {
         log(
           'Объекты не найдены. Проверьте: открыт файл с библиотекой, страницы называются «Библиотека компонентов» и «Примеры композиций», секции — «Размер L» / «Размер S».'
