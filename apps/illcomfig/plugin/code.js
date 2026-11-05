@@ -5,7 +5,8 @@
 
 figma.showUI(__html__, { width: 380, height: 700, themeColors: true });
 
-const VERSION = '1.1.0';
+const VERSION = '1.2.0';
+const PREFERRED_COMP = '24:3592';
 
 /* ------------------------------------------------------------------ */
 /* палитры и роли цветов (те же, что в веб-версии)                     */
@@ -305,6 +306,8 @@ async function buildIndex() {
     if ('children' in n) for (const c of n.children) walk(c);
   };
   if (compsPage && compsPage !== lib) for (const child of compsPage.children) walk(child);
+  // стартовый образец «Абстракция + Наушники» (1000×1000) — первым в списке
+  state.comps.sort((a, b) => (a.id === PREFERRED_COMP ? -1 : b.id === PREFERRED_COMP ? 1 : 0));
   if (!state.comps.length) warnings.push('Не найдены образцы композиций — доступна только вставка объектов');
   if (!state.byName.size) warnings.push('Не найдены объекты библиотеки — проверьте, что открыт файл с библиотекой');
 
@@ -313,6 +316,31 @@ async function buildIndex() {
     comps: state.comps,
     warnings,
   };
+}
+
+/* ------------------------------------------------------------------ */
+/* превью объектов для панели                                          */
+/* ------------------------------------------------------------------ */
+
+// маленькие PNG-превью: экспортируем S-вариант объекта с масштабом под ~120 px
+async function buildThumbs() {
+  const out = [];
+  const labels = [...state.byName.keys()].filter((n) => !/^Group 2136/.test(n)).sort((a, b) => a.localeCompare(b, 'ru'));
+  for (const label of labels) {
+    const rec = state.byName.get(label);
+    const node = (rec.S && (rec.S.main || rec.S.mono)) || (rec.L && (rec.L.main || rec.L.mono));
+    if (!node || !node.exportAsync) continue;
+    try {
+      const max = Math.max(node.width, node.height) || 1;
+      const scale = Math.min(1, 128 / max);
+      const bytes = await node.exportAsync({ format: 'PNG', constraint: { type: 'SCALE', value: scale } });
+      const b64 = figma.base64Encode(bytes);
+      out.push({ name: label, png: 'data:image/png;base64,' + b64 });
+    } catch (e) {
+      out.push({ name: label, png: '' });
+    }
+  }
+  return out;
 }
 
 /* ------------------------------------------------------------------ */
@@ -473,6 +501,7 @@ figma.ui.onmessage = async (msg) => {
         palettes: PALETTES,
         objects: idx.objects,
         comps: idx.comps,
+        thumbs: await buildThumbs(),
         warnings: idx.warnings,
         file: figma.root.name,
       });
@@ -586,6 +615,7 @@ figma.ui.onmessage = async (msg) => {
         palettes: PALETTES,
         objects: idx.objects,
         comps: idx.comps,
+        thumbs: await buildThumbs(),
         warnings: idx.warnings,
         file: figma.root.name,
       });

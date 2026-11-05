@@ -8,8 +8,8 @@ const wrap = $("#canvas-wrap");
 const toastEl = $("#toast");
 
 const FORMATS = ["1000x1000", "1200x630", "800x1200"];
-// стартовая композиция: «Абстракция + Наушники» (1200×630), она же первая в списке
-const START_TEMPLATE_ID = "24:8127";
+// стартовая композиция: «Абстракция + Наушники» (1000×1000), она же первая в списке
+const START_TEMPLATE_ID = "24:3592";
 
 let overlay = null;
 let drag = null;

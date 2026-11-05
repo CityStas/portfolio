@@ -33,7 +33,7 @@ export async function loadData(base = "data/") {
   ]);
   DATA.library = library;
   // стартовая композиция всегда первая в списке образцов
-  const preferred = "24:8127";
+  const preferred = "24:3592";
   DATA.templates = templates.templates
     .slice()
     .sort((a, b) => (a.id === preferred ? -1 : b.id === preferred ? 1 : 0));
