@@ -141,8 +141,10 @@ window.PROJECTS = [
   // Флагманский проект идёт первым: сайт открывается утверждением «AI-Native
   // Developer», значит первая карточка должна это утверждение подтверждать.
   // 2026-10-31: порядок верхних рядов задан автором вручную - в первом ряду
-  // HC AI и 3GS Master, под ними DedSpace 2D и SPLITTER. Dubbed уехал вниз,
-  // сразу за LILCRAFT 3D (был вторым до 2026-10-31).
+  // HC AI и 3GS Master, под ними Amalia и DedSpace 2D, дальше SPLITTER и
+  // Bubble Peaks 3D. Dubbed уехал вниз, сразу за LILCRAFT 3D (был вторым
+  // до 2026-10-31). 2026-11-05: Amalia поднята из-под LILCRAFT 3D на вторую
+  // строку, к 3GS Master - по прямой просьбе автора.
   {
     title: 'HC AI',
     kind: 'AI-продукт',
@@ -197,13 +199,47 @@ window.PROJECTS = [
     shot: 'assets/img/projects/3gs-lineup.webp',
     links: { repo: 'https://github.com/CityStas/3gs_master' }
   },
+  // 2026-11-05: Amalia - чат с бухгалтером-консультантом САЛЬДО. Живая веб-версия
+  // задеплоена на Vercel (amaliachat.vercel.app), ключ OpenRouter живёт только на
+  // сервере; локальное зеркало в apps/amalia/ открывает тот же чат через iframe.
+  // Основной кадр - светлая стартовая страница (без ответа); в галерее ещё
+  // Original и New. Все кадры 1440x900 - ровно 16:10, рамка совпадает без обрезки.
+  // 2026-11-05: блок стоит сразу за 3GS Master - второй ряд открывает Amalia,
+  // справа от неё DedSpace 2D. Пару держит span: 7 у Amalia, сосед получает 5
+  // по авторасчёту (wide у DedSpace переносит акцент на левую карточку).
+  {
+    title: 'Amalia',
+    kind: 'AI-продукт',
+    desc: 'AI-чат с бухгалтером-консультантом для компании САЛЬДО. Роль задаётся системным промптом на сервере. Предусмотрены бесплатный и расширенный (платный) варианты генерации ответов.\n\n*ВАЖНО: Для стабильной работы из РФ нужен VPN/прокси.',
+    tags: ['React', 'TypeScript', 'Express', 'OpenRouter', 'SSE', 'Vercel'],
+    year: '2026',
+    status: 'live',
+    // Пара Amalia + DedSpace 2D: wide переносит акцент на левую карточку, поэтому
+    // Amalia берёт 7/12, DedSpace - 5/12. Авторасчёт даёт ровно то же самое, но
+    // флаг честнее явного span: он же работает в теме «AI-продукты» (Amalia + Dubbed).
+    wide: true,
+    // Превью карточки - светлая тема, стартовая страница без ответа.
+    shot: 'assets/img/projects/amalia-light.webp',
+    shotAspect: 1440 / 900,
+    shots: [
+      'assets/img/projects/amalia-light.webp',
+      'assets/img/projects/amalia-original.webp',
+      'assets/img/projects/amalia-new.webp'
+    ],
+    links: {
+      demo: 'https://dvodev.space/apps/amalia',
+      demoLabel: 'Открыть сайт'
+    }
+  },
   {
     title: 'DedSpace 2D',
     kind: 'Игра',
-    // 2026-10-31: карточка берёт широкую половину пары, а не SPLITTER справа:
+    // 2026-10-31: карточка брала широкую половину пары, а не SPLITTER справа:
     // игра должна читаться крупнее соседнего инструмента. Сумма пары та же (5+7),
     // поэтому сетка не меняется - см. applyFilter в app.js.
-    wide: true,
+    // 2026-11-05: пара теперь Amalia (7) + DedSpace 2D (5). Флаг wide снят: два
+    // wide в одной паре не в счёт, акцент уехал бы вправо и ряд стал бы 14 колонок.
+    // В теме «Игры» карточка идёт первой в паре (6/6), там wide всё равно не влиял.
     desc: '2D-платформер на Godot 4: игрок, подбор предметов, враги, уровни. Оптимизирован под работу в браузере.',
     tags: ['Godot 4', 'GDScript', '2D', 'Web'],
     year: '2026',
@@ -249,6 +285,9 @@ window.PROJECTS = [
   {
     title: 'LILCRAFT 3D',
     kind: 'Игра',
+    // 2026-11-05: в основной сетке пара - LILCRAFT 3D + Dubbed, у Dubbed явный
+    // span 5, поэтому широкую половину (7) забирает игра: 7+5 = 12 колонок.
+    span: 7,
     desc: 'Воксельная песочница в браузере на three.js: генерация чанков, меш-оптимизация.',
     tags: ['three.js', 'WebGL', 'Voxel', 'Web'],
     year: '2026',
@@ -256,34 +295,6 @@ window.PROJECTS = [
     shot: 'assets/img/projects/lilcraft.webp',
     links: { demo: '/games/lilcraft/', demoLabel: 'Demo', demoEmbed: true, repo: '' }
   },
-  // 2026-11-05: Amalia - чат с бухгалтером-консультантом САЛЬДО. Живая веб-версия
-  // задеплоена на Vercel (amaliachat.vercel.app), ключ OpenRouter живёт только на
-  // сервере; локальное зеркало в apps/amalia/ открывает тот же чат через iframe.
-  // Основной кадр - светлая стартовая страница (без ответа); в галерее ещё
-  // Original и New. Все кадры 1440x900 - ровно 16:10, рамка совпадает без обрезки.
-  {
-    title: 'Amalia',
-    kind: 'AI-продукт',
-    desc: 'AI-чат с бухгалтером-консультантом для компании САЛЬДО. Роль задаётся системным промптом на сервере. Предусмотрены бесплатный и расширенный (платный) варианты генерации ответов.\n\n*ВАЖНО: Для стабильной работы из РФ нужен VPN/прокси.',
-    tags: ['React', 'TypeScript', 'Express', 'OpenRouter', 'SSE', 'Vercel'],
-    year: '2026',
-    status: 'live',
-    // Пара Amalia + Dubbed: Amalia - акцентная и шире (7/12), Dubbed уже (5/12).
-    span: 7,
-    // Превью карточки - светлая тема, стартовая страница без ответа.
-    shot: 'assets/img/projects/amalia-light.webp',
-    shotAspect: 1440 / 900,
-    shots: [
-      'assets/img/projects/amalia-light.webp',
-      'assets/img/projects/amalia-original.webp',
-      'assets/img/projects/amalia-new.webp'
-    ],
-    links: {
-      demo: 'https://dvodev.space/apps/amalia',
-      demoLabel: 'Открыть сайт'
-    }
-  },
-
   // Dubbed стоит здесь, сразу за LILCRAFT 3D (2026-10-31). До этого был вторым,
   // после HC AI: верхние ряды отданы флагманам, а расширение ушло вниз.
   {
@@ -298,7 +309,8 @@ window.PROJECTS = [
     tags: ['JavaScript', 'MV3', 'Chrome', 'Firefox', 'TTS'],
     year: '2026',
     status: 'live',
-    // Пара с Amalia: Dubbed - узкая половина (5/12), Amalia шире.
+    // В основной сетке Dubbed стоит правой в паре с LILCRAFT 3D и держит 5/12;
+    // в теме «AI-продукты» он снова пара к Amalia - сумма (7+5) та же.
     span: 5,
     shot: 'assets/img/projects/dubbed.webp',
     // Та же пропорция 16:10, что у соседней Amalia: исходный кадр тоже 16:10,
