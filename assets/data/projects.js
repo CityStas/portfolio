@@ -228,7 +228,11 @@ window.PROJECTS = [
     ],
     links: {
       demo: 'https://dvodev.space/apps/amalia',
-      demoLabel: 'Открыть сайт'
+      demoLabel: 'Открыть сайт',
+      // Код чата живёт отдельным репозиторием saldo (client/server/worker,
+      // деплой на Vercel - amaliachat.vercel.app). В portfolio лежит только
+      // iframe-зеркало apps/amalia/, поэтому ссылка на исходники нужна здесь.
+      repo: 'https://github.com/CityStas/saldo'
     }
   },
   // Dubbed стоит здесь, сразу за Amalia (2026-11-05): пара 7/5 держится на флаге
