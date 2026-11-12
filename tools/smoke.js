@@ -473,7 +473,8 @@ for (const g of ['deddemo', 'bubblepeaks']) {
 // Все превью, указанные в данных, существуют
 P.forEach(p => {
   if (!p.shot) return;
-  const ok = fs.existsSync(path.join(root, p.shot));
+  // shot может нести ?v= для сброса кеша картинки - на диске это тот же файл.
+  const ok = fs.existsSync(path.join(root, p.shot.split('?')[0]));
   if (!ok) bad++;
   console.log((ok ? 'OK   ' : 'FAIL ') + 'превью из данных: ' + p.shot);
 });

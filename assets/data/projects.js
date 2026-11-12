@@ -318,7 +318,10 @@ window.PROJECTS = [
     tags: ['three.js', 'WebGL', 'Voxel', 'Web'],
     year: '2026',
     status: 'live',
-    shot: 'assets/img/projects/lilcraft.webp',
+    // 2026-11-12: превью заменено на присланный автором кадр (hero с LILCRAFT
+    // и пельменем над крышей). ?v= сбрасывает кеш картинки: у Pages
+    // max-age=600, без смены URL браузер держит старый кадр десять минут.
+    shot: 'assets/img/projects/lilcraft.webp?v=20261112e',
     links: { demo: '/games/lilcraft/', demoLabel: 'Demo', demoEmbed: true, repo: '' }
   },
   // 2026-11-12: SPLITTER скрыт из сетки по просьбе автора (вслед за VDIE).
