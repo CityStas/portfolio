@@ -135,8 +135,7 @@
     transition: transform .05s linear, box-shadow .05s linear, background .1s linear;
   }
   .btn:hover { background: #93e870; }
-  .btn.worlds { background: #d4a24c; color: #241206; }
-  .btn.worlds:hover { background: #e6b862; }
+  /* 2026-11-12: стили удалённой кнопки «Lil Worlds» больше не нужны. */
   .btn:active { transform: translate(4px, 4px); box-shadow: 0 0 0 rgba(4, 10, 20, 0.65); }
   .hints { display: flex; gap: 8px; flex-wrap: wrap; }
   .stats {
@@ -186,7 +185,10 @@
       <p class="tag rise" style="--d:.4s">Build. Break. Repeat.</p>
       <div class="actions rise" style="--d:.5s">
         <button id="btnExplore" class="btn">Start exploring</button>
-        <button id="btnWorlds" class="btn worlds">Lil Worlds</button>
+        <!-- 2026-11-12: кнопка «Lil Worlds» убрана по просьбе автора — отдельная
+             страница диорам больше не нужна. Подпапка lil-worlds/ пока оставлена
+             нетронутой, чтобы вернуть её было достаточно раскомментировать строку. -->
+        <!-- <button id="btnWorlds" class="btn worlds">Lil Worlds</button> -->
         <div class="hints">
           <span class="chip">Drag - orbit</span>
           <span class="chip">Scroll - zoom</span>
@@ -1584,7 +1586,7 @@ document.addEventListener('keydown', (e) => {
     case 'Digit7': selectBlock(6); break;
     case 'KeyC': toggleCamera(); break;
     case 'KeyP': {
-      pelmenVisible = !pelmenVisible;                        // P — пельмень + пьедестал целиком
+      pelmenVisible = !pelmenVisible;                        // P — пельмень (+ пьедестал, если SHOW_STAND)
       if (pelmen) pelmen.group.visible = pelmenVisible;
       for (const b of standMeshes) b.visible = pelmenVisible;
       for (let i = 0; i < standKeys.length; i++) {
@@ -1680,10 +1682,13 @@ btnTex.addEventListener("click", () => setTexMode(!texMode));
 
 document.getElementById("btnExplore").addEventListener("click", startGame);
 
-// Lil Worlds — собранные воксельные диорамы (voxel-diorama), в подпапке lil-worlds/
-document.getElementById("btnWorlds").addEventListener("click", () => {
-  window.open("lil-worlds/index.html", "_blank");
-});
+// 2026-11-12: кнопка «Lil Worlds» убрана из интерфейса, поэтому обработчик
+// убран вместе с ней: getElementById вернул бы null и уронил бы весь модуль.
+// Страница lil-worlds/index.html лежит на месте, но из игры на неё больше
+// нет ссылки. Вернуть = раскомментировать кнопку в разметке и блок ниже.
+// document.getElementById("btnWorlds").addEventListener("click", () => {
+//   window.open("lil-worlds/index.html", "_blank");
+// });
 
 const totalBlocks = japanCount;
 document.getElementById("statBlocks").textContent = totalBlocks.toLocaleString() + " blocks";
@@ -1692,6 +1697,15 @@ const statFps = document.getElementById("statFps");
 let fpsFrames = 0, fpsTimer = 0;
 
 /* ======================== special block stand ======================== */
+
+// 2026-11-12: каменный пьедестал убран по просьбе автора. Пельмень теперь
+// левитирует прямо над коньком крыши, сохраняя ТОТ ЖЕ минимальный зазор
+// LEV_GAP, что раньше отделял его от верха пьедестала: STAND.top стал равен
+// ridgeTop, поэтому модель опустилась ровно на высоту пьедестала (H = 3
+// блока). Амплитуда покачивания, скорость вращения и зазор не меняются.
+// Вернуть пьедестал можно одним переключателем ниже: меши, коллизии,
+// клавиша P и resetGame уже умеют с ним работать.
+const SHOW_STAND = false;
 
 // каменные оттенки (серый, стиль Minecraft: светлые и тёмные кубы вперемешку)
 const STONE_TONES = [0x8d939c, 0x7f858d, 0x959ba3, 0x878d95, 0x9aa0a8];
@@ -1724,21 +1738,27 @@ function buildStand() {
   // мини-уровень: пельмень висит над коньком крыши додзё. Подняться можно
   // двумя путями — построить башню вдоль стены или забраться по ярусам крыши
   // (каждый ярус — ступень в 1 блок) от карниза на y=27.
-  // baseY = ridgeTop (первая СВОБОДНАЯ клетка над коньком): постамент стоит
+  // baseY = ridgeTop (первая СВОБОДНАЯ клетка над коньком): постамент стоял
   // НА коньке. Раньше было ridgeTop-1 — блок постамента садился в ту же клетку,
   // что и воксель конька, и они дрались за глубину (z-fighting).
   const baseY = ridgeTop;
-  const W = 3, D = 3, H = 3;               // компактный каменный постамент
+  const W = 3, D = 3, H = 3;               // компактный каменный постамент (при SHOW_STAND)
   const x0 = gx0 - Math.floor(W / 2), z0 = gz0 - Math.floor(D / 2);
-  for (let dz = 0; dz < D; dz++)
-    for (let dx = 0; dx < W; dx++)
-      for (let h = 0; h < H; h++)
-        standBlock(x0 + dx, baseY + h, z0 + dz, STONE_TONES[Math.floor(rng() * STONE_TONES.length)]);
+  // Пьедестал не строим: ни мешей, ни блоков в solid, ни лишних draw calls —
+  // игрок теперь свободно ходит по коньку. При SHOW_STAND = true цикл ниже
+  // восстанавливает прежние 3x3x3 куба и все связанные коллизии.
+  if (SHOW_STAND)
+    for (let dz = 0; dz < D; dz++)
+      for (let dx = 0; dx < W; dx++)
+        for (let h = 0; h < H; h++)
+          standBlock(x0 + dx, baseY + h, z0 + dz, STONE_TONES[Math.floor(rng() * STONE_TONES.length)]);
 
   return {
-    wx: x0 + W / 2.0 - SIZE / 2,
+    wx: x0 + W / 2.0 - SIZE / 2,           // центр конька по X/Z — пельмень не сдвигается
     wz: z0 + D / 2.0 - SIZE / 2,
-    top: topOfColumn(gx0, gz0),            // реальный пол поверх постамента
+    // пол, над которым висит пельмень: поверх пьедестала, а когда он скрыт —
+    // поверхность самого конька. topOfColumn учитывает это автоматически.
+    top: topOfColumn(gx0, gz0),
     baseY,
   };
 }
@@ -1749,7 +1769,7 @@ let pelmen = null;                     // { group, ox, oyBase, oz, halfH }
 const STAND = buildStand();
 // параметры левитации (единые для позиции и анимации)
 const LEV_AMT = 0.36;                  // амплитуда покачивания вверх-вниз
-const LEV_GAP = 0.30;                  // всегда остающийся зазор между низом пельменя и постаментом
+const LEV_GAP = 0.30;                  // минимальный зазор между низом пельменя и опорой (конёк крыши / верх пьедестала)
 
 const PELMEN_UP = new THREE.Vector3(0, 1, 0);
 const PELMEN_Q = THREE.Quaternion ? new THREE.Quaternion() : null;
@@ -1793,10 +1813,12 @@ async function loadPelmen() {
 
     const wx = STAND.wx, wz = STAND.wz;
     // базовый y: центр покачивания ставим так, чтобы в нижней точке (oyBase - LEV_AMT)
-    // низ пельменя оставался на LEV_GAP выше колонны => оyBase = top + LEV_GAP + LEV_AMT
+    // низ пельменя оставался на LEV_GAP выше опоры => оyBase = top + LEV_GAP + LEV_AMT.
+    // STAND.top теперь = верхушка конька, поэтому модель висит над крышей на том же
+    // расстоянии, на каком раньше висела над пьедесталом (минус ровно 3 блока).
     const oyBase = (STAND.top + LEV_GAP + LEV_AMT) - min2.y;
 
-    // X/Z — геометрический центр бокса модели на геометрический центр платформы
+    // X/Z — геометрический центр бокса модели на геометрический центр конька
     pelmen = { group: root, ox: wx - center2.x, oyBase, oz: wz - center2.z, cy: oyBase + center2.y };
     root.position.set(pelmen.ox, pelmen.oyBase, pelmen.oz);
     root.updateMatrix();
@@ -1962,7 +1984,7 @@ renderer.setAnimationLoop(() => {
   if (water) water.position.y = WATER_Y + Math.sin(t * 0.9) * 0.05;
   if (waterMat) waterMat.opacity = 0.40 + Math.sin(t * 1.4) * 0.05;
 
-  // медленная плавная левитация пельменя над стендом
+  // медленная плавная левитация пельменя над коньком крыши (пьедестал скрыт)
   if (pelmen) {
     const g = pelmen.group;
     g.position.set(pelmen.ox, pelmen.oyBase + Math.sin(t * 0.8) * LEV_AMT, pelmen.oz);
