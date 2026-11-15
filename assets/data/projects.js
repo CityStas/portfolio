@@ -232,8 +232,11 @@ window.PROJECTS = [
       demoLabel: 'Открыть сайт',
       // Код чата живёт отдельным репозиторием saldo (client/server/worker,
       // деплой на Vercel - amaliachat.vercel.app). В portfolio лежит только
-      // iframe-зеркало apps/amalia/, поэтому ссылка на исходники нужна здесь.
-      repo: 'https://github.com/CityStas/saldo'
+      // iframe-зеркало apps/amalia/.
+      // 2026-11-15: кнопка GitHub с карточки убрана по просьбе автора (вместе
+      // с Dubbed). Адрес оставлен рядом: вернуть - раскомментировать repo и
+      // поставить запятую после demoLabel.
+      // repo: 'https://github.com/CityStas/saldo'
     }
   },
 
@@ -289,8 +292,13 @@ window.PROJECTS = [
     shotAspect: 1440 / 900,
     // Лендинг зеркалится в apps/dubbed/ вместе с установщиками: с dubbed.dvodev.space
     // без VPN отдавалась примерно половина запросов, и .zip/.xpi могли не скачаться.
-    // repo - репозиторий расширения на GitHub (там же лендинг и сборки).
-    links: { demo: '/apps/dubbed/', repo: 'https://github.com/CityStas/dubbed' }
+    // 2026-11-15: кнопка GitHub с карточки убрана по просьбе автора (вместе с
+    // Amalia). Адрес оставлен рядом: вернуть - раскомментировать repo и
+    // поставить запятую после demo.
+    links: {
+      demo: '/apps/dubbed/'
+      // repo: 'https://github.com/CityStas/dubbed'
+    }
   },
 
   // 2026-11-15: 3GS Master ушёл из верхнего ряда в третий - теперь он открывает
