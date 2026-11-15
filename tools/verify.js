@@ -296,8 +296,8 @@ function check(name, got, expected) {
 
     // Мультитема: проект из themes[] обязан находиться в каждом своём чипе.
     // VDIE из мультитемы ушёл (стал чистым «Инструментом»), ModelLab скрыт
-    // (2026-11-05, скрыт повторно), поэтому первый такой проект — 3GS Master
-    // (2026-11-05: Dubbed стоит сразу за Amalia).
+    // (2026-11-05, скрыт повторно). С 2026-11-15 порядок карточек такой, что
+    // первый мультитемный проект — Dubbed (3GS Master уехал в третий ряд).
     const multi = await page.evaluate(() => {
       const p = window.PROJECTS.filter(x => x.themes && x.themes.length > 1)[0];
       return p ? { title: p.title, themes: p.themes } : null;
